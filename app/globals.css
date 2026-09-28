@@ -4,12 +4,108 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Border with a bright arc that orbits a faint ring: three turns in 5 s. When
+ * the turns end the ring and the arc tip fill in with the primary color, so the
+ * border rests complete for 6 s, and fades back to the faint ring right before the next
+ * spin (11 s loop). Use as `rotating-border` on an element with rounded
+ * corners. The animated values are registered properties so they can
+ * interpolate; without support the border stays a static faint ring, and
+ * with reduced motion it stays a complete primary ring.
+ */
+@property --spin-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --ring-base {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: rgb(15 23 42 / 0.22);
+}
+
+@property --ring-tip {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: rgb(4 120 87);
+}
+
+@keyframes border-spin {
+  0% {
+    --spin-angle: 0deg;
+  }
+  45.4545%,
+  100% {
+    --spin-angle: 1080deg;
+  }
+}
+
+@keyframes border-fill {
+  0%,
+  40%,
+  100% {
+    --ring-base: rgb(15 23 42 / 0.22);
+    --ring-tip: var(--accent);
+  }
+  45.4545%,
+  95% {
+    --ring-base: var(--primary);
+    --ring-tip: var(--primary);
+  }
+}
+
+@utility rotating-border {
+  --border-fill: var(--card);
+  border: 3px solid transparent;
+  background:
+    linear-gradient(var(--border-fill), var(--border-fill)) padding-box,
+    conic-gradient(
+        from var(--spin-angle),
+        var(--ring-base) 0deg 170deg,
+        var(--primary) 290deg,
+        var(--ring-tip) 350deg,
+        var(--ring-base) 360deg
+      )
+      border-box;
+  animation:
+    border-spin 11s ease-in-out infinite,
+    border-fill 11s ease-in-out infinite;
+
+  &:hover {
+    --border-fill: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    --ring-base: var(--primary);
+    --ring-tip: var(--primary);
+  }
+}
+
+/* Two beats per cycle, three cycles: 4 s in total. Use as `animate-heartbeat`. */
+@theme {
+  --animate-heartbeat: heartbeat 1.3333s ease-in-out 3;
+
+  @keyframes heartbeat {
+    0%,
+    28%,
+    70%,
+    100% {
+      transform: scale(1);
+    }
+    14%,
+    42% {
+      transform: scale(1.04);
+    }
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-poppins);
+  --font-heading: var(--font-poppins);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,30 +145,30 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EFF4FF;
+  --secondary-foreground: #1E3A8A;
+  --muted: #F1F5FD;
+  --muted-foreground: #475569;
+  --accent: #047857;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --border: #E4ECFC;
+  --input: #E4ECFC;
+  --ring: #2563EB;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -81,40 +177,6 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
@@ -126,5 +188,11 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
