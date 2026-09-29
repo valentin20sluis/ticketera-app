@@ -1,6 +1,6 @@
 # Landing Design Foundation
 
-Estado: draft
+Estado: approved
 
 ## Objetivo
 Sentar la base visual y de datos de "Ticketera" (tokens de marca, componentes shadcn/shared necesarios y el módulo mock de eventos) e implementar sobre esa base la página de landing completa (desktop y mobile), tal como la describe el mockup de referencia. Sirve tanto a usuarios finales (primera pantalla del producto) como a las fases siguientes, que reutilizarán los mismos tipos y componentes de datos.
