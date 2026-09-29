@@ -88,7 +88,7 @@ Lógica de selección/filtrado de eventos (sobre el tipo definido en T2) y el es
 - Grupo paralelo: G2
 - Cubre: AC-6, AC-9
 - Tests: `event.service.test.ts` — `getFeaturedEvents` filtra `featured: true`; `getEventsByCategory` con `"all"`/`undefined` devuelve todos, con un id específico filtra. `useHeroCarousel.test.ts` (fake timers) — auto-avance cada `intervalMs`, wrap-around de `next`/`prev` en ambos límites, `togglePause` detiene y reanuda el auto-avance.
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Componentes de UI del dominio events
 Componentes presentacionales que consumen los tipos (T2), utils (T3) y service/hook (T4) ya definidos y testeados. Contratos de props: `HeroCarousel({ events: Event[] })` (recibe ya filtrados por `featured`), `CategoryChips({ categories: EventCategory[] })`, `UpcomingEventsSection({ events: Event[], categories: EventCategory[] })` (maneja el `useState` del tab seleccionado y llama a `getEventsByCategory`), `HowItWorksSection()` (sin props, contenido estático de 3 pasos), `EventCard({ event: Event })`.
