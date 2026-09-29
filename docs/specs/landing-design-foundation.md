@@ -1,6 +1,6 @@
 # Landing Design Foundation
 
-Estado: approved
+Estado: in-progress
 
 ## Objetivo
 Sentar la base visual y de datos de "Ticketera" (tokens de marca, componentes shadcn/shared necesarios y el módulo mock de eventos) e implementar sobre esa base la página de landing completa (desktop y mobile), tal como la describe el mockup de referencia. Sirve tanto a usuarios finales (primera pantalla del producto) como a las fases siguientes, que reutilizarán los mismos tipos y componentes de datos.
@@ -51,7 +51,7 @@ Agrega los tokens de índigo (marca) y naranja (CTA) como variables nuevas junto
 - Grupo paralelo: G1
 - Cubre: AC-4
 - Tests: no aplica (variables CSS, sin lógica — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Contrato del dominio events: tipos + datos mock
 Define el shape de `Event`/`EventCategory` que van a reusar landing y las fases siguientes (catálogo, detalle, checkout), y la fixture estática de datos.
@@ -62,7 +62,7 @@ Define el shape de `Event`/`EventCategory` que van a reusar landing y las fases 
 - Grupo paralelo: G1
 - Cubre: AC-5
 - Tests: no aplica (tipos y fixture estática sin lógica — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Utilidades puras de formato
 Formateo de fecha (badge mes/día) y de precio en soles, reutilizables por cualquier componente que muestre eventos.
@@ -75,7 +75,7 @@ Formateo de fecha (badge mes/día) y de precio en soles, reutilizables por cualq
 - Grupo paralelo: G1
 - Cubre: AC-7, AC-8
 - Tests: `format-event-date.test.ts` — al menos dos meses distintos, día con padding de un dígito; `format-currency.test.ts` — montos enteros, símbolo "S/", sin decimales.
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Servicio de eventos + hook del hero carousel
 Lógica de selección/filtrado de eventos (sobre el tipo definido en T2) y el estado del carrusel del hero (índice, wrap-around, autoplay/pausa), ambos sin UI.
