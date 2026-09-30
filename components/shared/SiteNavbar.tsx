@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sheet"
 
 const NAV_LINKS = [
-  { label: "Eventos", href: "/#eventos" },
+  { label: "Eventos", href: "/eventos" },
   { label: "Categorías", href: "/#categorias" },
   { label: "Cómo funciona", href: "/#como-funciona" },
 ]
