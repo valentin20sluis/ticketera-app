@@ -107,7 +107,7 @@ Compone T2 (service, para los derivados de `maxQuantity`)+T3 (hook)+T4 (componen
 - Grupo paralelo: G3
 - Cubre: AC-14, AC-15
 - Tests: no aplica (componente de composición, la lógica ya está testeada en T2/T3 — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T6 — Ruta `/eventos/[slug]/entradas` + conexión del sidebar
 Página que resuelve el evento por slug (`notFound()` si no existe) y las zonas del venue, y renderiza T5; conecta el botón "Elegir entradas" del sidebar de detalle (Fase 3) a la nueva ruta.
