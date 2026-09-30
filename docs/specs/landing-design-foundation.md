@@ -1,6 +1,6 @@
 # Landing Design Foundation
 
-Estado: in-progress
+Estado: done
 
 ## Objetivo
 Sentar la base visual y de datos de "Ticketera" (tokens de marca, componentes shadcn/shared necesarios y el módulo mock de eventos) e implementar sobre esa base la página de landing completa (desktop y mobile), tal como la describe el mockup de referencia. Sirve tanto a usuarios finales (primera pantalla del producto) como a las fases siguientes, que reutilizarán los mismos tipos y componentes de datos.
@@ -102,7 +102,7 @@ Componentes presentacionales que consumen los tipos (T2), utils (T3) y service/h
 - Grupo paralelo: G3
 - Cubre: AC-3, AC-11, AC-12, AC-13, AC-14
 - Tests: no aplica (componentes presentacionales que solo componen tipos/service/hook ya testeados, sin lógica propia no trivial — SETUP.md 3.2)
-- [ ] Completada (reabierta en corrección ronda 2, ver nota de `UpcomingEventsSection.tsx` arriba)
+- [x] Completada
 
 ### T6 — Chrome del sitio + newsletter + composición de la landing
 Navbar y footer de layout (reutilizables por las fases futuras), card de newsletter (solo UI, estado local de éxito simulado) y el ensamblado final de la página usando los componentes de T5 con los datos de `modules/events/data/events.mock.ts`.
@@ -117,7 +117,7 @@ Navbar y footer de layout (reutilizables por las fases futuras), card de newslet
 - Grupo paralelo: G4
 - Cubre: AC-1, AC-3, AC-10
 - Tests: no aplica (componentes presentacionales y página de composición — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ## Notas para fases siguientes (no bloqueantes en esta spec)
 - `EventCard` y `HeroCarousel` resuelven el nombre de categoría importando `MOCK_CATEGORIES` directamente en vez de recibir `categories` como prop (hallazgo `minor/spec` del reviewer en T5). Válido mientras todo sea mock estático; cuando el catálogo/detalle (fases 2-3) reemplace el mock por datos reales, evaluar si conviene que reciban `categories` como prop para desacoplarlos de `modules/events/data/events.mock`.
