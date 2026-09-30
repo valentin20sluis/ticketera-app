@@ -85,7 +85,7 @@ Componentes presentacionales de la parte superior de la página: banner + accion
 - Grupo paralelo: G2
 - Cubre: AC-8, AC-9, AC-10
 - Tests: no aplica (componentes presentacionales sin lógica propia no trivial — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Sidebar de compra y sección de recomendados
 Sidebar de "Entradas desde" (placeholder de compra) y el bloque de eventos relacionados, que reutiliza `EventCard` (ya conectado en T2) sin reimplementar su marcado.
@@ -96,7 +96,7 @@ Sidebar de "Entradas desde" (placeholder de compra) y el bloque de eventos relac
 - Grupo paralelo: G2
 - Cubre: AC-11, AC-12
 - Tests: no aplica (componentes presentacionales sin lógica propia no trivial — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Ruta `/eventos/[slug]`
 Página que resuelve el evento por slug (`notFound()` si no existe), calcula los relacionados y compone T3+T4 en el layout responsive final.
