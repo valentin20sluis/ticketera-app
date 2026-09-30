@@ -1,6 +1,6 @@
 # Event Detail
 
-Estado: in-progress
+Estado: done
 
 ## Objetivo
 Dar a los usuarios una página de detalle (`/eventos/[slug]`) para un evento específico, con toda la información necesaria para decidir la compra (fecha, ubicación, descripción, datos prácticos y precio) y un punto de entrada visual hacia el flujo de compra, reutilizando `EventCard` y el resto de la base ya construida en las fases 1 y 2. Conecta además el botón "Ver entradas" de `EventCard`, que hoy no navega a ningún lado.
@@ -106,7 +106,7 @@ Página que resuelve el evento por slug (`notFound()` si no existe), calcula los
 - Grupo paralelo: G3
 - Cubre: AC-1, AC-2, AC-7, AC-13, AC-14
 - Tests: no aplica (página de composición y data-fetching sobre servicios ya testeados — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ## Fases siguientes
 - Fase 4: selección de zona/asientos (venue map SVG propio) + paso 1 de checkout, incluyendo la ruta `/eventos/[slug]/entradas` que esta fase deja sin implementar.
