@@ -1,6 +1,6 @@
 # Ticket Selection
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Dar a los usuarios, desde el detalle de un evento, una página de selección de entradas (`/eventos/[slug]/entradas`) donde elijan zona(s) del venue en un mapa SVG propio, ajusten cantidad por zona y vean un resumen de compra con el total — dejando el botón "Continuar" listo para conectarse al checkout real en la Fase 5, y conectando el CTA "Elegir entradas" del sidebar de detalle (Fase 3) a esta ruta.
