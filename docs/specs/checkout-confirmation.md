@@ -93,7 +93,7 @@ Estado del formulario de comprador/pago/términos con validación vía el schema
 - Grupo paralelo: G2
 - Cubre: AC-7, AC-8, AC-9
 - Tests: `useCheckoutForm.test.ts` (con `renderHook`/`act`) — estado inicial; `updateBuyerField`/`updateCardField`/`setPaymentMethod`/`setTermsAccepted` aíslan su campo; `validate()` con todos los campos válidos y método `"card"` (true), con método `"yape"` sin tocar `card` (true), con `email` inválido (false + `errors["buyer.email"]`), con `termsAccepted` en `false` (false + `errors["termsAccepted"]`).
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Piezas presentacionales del checkout: stepper, formulario de comprador, método de pago, ticket stub
 Componentes sin estado propio no trivial: indicador de 3 pasos reutilizable, formulario de datos del comprador, selector de método de pago + campos de tarjeta + términos, y la tarjeta visual de una entrada individual con QR.
@@ -106,7 +106,8 @@ Componentes sin estado propio no trivial: indicador de 3 pasos reutilizable, for
 - Grupo paralelo: G2
 - Cubre: AC-10, AC-11, AC-12, AC-13
 - Tests: no aplica (componentes presentacionales sin lógica propia no trivial — SETUP.md 3.2)
-- [ ] Completada
+- Nota no bloqueante del reviewer (ronda 1): en `PaymentMethodSection.tsx` el `RadioGroupItem` enfocable tiene `className="sr-only"` y el `<label>` que lo envuelve no refleja el foco por teclado visualmente (funciona con mouse/Space, pero Tab no muestra qué tarjeta está enfocada). Pendiente de pulir antes de la verificación visual final de esta fase.
+- [x] Completada
 
 ### T5 — Orquestadores de paso 2 y 3 + extensión de TicketSummary
 Compone T3 (hook) + T4 (piezas) en las vistas completas de "Datos y pago" y "Confirmación"; extiende `TicketSummary` (Fase 4) para poder reutilizarse como CTA "Pagar" del paso 2.
