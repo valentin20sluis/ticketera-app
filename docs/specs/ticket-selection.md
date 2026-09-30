@@ -63,7 +63,7 @@ Define el tipo `VenueZone`/`VenueZoneShape`/`ZoneSelectionStatus` que van a reus
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: no aplica (tipos y fixture estática sin lógica — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Servicio de zonas de venue
 Lógica pura de acceso a las zonas y cálculo de disponibilidad/máximo por zona, reutilizada por el hook (T3), los componentes (T4) y la página (T6).
