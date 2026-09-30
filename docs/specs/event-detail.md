@@ -55,11 +55,13 @@ Agrega los 4 campos nuevos a `Event`, los puebla en los 10 eventos existentes, y
   - `modules/events/data/events.mock.ts` (modificar)
   - `modules/events/services/event.service.ts` (modificar)
   - `modules/events/services/event.service.test.ts` (modificar)
+  - `modules/events/services/event-filter.service.test.ts` (modificar — corrección ronda 2: su `buildEvent` local, de la Fase 2, no tiene los 4 campos nuevos; ahora que son requeridos en `Event`, agregar valores dummy a ese helper para que vuelva a tipar)
+  - `modules/events/hooks/useEventFilters.test.ts` (modificar — corrección ronda 2: mismo problema, su propio `buildEvent` local necesita los 4 campos nuevos)
 - Depende de: ninguna
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
-- Tests: `event.service.test.ts` — `getEventBySlug` con slug existente y slug inexistente; `getRelatedEvents` con categoría con eventos suficientes, con categoría con menos eventos que `limit` (verifica el relleno con otras categorías) y con un `limit` explícito distinto del default, en los tres casos verificando que nunca incluye `currentEvent`.
-- [ ] Completada
+- Tests: `event.service.test.ts` — `getEventBySlug` con slug existente y slug inexistente; `getRelatedEvents` con categoría con eventos suficientes, con categoría con menos eventos que `limit` (verifica el relleno con otras categorías) y con un `limit` explícito distinto del default, en los tres casos verificando que nunca incluye `currentEvent`. `event-filter.service.test.ts`/`useEventFilters.test.ts` (ya existentes, de la Fase 2) deben seguir pasando tal cual, solo con su `buildEvent` local actualizado.
+- [ ] Completada (reabierta en corrección ronda 2 — ver los 2 archivos de test agregados arriba)
 
 ### T2 — Utilidad de fecha/hora completa + conexión de EventCard
 Extrae `formatFullEventDate` de `EventCard.tsx` al util compartido (con test, ya que deja de estar exenta por ser presentacional), agrega `formatEventTime`, y conecta el botón "Ver entradas" de `EventCard` a la nueva ruta de detalle.
