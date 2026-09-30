@@ -68,7 +68,7 @@ Lógica pura de búsqueda, filtros (categoría, ciudad, mes, rango de precio) y 
 - Grupo paralelo: G2
 - Cubre: AC-6, AC-7
 - Tests: `event-filter.service.test.ts` — `applyEventFilters` con cada filtro por separado (`query`, `categoryIds`, `cities`, `month`, `priceRangeId`), un caso con 2+ filtros combinados, y `sortBy: "date"`/`"price"`; `getCategoryCounts` incluye categorías con conteo `0`; `getAvailableCities` devuelve únicas y ordenadas; `getAvailableMonths` devuelve únicos, ordenados cronológicamente, con `label` capitalizado.
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Componentes presentacionales de búsqueda y filtros
 Barra de búsqueda y panel de filtros (categoría/ciudad/fecha/precio + "Limpiar filtros"), ambos sin estado propio: reciben valores y callbacks por props (consumidos luego por el hook de T4 vía el orquestador de T5). Requiere `components/ui/checkbox` y `components/ui/radio-group` ya instalados.
@@ -79,7 +79,7 @@ Barra de búsqueda y panel de filtros (categoría/ciudad/fecha/precio + "Limpiar
 - Grupo paralelo: G2
 - Cubre: AC-9, AC-10
 - Tests: no aplica (componentes presentacionales sin lógica propia — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Hook de estado de filtros del catálogo
 Orquesta el estado de `EventFilters`, calcula `filteredEvents`/`categoryCounts`/`availableCities`/`availableMonths` vía el service de T2, y expone los setters que va a consumir `EventsCatalog`.
