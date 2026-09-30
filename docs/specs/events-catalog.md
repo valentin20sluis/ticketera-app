@@ -90,7 +90,7 @@ Orquesta el estado de `EventFilters`, calcula `filteredEvents`/`categoryCounts`/
 - Grupo paralelo: G3
 - Cubre: AC-8
 - Tests: `useEventFilters.test.ts` — estado inicial por defecto; `toggleCategory`/`toggleCity` agregan y quitan; `setQuery`/`setMonth`/`setPriceRangeId`/`setSortBy` actualizan `filters` y `filteredEvents` en consecuencia; `resetFilters` vuelve a los valores por defecto.
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Componente orquestador del catálogo
 Compone `EventSearchBar` (T3) + `EventFilterPanel` (T3) dentro de un `aside` desktop y un `Sheet` mobile + control de orden (`tabs`) + contador/estado vacío + grid de `EventCard`, todo alimentado por `useEventFilters` (T4).
