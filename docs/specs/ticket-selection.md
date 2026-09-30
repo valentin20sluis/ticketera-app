@@ -1,6 +1,6 @@
 # Ticket Selection
 
-Estado: in-progress
+Estado: done
 
 ## Objetivo
 Dar a los usuarios, desde el detalle de un evento, una página de selección de entradas (`/eventos/[slug]/entradas`) donde elijan zona(s) del venue en un mapa SVG propio, ajusten cantidad por zona y vean un resumen de compra con el total — dejando el botón "Continuar" listo para conectarse al checkout real en la Fase 5, y conectando el CTA "Elegir entradas" del sidebar de detalle (Fase 3) a esta ruta.
@@ -118,7 +118,7 @@ Página que resuelve el evento por slug (`notFound()` si no existe) y las zonas 
 - Grupo paralelo: G4
 - Cubre: AC-1, AC-2, AC-16, AC-17
 - Tests: no aplica (página de composición/data-fetching y cambio de un `Button` ya testeado indirectamente por el patrón de `EventCard` — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ## Fases siguientes
 - Fase 5: checkout paso 2 (datos y pago, consumiendo `lines`/`totalAmount` de esta fase) + paso 3 (confirmación con QR estilo "ticket stub").
