@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { CalendarIcon, MapPinIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { formatPrice } from "@/lib/format-currency"
 import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
 import type { Event, EventStatus } from "@/modules/events/types/event.types"
-import { formatEventDateBadge } from "@/modules/events/utils/format-event-date"
+import { formatEventDateBadge, formatFullEventDate } from "@/modules/events/utils/format-event-date"
 
 interface EventCardProps {
   event: Event
@@ -17,14 +18,6 @@ interface EventCardProps {
 const STATUS_LABELS: Partial<Record<EventStatus, string>> = {
   "last-tickets": "Últimas entradas",
   "sold-out": "Agotado",
-}
-
-function formatFullEventDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString("es-PE", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
 }
 
 export function EventCard({ event }: EventCardProps) {
@@ -84,7 +77,9 @@ export function EventCard({ event }: EventCardProps) {
         <span className="text-sm font-medium text-foreground">
           Desde {formatPrice(event.priceFrom)}
         </span>
-        <Button size="sm">Ver entradas</Button>
+        <Button size="sm" render={<Link href={`/eventos/${event.slug}`} />}>
+          Ver entradas
+        </Button>
       </CardFooter>
     </Card>
   )

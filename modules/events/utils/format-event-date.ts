@@ -22,3 +22,19 @@ export function formatEventDateBadge(isoDate: string): { month: string; day: str
     day: day.padStart(2, "0"),
   }
 }
+
+export function formatFullEventDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString("es-PE", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
+export function formatEventTime(isoDate: string): string {
+  return new Date(isoDate).toLocaleTimeString("es-PE", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: false,
+  })
+}
