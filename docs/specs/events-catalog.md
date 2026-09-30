@@ -100,7 +100,7 @@ Compone `EventSearchBar` (T3) + `EventFilterPanel` (T3) dentro de un `aside` des
 - Grupo paralelo: G4
 - Cubre: AC-11, AC-12, AC-13, AC-14
 - Tests: no aplica (componente de composición, la lógica ya está testeada en T2/T4 — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T6 — Ruta `/eventos` + link de navbar
 Página que compone `EventsCatalog` con `MOCK_EVENTS`/`MOCK_CATEGORIES`, y actualiza el link "Eventos" del navbar para que apunte a la nueva ruta.
