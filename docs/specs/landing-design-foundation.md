@@ -96,13 +96,13 @@ Componentes presentacionales que consumen los tipos (T2), utils (T3) y service/h
   - `modules/events/components/EventCard.tsx` (crear)
   - `modules/events/components/HeroCarousel.tsx` (crear)
   - `modules/events/components/CategoryChips.tsx` (crear)
-  - `modules/events/components/UpcomingEventsSection.tsx` (crear)
+  - `modules/events/components/UpcomingEventsSection.tsx` (crear; corrección ronda 2: su prop `categories` no debe ser `EventCategory[]` completo — pasar el ícono de Lucide, una función, desde un Server Component a este Client Component rompe `npm run build`. Acota el tipo a solo los campos serializables que usa, ej. `Pick<EventCategory, "id" | "name">[]`)
   - `modules/events/components/HowItWorksSection.tsx` (crear)
 - Depende de: T2, T3, T4
 - Grupo paralelo: G3
 - Cubre: AC-3, AC-11, AC-12, AC-13, AC-14
 - Tests: no aplica (componentes presentacionales que solo componen tipos/service/hook ya testeados, sin lógica propia no trivial — SETUP.md 3.2)
-- [x] Completada
+- [ ] Completada (reabierta en corrección ronda 2, ver nota de `UpcomingEventsSection.tsx` arriba)
 
 ### T6 — Chrome del sitio + newsletter + composición de la landing
 Navbar y footer de layout (reutilizables por las fases futuras), card de newsletter (solo UI, estado local de éxito simulado) y el ensamblado final de la página usando los componentes de T5 con los datos de `modules/events/data/events.mock.ts`.
@@ -110,8 +110,9 @@ Navbar y footer de layout (reutilizables por las fases futuras), card de newslet
   - `components/shared/SiteNavbar.tsx` (crear)
   - `components/shared/SiteFooter.tsx` (crear)
   - `components/shared/NewsletterCard.tsx` (crear)
-  - `app/page.tsx` (modificar — reemplaza el boilerplate de create-next-app por la landing)
+  - `app/page.tsx` (modificar — reemplaza el boilerplate de create-next-app por la landing; corrección ronda 2: al pasar categorías a `UpcomingEventsSection`, mapear `MOCK_CATEGORIES` a solo los campos serializables que ese componente ya acepta tras su corrección, sin el `icon`)
   - `app/layout.tsx` (modificar — metadata "Ticketera" + `SiteNavbar`/`SiteFooter` envolviendo `children`, conserva el wiring de Geist Sans/Mono)
+  - `__tests__/page.test.tsx` (eliminar — corrección ronda 2: era el test del boilerplate de create-next-app, quedó huérfano al reemplazar `app/page.tsx`; `docs/SETUP.md` 3.2 no exige test para una página que solo compone)
 - Depende de: T1, T5
 - Grupo paralelo: G4
 - Cubre: AC-1, AC-3, AC-10
