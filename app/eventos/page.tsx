@@ -1,5 +1,3 @@
-"use client"
-
 import { EventsCatalog } from "@/modules/events/components/EventsCatalog"
 import { MOCK_CATEGORIES, MOCK_EVENTS } from "@/modules/events/data/events.mock"
 
@@ -15,7 +13,10 @@ export default function EventosPage() {
         </p>
       </div>
 
-      <EventsCatalog events={MOCK_EVENTS} categories={MOCK_CATEGORIES} />
+      <EventsCatalog
+        events={MOCK_EVENTS}
+        categories={MOCK_CATEGORIES.map(({ id, name }) => ({ id, name }))}
+      />
     </section>
   )
 }

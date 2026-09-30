@@ -116,7 +116,7 @@ export function applyEventFilters(events: Event[], filters: EventFilters): Event
 
 export function getCategoryCounts(
   events: Event[],
-  categories: EventCategory[],
+  categories: Pick<EventCategory, "id" | "name">[],
 ): Record<string, number> {
   const counts: Record<string, number> = {}
 

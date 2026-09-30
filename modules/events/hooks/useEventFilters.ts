@@ -15,7 +15,7 @@ import type { EventFilters, SortOption } from "@/modules/events/types/event-filt
 
 interface UseEventFiltersOptions {
   events: Event[]
-  categories: EventCategory[]
+  categories: Pick<EventCategory, "id" | "name">[]
 }
 
 interface UseEventFiltersResult {

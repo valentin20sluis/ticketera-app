@@ -20,7 +20,7 @@ import type { SortOption } from "@/modules/events/types/event-filter.types"
 
 interface EventsCatalogProps {
   events: Event[]
-  categories: EventCategory[]
+  categories: Pick<EventCategory, "id" | "name">[]
 }
 
 export function EventsCatalog({ events, categories }: EventsCatalogProps) {
