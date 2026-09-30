@@ -1,6 +1,6 @@
 # Events Catalog
 
-Estado: in-progress
+Estado: done
 
 ## Objetivo
 Dar a los usuarios una página de catálogo (`/eventos`) donde puedan buscar por texto, filtrar por categoría/ciudad/fecha/precio y ordenar los eventos mock existentes, reutilizando `EventCard` y el resto de la base visual de la Fase 1. Resuelve la necesidad de descubrir eventos más allá del home (que solo muestra destacados/tabs por categoría), sin todavía depender de un backend real.
@@ -69,7 +69,7 @@ Lógica pura de búsqueda, filtros (categoría, ciudad, mes, rango de precio) y 
 - Cubre: AC-6, AC-7
 - Tests: `event-filter.service.test.ts` — `applyEventFilters` con cada filtro por separado (`query`, `categoryIds`, `cities`, `month`, `priceRangeId`), un caso con 2+ filtros combinados, y `sortBy: "date"`/`"price"`; `getCategoryCounts` incluye categorías con conteo `0`; `getAvailableCities` devuelve únicas y ordenadas; `getAvailableMonths` devuelve únicos, ordenados cronológicamente, con `label` capitalizado.
 - Corrección ronda 2 (hallazgo del reviewer en T6): `getCategoryCounts(events, categories: EventCategory[])` debe acotarse a `Pick<EventCategory, "id" | "name">[]` (solo usa `.id`) — mismo patrón que ya sigue `EventFilterPanel.tsx` (T3), para no romper `npm run build` cuando un Server Component le pase categorías a un Client Component en la cadena T4/T5/T6.
-- [ ] Completada (reabierta en corrección ronda 2)
+- [x] Completada
 
 ### T3 — Componentes presentacionales de búsqueda y filtros
 Barra de búsqueda y panel de filtros (categoría/ciudad/fecha/precio + "Limpiar filtros"), ambos sin estado propio: reciben valores y callbacks por props (consumidos luego por el hook de T4 vía el orquestador de T5). Requiere `components/ui/checkbox` y `components/ui/radio-group` ya instalados.
@@ -92,7 +92,7 @@ Orquesta el estado de `EventFilters`, calcula `filteredEvents`/`categoryCounts`/
 - Cubre: AC-8
 - Tests: `useEventFilters.test.ts` — estado inicial por defecto; `toggleCategory`/`toggleCity` agregan y quitan; `setQuery`/`setMonth`/`setPriceRangeId`/`setSortBy` actualizan `filters` y `filteredEvents` en consecuencia; `resetFilters` vuelve a los valores por defecto.
 - Corrección ronda 2: `UseEventFiltersOptions.categories` debe ser `Pick<EventCategory, "id" | "name">[]`, no `EventCategory[]` completo (ver nota de T2).
-- [ ] Completada (reabierta en corrección ronda 2)
+- [x] Completada
 
 ### T5 — Componente orquestador del catálogo
 Compone `EventSearchBar` (T3) + `EventFilterPanel` (T3) dentro de un `aside` desktop y un `Sheet` mobile + control de orden (`tabs`) + contador/estado vacío + grid de `EventCard`, todo alimentado por `useEventFilters` (T4).
@@ -103,7 +103,7 @@ Compone `EventSearchBar` (T3) + `EventFilterPanel` (T3) dentro de un `aside` des
 - Cubre: AC-11, AC-12, AC-13, AC-14
 - Tests: no aplica (componente de composición, la lógica ya está testeada en T2/T4 — SETUP.md 3.2)
 - Corrección ronda 2: `EventsCatalogProps.categories` debe ser `Pick<EventCategory, "id" | "name">[]`, igual que ya hace su propio hijo `EventFilterPanel.tsx`.
-- [ ] Completada (reabierta en corrección ronda 2)
+- [x] Completada
 
 ### T6 — Ruta `/eventos` + link de navbar
 Página que compone `EventsCatalog` con `MOCK_EVENTS`/`MOCK_CATEGORIES`, y actualiza el link "Eventos" del navbar para que apunte a la nueva ruta.
@@ -115,7 +115,7 @@ Página que compone `EventsCatalog` con `MOCK_EVENTS`/`MOCK_CATEGORIES`, y actua
 - Cubre: AC-1, AC-3, AC-15
 - Tests: no aplica (página de composición y cambio de un valor estático — SETUP.md 3.2)
 - Corrección ronda 2 (hallazgo blocker del reviewer): `app/eventos/page.tsx` no debe ser `"use client"` — ese workaround evita el bug de serialización RSC (pasar `icon: LucideIcon` de Server a Client Component) pero es más amplio de lo necesario y rompe la consistencia con el patrón de `app/page.tsx` (Fase 1). Revertir a Server Component y pasar `categories={MOCK_CATEGORIES.map(({ id, name }) => ({ id, name }))}`, igual que `app/page.tsx`.
-- [ ] Completada
+- [x] Completada
 
 ## Notas para fases siguientes (no bloqueantes en esta spec)
 - Sigue pendiente (ver `landing-design-foundation.md`) que `EventCard`/`HeroCarousel` resuelvan categoría importando `MOCK_CATEGORIES` en vez de recibirla como prop. Esta fase no lo corrige porque el catálogo sigue leyendo el mismo módulo mock singleton (no hay fuente de datos distinta todavía); revaluar cuando una fase futura reemplace `modules/events/data/events.mock.ts` por datos reales o por-request.
