@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 
-import { TicketSelectionView } from "@/modules/events/components/TicketSelectionView"
+import { CheckoutFlow } from "@/modules/checkout/components/CheckoutFlow"
 import { MOCK_EVENTS } from "@/modules/events/data/events.mock"
 import { getEventBySlug } from "@/modules/events/services/event.service"
 import { getVenueZones } from "@/modules/events/services/venue-zone.service"
@@ -21,7 +21,7 @@ export default async function TicketSelectionPage({ params }: TicketSelectionPag
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <TicketSelectionView event={event} zones={zones} />
+      <CheckoutFlow event={event} zones={zones} />
     </div>
   )
 }

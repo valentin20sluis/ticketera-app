@@ -19,7 +19,7 @@ export interface TicketSelectionLine {
   subtotal: number
 }
 
-interface UseTicketSelectionResult {
+export interface UseTicketSelectionResult {
   activeZoneId: string | null
   quantities: Record<string, number>
   lines: TicketSelectionLine[]

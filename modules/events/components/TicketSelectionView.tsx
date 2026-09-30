@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
 
 import { getZoneMaxQuantity } from "@/modules/events/services/venue-zone.service"
-import { useTicketSelection } from "@/modules/events/hooks/useTicketSelection"
+import type { UseTicketSelectionResult } from "@/modules/events/hooks/useTicketSelection"
 import { VenueZoneMap } from "@/modules/events/components/VenueZoneMap"
 import { ZoneSelectorList } from "@/modules/events/components/ZoneSelectorList"
 import { TicketSummary } from "@/modules/events/components/TicketSummary"
@@ -14,9 +14,16 @@ import type { VenueZone } from "@/modules/events/types/venue-zone.types"
 interface TicketSelectionViewProps {
   event: Pick<Event, "title" | "slug">
   zones: VenueZone[]
+  selection: UseTicketSelectionResult
+  onContinue: () => void
 }
 
-export function TicketSelectionView({ event, zones }: TicketSelectionViewProps) {
+export function TicketSelectionView({
+  event,
+  zones,
+  selection,
+  onContinue,
+}: TicketSelectionViewProps) {
   const {
     activeZoneId,
     quantities,
@@ -27,7 +34,7 @@ export function TicketSelectionView({ event, zones }: TicketSelectionViewProps) 
     increment,
     decrement,
     getZoneStatus,
-  } = useTicketSelection(zones)
+  } = selection
 
   const zonesWithStatus = zones.map((zone) => ({
     ...zone,
@@ -74,6 +81,7 @@ export function TicketSelectionView({ event, zones }: TicketSelectionViewProps) 
           lines={lines}
           totalQuantity={totalQuantity}
           totalAmount={totalAmount}
+          onCtaClick={onContinue}
         />
       </div>
     </div>
