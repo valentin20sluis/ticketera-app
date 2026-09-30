@@ -57,7 +57,7 @@ Define el shape de `EventFilters`/`PriceRangeOption`/`MonthOption` que van a reu
 - Grupo paralelo: G1
 - Cubre: AC-4, AC-5
 - Tests: no aplica (tipos y ajuste de datos estáticos, sin lógica — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Servicio de filtrado/orden combinado
 Lógica pura de búsqueda, filtros (categoría, ciudad, mes, rango de precio) y orden sobre `Event[]`, más las utilidades de conteo/opciones derivadas de los datos.
