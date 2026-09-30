@@ -119,7 +119,7 @@ Compone T3 (hook) + T4 (piezas) en las vistas completas de "Datos y pago" y "Con
 - Grupo paralelo: G3
 - Cubre: AC-14, AC-15, AC-16
 - Tests: no aplica (componentes de composición y extensión de props sobre un presentacional ya exento en la Fase 4 — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T6 — Orquestador general de los 3 pasos + conexión a la ruta existente
 `CheckoutFlow` levanta `useTicketSelection` y gobierna el cambio de paso entre T5 y la vista de selección de la Fase 4 (adaptada a props controladas); se conecta en la ruta ya existente, sin crear rutas nuevas.
