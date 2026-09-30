@@ -69,7 +69,7 @@ Define las formas de datos de comprador/pago/orden y la validación zod (discrim
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: `checkout.schema.test.ts` — buyer+card válidos con método `"card"`; buyer válido con método `"yape"` sin `card` (éxito); `email` inválido (falla); `termsAccepted: false` (falla); `cardNumber` inválido con método `"card"` (falla).
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Utilidades puras de checkout: número de pedido + desglose de entradas
 Lógica pura sin estado: generación de número de pedido mock y expansión de líneas de compra en entradas individuales numeradas para el "ticket stub".
@@ -82,7 +82,7 @@ Lógica pura sin estado: generación de número de pedido mock y expansión de l
 - Grupo paralelo: G1
 - Cubre: AC-5, AC-6
 - Tests: `generate-order-number.test.ts` — formato `/^TKT-[A-Z0-9]{6}$/`, sin colisiones en 20 llamadas. `build-ticket-stubs.test.ts` — 2 líneas con cantidades distintas (numeración correlativa global y `totalTickets` correcto), `lines: []` (devuelve `[]`).
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Hook de formulario de checkout
 Estado del formulario de comprador/pago/términos con validación vía el schema de T1, consumido por `CheckoutPaymentStep` (T5).
