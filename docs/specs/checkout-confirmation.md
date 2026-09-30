@@ -1,6 +1,6 @@
 # Checkout Confirmation
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Completar el flujo de compra iniciado en la Fase 4 (`/eventos/[slug]/entradas`): conectar el botón "Continuar" de `TicketSummary` a un paso 2 de datos del comprador + método de pago, y de ahí a un paso 3 de confirmación con número de pedido mock y "ticket stub" con QR — todo como **simulación de UI sin backend real, sin pasarela de pago real y sin generar PDFs/correos reales**.
