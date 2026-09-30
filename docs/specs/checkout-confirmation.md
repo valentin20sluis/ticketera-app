@@ -1,6 +1,6 @@
 # Checkout Confirmation
 
-Estado: in-progress
+Estado: done
 
 ## Objetivo
 Completar el flujo de compra iniciado en la Fase 4 (`/eventos/[slug]/entradas`): conectar el botón "Continuar" de `TicketSummary` a un paso 2 de datos del comprador + método de pago, y de ahí a un paso 3 de confirmación con número de pedido mock y "ticket stub" con QR — todo como **simulación de UI sin backend real, sin pasarela de pago real y sin generar PDFs/correos reales**.
@@ -132,7 +132,7 @@ Compone T3 (hook) + T4 (piezas) en las vistas completas de "Datos y pago" y "Con
 - Grupo paralelo: G4
 - Cubre: AC-1, AC-2, AC-17, AC-18, AC-19, AC-20
 - Tests: no aplica (componente de composición/orquestación y wiring de props ya testeados en T1-T5 — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ## Fases siguientes
 - Fase 6: auth UI (login/registro, split screen, solo UI).
