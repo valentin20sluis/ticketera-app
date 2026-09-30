@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatPrice } from "@/lib/format-currency"
@@ -16,7 +18,12 @@ export function EventTicketSidebar({ event }: EventTicketSidebarProps) {
           <span className="font-heading text-2xl font-semibold text-foreground">
             {formatPrice(event.priceFrom)}
           </span>
-          <Button size="lg" className="w-full">
+          <Button
+            size="lg"
+            className="w-full"
+            nativeButton={false}
+            render={<Link href={`/eventos/${event.slug}/entradas`} />}
+          >
             Elegir entradas
           </Button>
         </CardContent>
