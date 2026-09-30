@@ -31,4 +31,8 @@ export interface Event {
   currency: "PEN";
   status: EventStatus;
   featured: boolean;
+  doorsOpenTime: string;
+  showStartTime: string;
+  minimumAge: string;
+  admissionType: string;
 }
