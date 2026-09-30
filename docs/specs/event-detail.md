@@ -1,6 +1,6 @@
 # Event Detail
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Dar a los usuarios una página de detalle (`/eventos/[slug]`) para un evento específico, con toda la información necesaria para decidir la compra (fecha, ubicación, descripción, datos prácticos y precio) y un punto de entrada visual hacia el flujo de compra, reutilizando `EventCard` y el resto de la base ya construida en las fases 1 y 2. Conecta además el botón "Ver entradas" de `EventCard`, que hoy no navega a ningún lado.
