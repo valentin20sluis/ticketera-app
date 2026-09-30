@@ -9,7 +9,7 @@ import type { Event, EventCategory } from "@/modules/events/types/event.types"
 
 interface UpcomingEventsSectionProps {
   events: Event[]
-  categories: EventCategory[]
+  categories: Pick<EventCategory, "id" | "name">[]
 }
 
 const ALL_CATEGORY_ID = "all"

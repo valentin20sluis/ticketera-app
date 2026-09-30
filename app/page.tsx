@@ -16,7 +16,10 @@ export default function Home() {
         <CategoryChips categories={MOCK_CATEGORIES} />
       </div>
       <div id="eventos">
-        <UpcomingEventsSection events={MOCK_EVENTS} categories={MOCK_CATEGORIES} />
+        <UpcomingEventsSection
+          events={MOCK_EVENTS}
+          categories={MOCK_CATEGORIES.map(({ id, name }) => ({ id, name }))}
+        />
       </div>
       <div id="como-funciona">
         <HowItWorksSection />
