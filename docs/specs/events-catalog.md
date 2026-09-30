@@ -1,6 +1,6 @@
 # Events Catalog
 
-Estado: approved
+Estado: in-progress
 
 ## Objetivo
 Dar a los usuarios una página de catálogo (`/eventos`) donde puedan buscar por texto, filtrar por categoría/ciudad/fecha/precio y ordenar los eventos mock existentes, reutilizando `EventCard` y el resto de la base visual de la Fase 1. Resuelve la necesidad de descubrir eventos más allá del home (que solo muestra destacados/tabs por categoría), sin todavía depender de un backend real.
