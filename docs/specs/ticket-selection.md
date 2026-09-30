@@ -74,7 +74,7 @@ Lógica pura de acceso a las zonas y cálculo de disponibilidad/máximo por zona
 - Grupo paralelo: G2
 - Cubre: AC-5
 - Tests: `venue-zone.service.test.ts` — `isZoneSoldOut` con zona disponible y zona agotada; `getZoneMaxQuantity` con `available` mayor a `MAX_TICKETS_PER_ZONE` (clampa a 6), menor (clampa a `available`) y con la zona agotada (da 0); `getVenueZones` devuelve las 5 zonas del mock incluyendo la agotada.
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Hook de selección de entradas
 Estado de cantidades por zona, zona activa y totales derivados, consumido por `TicketSelectionView` (T5).
@@ -85,7 +85,7 @@ Estado de cantidades por zona, zona activa y totales derivados, consumido por `T
 - Grupo paralelo: G2
 - Cubre: AC-6, AC-7, AC-8, AC-9, AC-10
 - Tests: `useTicketSelection.test.ts` (con `renderHook`/`act`, mismo patrón que `useEventFilters.test.ts`) — estado inicial; `selectZone` en zona disponible con cantidad 0, en zona ya seleccionada, y en zona agotada; `increment`/`decrement` con clamp en ambos límites (incluida una zona agotada); `getZoneStatus` en sus 3 valores; `lines`/`totalQuantity`/`totalAmount` con 2+ zonas seleccionadas con cantidades distintas.
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Componentes presentacionales: mapa, lista de zonas y resumen
 Mapa SVG de zonas, lista de zonas con stepper de cantidad y resumen de compra — los tres sin estado propio, reciben valores ya resueltos y emiten callbacks.
@@ -97,7 +97,7 @@ Mapa SVG de zonas, lista de zonas con stepper de cantidad y resumen de compra �
 - Grupo paralelo: G2
 - Cubre: AC-11, AC-12, AC-13
 - Tests: no aplica (componentes presentacionales sin lógica propia no trivial — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Orquestador de la vista de selección
 Compone T2 (service, para los derivados de `maxQuantity`)+T3 (hook)+T4 (componentes) en la vista interactiva completa, con el layout responsive final.
