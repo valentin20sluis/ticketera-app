@@ -77,7 +77,11 @@ export function EventCard({ event }: EventCardProps) {
         <span className="text-sm font-medium text-foreground">
           Desde {formatPrice(event.priceFrom)}
         </span>
-        <Button size="sm" render={<Link href={`/eventos/${event.slug}`} />}>
+        <Button
+          size="sm"
+          nativeButton={false}
+          render={<Link href={`/eventos/${event.slug}`} />}
+        >
           Ver entradas
         </Button>
       </CardFooter>
