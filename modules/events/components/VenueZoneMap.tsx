@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { formatPrice } from "@/lib/format-currency"
 import type {
   VenueZone,
   ZoneSelectionStatus,
@@ -17,6 +18,17 @@ const ZONE_STATUS_CLASSNAMES: Record<ZoneSelectionStatus, string> = {
   available: "cursor-pointer fill-muted stroke-border hover:fill-muted/70",
   selected: "cursor-pointer fill-primary stroke-primary",
   "sold-out": "cursor-not-allowed fill-muted/40 stroke-border/40",
+}
+
+const ZONE_TEXT_CLASSNAMES: Record<ZoneSelectionStatus, string> = {
+  available: "fill-foreground",
+  selected: "fill-primary-foreground",
+  "sold-out": "fill-muted-foreground/60",
+}
+
+function splitZoneName(name: string): [string, string | undefined] {
+  const [first, ...rest] = name.split(" ")
+  return [first, rest.length > 0 ? rest.join(" ") : undefined]
 }
 
 export function VenueZoneMap({ zones, onZoneSelect }: VenueZoneMapProps) {
@@ -39,23 +51,25 @@ export function VenueZoneMap({ zones, onZoneSelect }: VenueZoneMapProps) {
 
       {zones.map((zone) => {
         const isSoldOut = zone.status === "sold-out"
+        const { x, y, width, height } = zone.shape
+        const cx = x + width / 2
+        const cy = y + height / 2
+        const [nameLine1, nameLine2] = splitZoneName(zone.name)
+        const fontSize = width < 25 ? 2.3 : 3.2
+        const lineHeight = fontSize * 1.25
+        const textClassName = cn(
+          "pointer-events-none text-center select-none",
+          ZONE_TEXT_CLASSNAMES[zone.status]
+        )
 
         return (
-          <rect
+          <g
             key={zone.id}
-            x={zone.shape.x}
-            y={zone.shape.y}
-            width={zone.shape.width}
-            height={zone.shape.height}
-            rx={1.5}
             role="button"
             tabIndex={isSoldOut ? -1 : 0}
-            aria-label={zone.name}
+            aria-label={`${zone.name}, ${isSoldOut ? "agotado" : formatPrice(zone.price)}`}
             aria-disabled={isSoldOut}
-            className={cn(
-              "stroke-1 transition-colors outline-none focus-visible:stroke-2 focus-visible:stroke-ring",
-              ZONE_STATUS_CLASSNAMES[zone.status]
-            )}
+            className="outline-none"
             onClick={() => {
               if (!isSoldOut) {
                 onZoneSelect(zone.id)
@@ -71,7 +85,51 @@ export function VenueZoneMap({ zones, onZoneSelect }: VenueZoneMapProps) {
                 onZoneSelect(zone.id)
               }
             }}
-          />
+          >
+            <rect
+              x={x}
+              y={y}
+              width={width}
+              height={height}
+              rx={1.5}
+              className={cn(
+                "stroke-1 transition-colors focus-visible:stroke-2 focus-visible:stroke-ring",
+                ZONE_STATUS_CLASSNAMES[zone.status]
+              )}
+            />
+            <text
+              x={cx}
+              y={nameLine2 ? cy - lineHeight * 0.4 : cy - lineHeight * 0.1}
+              textAnchor="middle"
+              fontSize={fontSize}
+              className={cn("font-semibold", textClassName)}
+            >
+              {nameLine1}
+            </text>
+            {nameLine2 && (
+              <text
+                x={cx}
+                y={cy - lineHeight * 0.4 + lineHeight}
+                textAnchor="middle"
+                fontSize={fontSize}
+                className={cn("font-semibold", textClassName)}
+              >
+                {nameLine2}
+              </text>
+            )}
+            <text
+              x={cx}
+              y={
+                (nameLine2 ? cy - lineHeight * 0.4 + lineHeight : cy - lineHeight * 0.1) +
+                lineHeight
+              }
+              textAnchor="middle"
+              fontSize={fontSize * 0.9}
+              className={textClassName}
+            >
+              {isSoldOut ? "Agotado" : formatPrice(zone.price)}
+            </text>
+          </g>
         )
       })}
     </svg>
