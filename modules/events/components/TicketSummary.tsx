@@ -15,9 +15,19 @@ interface TicketSummaryProps {
   lines: TicketSummaryLine[]
   totalQuantity: number
   totalAmount: number
+  ctaLabel?: string
+  ctaDisabled?: boolean
+  onCtaClick?: () => void
 }
 
-export function TicketSummary({ lines, totalQuantity, totalAmount }: TicketSummaryProps) {
+export function TicketSummary({
+  lines,
+  totalQuantity,
+  totalAmount,
+  ctaLabel = "Continuar",
+  ctaDisabled,
+  onCtaClick,
+}: TicketSummaryProps) {
   return (
     <Card
       className={cn(
@@ -61,8 +71,13 @@ export function TicketSummary({ lines, totalQuantity, totalAmount }: TicketSumma
           </div>
         )}
 
-        <Button size="lg" className="w-full" disabled={totalQuantity === 0}>
-          Continuar
+        <Button
+          size="lg"
+          className="w-full"
+          disabled={ctaDisabled ?? totalQuantity === 0}
+          onClick={onCtaClick}
+        >
+          {ctaLabel}
         </Button>
       </CardContent>
     </Card>
