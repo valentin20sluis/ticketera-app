@@ -25,6 +25,10 @@ function buildEvent(overrides: Partial<Event>): Event {
     currency: "PEN",
     status: "available",
     featured: false,
+    doorsOpenTime: "19:00",
+    showStartTime: "20:00",
+    minimumAge: "18",
+    admissionType: "Entrada digital con QR",
     ...overrides,
   }
 }
