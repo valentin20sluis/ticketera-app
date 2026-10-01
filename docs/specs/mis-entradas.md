@@ -118,7 +118,7 @@ Orquesta T1 (datos + estado) y T2 (tarjeta) en la vista completa con tabs de fil
 - Grupo paralelo: G4
 - Cubre: AC-1, AC-2, AC-7
 - Tests: no aplica (página de composición — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ## Fases siguientes
 - Fase 8: dashboard de organizador (baja prioridad).
