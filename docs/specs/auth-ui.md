@@ -91,7 +91,7 @@ Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" 
 - Grupo paralelo: G3
 - Cubre: AC-8, AC-9
 - Tests: no aplica (componentes presentacionales que reciben valores/errores por props, SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T6 — AuthScreen y ruta /ingresar
 - Archivos: `modules/auth/components/AuthScreen.tsx` (crear), `app/ingresar/page.tsx` (crear)
