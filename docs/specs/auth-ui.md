@@ -59,7 +59,7 @@ Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" 
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: `modules/auth/schemas/auth.schema.test.ts` — casos descritos en AC-4
-- [ ] Completada
+- [x] Completada
 
 ### T2 — PasswordInput
 - Archivos: `modules/auth/components/PasswordInput.tsx` (crear)
@@ -67,7 +67,7 @@ Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" 
 - Grupo paralelo: G1
 - Cubre: AC-7
 - Tests: no aplica (componente presentacional, toggle de UI trivial sin lógica de negocio — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Conectar botón "Iniciar sesión" de SiteNavbar
 - Archivos: `components/shared/SiteNavbar.tsx` (modificar)
@@ -75,7 +75,7 @@ Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" 
 - Grupo paralelo: G1
 - Cubre: AC-13
 - Tests: no aplica (componente presentacional, SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Hooks useLoginForm / useRegisterForm
 - Archivos: `modules/auth/hooks/useLoginForm.ts` (crear), `modules/auth/hooks/useLoginForm.test.ts` (crear), `modules/auth/hooks/useRegisterForm.ts` (crear), `modules/auth/hooks/useRegisterForm.test.ts` (crear)
