@@ -83,7 +83,7 @@ Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" 
 - Grupo paralelo: G2
 - Cubre: AC-5, AC-6
 - Tests: `useLoginForm.test.ts`, `useRegisterForm.test.ts` — casos descritos en AC-5/AC-6
-- [ ] Completada
+- [x] Completada
 
 ### T5 — LoginForm y RegisterForm
 - Archivos: `modules/auth/components/LoginForm.tsx` (crear), `modules/auth/components/RegisterForm.tsx` (crear)
