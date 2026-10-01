@@ -1,6 +1,6 @@
 # Auth UI
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" según el mockup de referencia, **solo UI/UX**: formularios de login y registro con validación `zod`, toggle de mostrar/ocultar contraseña, y conectar el botón "Iniciar sesión" de `SiteNavbar` (hoy sin destino) a esa pantalla. Es una simulación: no hay autenticación real, no hay backend, no hay sesión persistida entre recargas.
