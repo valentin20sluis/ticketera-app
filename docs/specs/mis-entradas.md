@@ -109,7 +109,7 @@ Orquesta T1 (datos + estado) y T2 (tarjeta) en la vista completa con tabs de fil
 - Grupo paralelo: G3
 - Cubre: AC-6
 - Tests: no aplica (componente de composición/filtro sobre datos ya testeados en T1 — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Ruta `/mis-entradas`
 - Archivos:
