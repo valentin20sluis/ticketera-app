@@ -1,6 +1,6 @@
 # Auth UI
 
-Estado: in-progress
+Estado: done
 
 ## Objetivo
 Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" según el mockup de referencia, **solo UI/UX**: formularios de login y registro con validación `zod`, toggle de mostrar/ocultar contraseña, y conectar el botón "Iniciar sesión" de `SiteNavbar` (hoy sin destino) a esa pantalla. Es una simulación: no hay autenticación real, no hay backend, no hay sesión persistida entre recargas.
@@ -99,7 +99,7 @@ Dar a "Ticketera" una pantalla de ingreso/registro (Fase 6) tipo "split screen" 
 - Grupo paralelo: G4
 - Cubre: AC-10, AC-11, AC-12
 - Tests: no aplica (orquestador de UI y página de composición, SETUP.md 3.2; el flujo de éxito+redirect se valida por lectura de código según AC-11, igual que `CheckoutFlow` en `checkout-confirmation.md`)
-- [ ] Completada
+- [x] Completada
 
 ## Fases siguientes
 - Fase 7: ruta `/mis-entradas` (hoy placeholder sin destino en el paso de confirmación del checkout).
