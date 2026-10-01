@@ -1,6 +1,6 @@
 # System Design + MER: Ticketera
 
-Estado: draft
+Estado: approved
 
 ## Objetivo
 
