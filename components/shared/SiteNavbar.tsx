@@ -13,6 +13,7 @@ import {
 
 const NAV_LINKS = [
   { label: "Eventos", href: "/eventos" },
+  { label: "Mis entradas", href: "/mis-entradas" },
   { label: "Categorías", href: "/#categorias" },
   { label: "Cómo funciona", href: "/#como-funciona" },
 ]

@@ -70,7 +70,7 @@ Datos mock del historial de pedidos (reutilizando `ConfirmedOrder`) y la funció
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: `get-order-status.test.ts` — `startDate` anterior a un `referenceDate` fijo (`"past"`), posterior (`"upcoming"`), igual (`"upcoming"`, límite).
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Conectar "Ver mis entradas" en la confirmación del checkout
 Único cambio sobre el flujo de checkout ya existente: el botón pasa de placeholder a navegar a `/mis-entradas`. No depende del resto de esta spec (la ruta puede no existir aún al momento de implementar esta tarea en paralelo; `Link` a una ruta que se crea en T4 de la misma spec es seguro porque todas las tareas se integran antes de dar la spec por terminada).
@@ -80,7 +80,7 @@ Datos mock del historial de pedidos (reutilizando `ConfirmedOrder`) y la funció
 - Grupo paralelo: G1
 - Cubre: AC-8
 - Tests: no aplica (cambio de 2 props sobre un botón ya presentacional — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T6 — Agregar "Mis entradas" a la navegación
 - Archivos:
@@ -89,7 +89,7 @@ Datos mock del historial de pedidos (reutilizando `ConfirmedOrder`) y la funció
 - Grupo paralelo: G1
 - Cubre: AC-9
 - Tests: no aplica (componente presentacional, SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Tarjeta de pedido expandible
 Compone el estado "Próximo"/"Pasado" (T1) con los componentes de ticket stub ya existentes de la Fase 5 en una sola tarjeta con expand/collapse.
