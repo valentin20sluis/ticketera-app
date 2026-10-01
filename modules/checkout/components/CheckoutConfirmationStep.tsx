@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { CheckCircle2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -57,7 +58,12 @@ export function CheckoutConfirmationStep({ order }: CheckoutConfirmationStepProp
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button variant="outline" className="flex-1">
+        <Button
+          variant="outline"
+          className="flex-1"
+          nativeButton={false}
+          render={<Link href="/mis-entradas" />}
+        >
           Ver mis entradas
         </Button>
         <Button variant="outline" className="flex-1">
