@@ -1,6 +1,6 @@
 # Mis entradas
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Dar a "Ticketera" una pantalla `/mis-entradas` (Fase 7) donde el usuario ve un historial de compras ya realizadas (evento, fecha, venue, estado Próximo/Pasado, cantidad de entradas) y puede expandir cada pedido para ver sus "ticket stubs" con QR — reutilizando `TicketStubCard`/`buildTicketStubs` de la Fase 5 —, y conectar el botón "Ver mis entradas" del paso de confirmación del checkout (hoy un placeholder sin `onClick`/`href`, documentado así en `checkout-confirmation.md`) a esa ruta. Es, otra vez, **solo UI/UX**: sin backend, sin base de datos, sin sesión real.
