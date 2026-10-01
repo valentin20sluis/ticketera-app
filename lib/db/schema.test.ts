@@ -212,4 +212,82 @@ describe("database schema", () => {
 
     expect(stored[0].price).toBe("19.99");
   });
+
+  it("rejects a non-positive order_item quantity", async () => {
+    const db = await createTestDb();
+    const { functionZone } = await seedCore(db);
+    const [customer] = await db
+      .insert(users)
+      .values({ clerkUserId: `clerk_${crypto.randomUUID()}`, email: "q1@example.com", fullName: "Q1", role: "customer" })
+      .returning();
+    const [order] = await db
+      .insert(orders)
+      .values({ customerId: customer.id, status: "pending", totalAmount: "0", currency: "PEN", expiresAt: new Date() })
+      .returning();
+
+    await expect(
+      db.insert(orderItems).values({ orderId: order.id, functionZoneId: functionZone.id, quantity: 0, unitPrice: "10.00" }),
+    ).rejects.toThrow();
+    await expect(
+      db.insert(orderItems).values({ orderId: order.id, functionZoneId: functionZone.id, quantity: -1, unitPrice: "10.00" }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects negative unit_price on order_items and negative total_amount on orders", async () => {
+    const db = await createTestDb();
+    const { functionZone } = await seedCore(db);
+    const [customer] = await db
+      .insert(users)
+      .values({ clerkUserId: `clerk_${crypto.randomUUID()}`, email: "q2@example.com", fullName: "Q2", role: "customer" })
+      .returning();
+
+    await expect(
+      db.insert(orders).values({ customerId: customer.id, status: "pending", totalAmount: "-5.00", currency: "PEN", expiresAt: new Date() }),
+    ).rejects.toThrow();
+
+    const [order] = await db
+      .insert(orders)
+      .values({ customerId: customer.id, status: "pending", totalAmount: "0", currency: "PEN", expiresAt: new Date() })
+      .returning();
+    await expect(
+      db.insert(orderItems).values({ orderId: order.id, functionZoneId: functionZone.id, quantity: 1, unitPrice: "-10.00" }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects negative capacity on venue_zones and function_zones, and negative price on function_zones", async () => {
+    const db = await createTestDb();
+    const { venue, eventFunction, zone } = await seedCore(db);
+
+    await expect(
+      db.insert(venueZones).values({
+        venueId: venue.id,
+        name: "Negativa",
+        shapeX: 0,
+        shapeY: 0,
+        shapeWidth: 10,
+        shapeHeight: 10,
+        capacity: -1,
+      }),
+    ).rejects.toThrow();
+
+    await expect(
+      db.insert(functionZones).values({
+        functionId: eventFunction.id,
+        venueZoneId: zone.id,
+        price: "10.00",
+        currency: "PEN",
+        capacity: -1,
+      }),
+    ).rejects.toThrow();
+
+    await expect(
+      db.insert(functionZones).values({
+        functionId: eventFunction.id,
+        venueZoneId: zone.id,
+        price: "-10.00",
+        currency: "PEN",
+        capacity: 10,
+      }),
+    ).rejects.toThrow();
+  });
 });

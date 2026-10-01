@@ -10,7 +10,9 @@ import {
   timestamp,
   doublePrecision,
   index,
+  check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const userRoleEnum = pgEnum("user_role", [
   "super_admin",
@@ -68,17 +70,23 @@ export const venues = pgTable("venues", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const venueZones = pgTable("venue_zones", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  venueId: uuid("venue_id").notNull().references(() => venues.id),
-  name: varchar("name", { length: 150 }).notNull(),
-  shapeX: doublePrecision("shape_x").notNull(),
-  shapeY: doublePrecision("shape_y").notNull(),
-  shapeWidth: doublePrecision("shape_width").notNull(),
-  shapeHeight: doublePrecision("shape_height").notNull(),
-  capacity: integer("capacity").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const venueZones = pgTable(
+  "venue_zones",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    venueId: uuid("venue_id").notNull().references(() => venues.id),
+    name: varchar("name", { length: 150 }).notNull(),
+    shapeX: doublePrecision("shape_x").notNull(),
+    shapeY: doublePrecision("shape_y").notNull(),
+    shapeWidth: doublePrecision("shape_width").notNull(),
+    shapeHeight: doublePrecision("shape_height").notNull(),
+    capacity: integer("capacity").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    capacityNonNegative: check("venue_zones_capacity_non_negative", sql`${table.capacity} >= 0`),
+  }),
+);
 
 export const events = pgTable("events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -105,15 +113,22 @@ export const eventFunctions = pgTable("event_functions", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const functionZones = pgTable("function_zones", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  functionId: uuid("function_id").notNull().references(() => eventFunctions.id),
-  venueZoneId: uuid("venue_zone_id").notNull().references(() => venueZones.id),
-  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
-  currency: varchar("currency", { length: 3 }).notNull().default("PEN"),
-  capacity: integer("capacity").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const functionZones = pgTable(
+  "function_zones",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    functionId: uuid("function_id").notNull().references(() => eventFunctions.id),
+    venueZoneId: uuid("venue_zone_id").notNull().references(() => venueZones.id),
+    price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("PEN"),
+    capacity: integer("capacity").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    capacityNonNegative: check("function_zones_capacity_non_negative", sql`${table.capacity} >= 0`),
+    priceNonNegative: check("function_zones_price_non_negative", sql`${table.price} >= 0`),
+  }),
+);
 
 export const orders = pgTable(
   "orders",
@@ -131,6 +146,7 @@ export const orders = pgTable(
   },
   (table) => ({
     statusExpiresIdx: index("orders_status_expires_idx").on(table.status, table.expiresAt),
+    totalAmountNonNegative: check("orders_total_amount_non_negative", sql`${table.totalAmount} >= 0`),
   }),
 );
 
@@ -145,6 +161,8 @@ export const orderItems = pgTable(
   },
   (table) => ({
     functionZoneIdx: index("order_items_function_zone_idx").on(table.functionZoneId),
+    quantityPositive: check("order_items_quantity_positive", sql`${table.quantity} > 0`),
+    unitPriceNonNegative: check("order_items_unit_price_non_negative", sql`${table.unitPrice} >= 0`),
   }),
 );
 

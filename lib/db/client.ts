@@ -11,16 +11,21 @@ export type Db =
   | ReturnType<typeof drizzlePg<typeof schema>>
   | ReturnType<typeof drizzlePglite<typeof schema>>;
 
-export interface DbConfig {
-  driver: "neon" | "pg";
-  connectionString: string;
-}
+export type DbConfig =
+  | { driver: "neon" | "pg"; connectionString: string }
+  | { driver: "pg"; cloudSqlInstanceConnectionName: string };
 
 export function resolveDbConfig(env: Record<string, string | undefined>): DbConfig {
   const driver = env.DATABASE_DRIVER;
   if (driver !== "neon" && driver !== "pg") {
     throw new Error('DATABASE_DRIVER must be "neon" or "pg"');
   }
+
+  const cloudSqlInstanceConnectionName = env.CLOUD_SQL_INSTANCE_CONNECTION_NAME;
+  if (driver === "pg" && cloudSqlInstanceConnectionName) {
+    return { driver, cloudSqlInstanceConnectionName };
+  }
+
   const connectionString = env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL is required");
@@ -55,10 +60,10 @@ export async function getDb(): Promise<Db> {
     return dbInstance;
   }
 
-  const instanceConnectionName = process.env.CLOUD_SQL_INSTANCE_CONNECTION_NAME;
-  const pool = instanceConnectionName
-    ? await createCloudSqlPool(instanceConnectionName)
-    : new Pool({ connectionString: config.connectionString });
+  const pool =
+    "cloudSqlInstanceConnectionName" in config
+      ? await createCloudSqlPool(config.cloudSqlInstanceConnectionName)
+      : new Pool({ connectionString: config.connectionString });
   dbInstance = drizzlePg(pool, { schema });
   return dbInstance;
 }

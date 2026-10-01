@@ -8,6 +8,13 @@
       "when": 1790819433351,
       "tag": "0000_blue_elektra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790820677404,
+      "tag": "0001_lazy_chameleon",
+      "breakpoints": true
     }
   ]
 }
