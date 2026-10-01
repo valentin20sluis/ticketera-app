@@ -99,7 +99,7 @@ Compone el estado "Próximo"/"Pasado" (T1) con los componentes de ticket stub ya
 - Grupo paralelo: G2
 - Cubre: AC-5
 - Tests: no aplica (componente de UI con estado trivial de expand/collapse, sin lógica de negocio propia — SETUP.md 3.2; el estado Próximo/Pasado que consume ya está testeado en T1)
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Lista filtrable de pedidos
 Orquesta T1 (datos + estado) y T2 (tarjeta) en la vista completa con tabs de filtro.
