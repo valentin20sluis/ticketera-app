@@ -38,7 +38,9 @@ export function SiteNavbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost">Iniciar sesión</Button>
+          <Button variant="ghost" nativeButton={false} render={<Link href="/ingresar" />}>
+            Iniciar sesión
+          </Button>
           <Button className="bg-cta text-cta-foreground hover:bg-cta/90">
             Vender entradas
           </Button>
@@ -73,7 +75,12 @@ export function SiteNavbar() {
               ))}
             </nav>
             <SheetFooter className="gap-2">
-              <Button variant="outline" className="w-full">
+              <Button
+                variant="outline"
+                className="w-full"
+                nativeButton={false}
+                render={<Link href="/ingresar" />}
+              >
                 Iniciar sesión
               </Button>
               <Button className="w-full bg-cta text-cta-foreground hover:bg-cta/90">
