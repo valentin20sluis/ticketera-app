@@ -1,6 +1,6 @@
 # Checkout: Agregar al calendario + Descargar PDF
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 En `CheckoutConfirmationStep.tsx` (paso 3 del checkout, Fase 5), los botones "Agregar al calendario" y "Descargar PDF" son placeholders sin `onClick`, documentados a propósito como fuera de alcance en `docs/specs/checkout-confirmation.md`. El usuario los probó, los confundió con un bug y, tras la aclaración, pidió explícitamente que funcionen de verdad: generar y descargar un archivo `.ics` real para el calendario, y un PDF real y descargable con el detalle de cada entrada — todo 100% client-side, sin backend, consistente con el resto de la demo.
