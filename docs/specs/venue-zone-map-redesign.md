@@ -85,7 +85,7 @@ Nuevo componente que muestra el significado de cada color/estado, reutilizando e
 - Grupo paralelo: G2
 - Cubre: AC-5
 - Tests: no aplica (componente presentacional sin props ni lógica — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Wrapper de zoom/pan (`VenueZoneMapViewer`)
 Nuevo componente que envuelve el SVG existente con `react-zoom-pan-pinch` y agrega controles de zoom visibles, validando que no rompa la navegación por teclado de las zonas.
