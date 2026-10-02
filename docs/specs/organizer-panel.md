@@ -144,7 +144,7 @@ Tarjeta de evento, vista del dashboard y los 3 pasos del formulario (incluye el 
 - Grupo paralelo: G4
 - Cubre: AC-11, AC-12, AC-13, AC-14, AC-15
 - Tests: no aplica (componentes presentacionales/de composición sobre props ya tipadas; la lógica que consumen ya está testeada en T2-T4 — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T6 — Orquestador del wizard, rutas y conexión del navbar
 `CreateEventWizard` compone T4+T5 y persiste el evento nuevo; las 2 rutas del panel; conecta "Vender entradas" de `SiteNavbar` a `/organizador`.
