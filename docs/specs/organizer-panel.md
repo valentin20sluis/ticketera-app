@@ -130,7 +130,7 @@ Validación por paso del formulario de crear evento y la utilidad pura que convi
 - Grupo paralelo: G3
 - Cubre: AC-9, AC-10
 - Tests: `useCreateEventForm.test.ts` — casos descritos en AC-9. `useOrganizerCatalog` sin test propio (ver justificación en AC-10).
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Componentes presentacionales del dashboard y del wizard
 Tarjeta de evento, vista del dashboard y los 3 pasos del formulario (incluye el preview de zonas reutilizando `VenueZoneMap`).
