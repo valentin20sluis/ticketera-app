@@ -65,7 +65,7 @@ Agrega feedback de hover/selección más notorio y exporta la fuente de verdad d
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: no aplica (componente presentacional, el cambio es de clases/exports, sin lógica nueva no trivial — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Resaltado de línea activa en `TicketSummary`
 Conecta visualmente la zona activa del mapa con su línea en el resumen de compra.
@@ -75,7 +75,7 @@ Conecta visualmente la zona activa del mapa con su línea en el resumen de compr
 - Grupo paralelo: G1
 - Cubre: AC-10
 - Tests: no aplica (componente presentacional, rama condicional simple sobre props ya tipadas — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Leyenda de colores (`VenueZoneMapLegend`)
 Nuevo componente que muestra el significado de cada color/estado, reutilizando exactamente las clases y labels exportados por T1.

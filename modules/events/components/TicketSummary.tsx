@@ -18,6 +18,7 @@ interface TicketSummaryProps {
   ctaLabel?: string
   ctaDisabled?: boolean
   onCtaClick?: () => void
+  activeZoneId?: string | null
 }
 
 export function TicketSummary({
@@ -27,6 +28,7 @@ export function TicketSummary({
   ctaLabel = "Continuar",
   ctaDisabled,
   onCtaClick,
+  activeZoneId,
 }: TicketSummaryProps) {
   return (
     <Card
@@ -47,19 +49,28 @@ export function TicketSummary({
         ) : (
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-2">
-              {lines.map((line) => (
-                <div
-                  key={line.zoneId}
-                  className="flex items-center justify-between gap-2 text-sm"
-                >
-                  <span className="text-muted-foreground">
-                    {line.quantity} × {line.zoneName}
-                  </span>
-                  <span className="font-medium text-foreground">
-                    {formatPrice(line.subtotal)}
-                  </span>
-                </div>
-              ))}
+              {lines.map((line) => {
+                const isActive =
+                  activeZoneId != null && line.zoneId === activeZoneId
+
+                return (
+                  <div
+                    key={line.zoneId}
+                    className={cn(
+                      "flex items-center justify-between gap-2 text-sm",
+                      isActive &&
+                        "rounded-lg border border-primary bg-primary/5 p-2"
+                    )}
+                  >
+                    <span className="text-muted-foreground">
+                      {line.quantity} × {line.zoneName}
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {formatPrice(line.subtotal)}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
 
             <div className="flex items-center justify-between border-t pt-3">

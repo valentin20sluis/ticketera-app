@@ -5,7 +5,7 @@ import type {
   ZoneSelectionStatus,
 } from "@/modules/events/types/venue-zone.types"
 
-interface VenueZoneMapZone extends VenueZone {
+export interface VenueZoneMapZone extends VenueZone {
   status: ZoneSelectionStatus
 }
 
@@ -14,10 +14,18 @@ interface VenueZoneMapProps {
   onZoneSelect: (zoneId: string) => void
 }
 
-const ZONE_STATUS_CLASSNAMES: Record<ZoneSelectionStatus, string> = {
-  available: "cursor-pointer fill-muted stroke-border hover:fill-muted/70",
-  selected: "cursor-pointer fill-primary stroke-primary",
+export const ZONE_STATUS_CLASSNAMES: Record<ZoneSelectionStatus, string> = {
+  available:
+    "cursor-pointer fill-muted stroke-border transition-all hover:fill-muted/70 hover:scale-[1.01] hover:drop-shadow-sm",
+  selected:
+    "cursor-pointer fill-primary stroke-primary transition-all drop-shadow-md hover:drop-shadow-lg",
   "sold-out": "cursor-not-allowed fill-muted/40 stroke-border/40",
+}
+
+export const ZONE_STATUS_LABELS: Record<ZoneSelectionStatus, string> = {
+  available: "Disponible",
+  selected: "Seleccionado",
+  "sold-out": "Agotado",
 }
 
 const ZONE_TEXT_CLASSNAMES: Record<ZoneSelectionStatus, string> = {
