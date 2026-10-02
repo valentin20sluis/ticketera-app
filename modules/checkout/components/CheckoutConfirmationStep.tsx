@@ -1,3 +1,6 @@
+"use client"
+
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { CheckCircle2Icon } from "lucide-react"
 
@@ -7,6 +10,8 @@ import { CheckoutStepper } from "@/modules/checkout/components/CheckoutStepper"
 import { TicketStubCard } from "@/modules/checkout/components/TicketStubCard"
 import type { ConfirmedOrder } from "@/modules/checkout/types/checkout.types"
 import { buildTicketStubs } from "@/modules/checkout/utils/build-ticket-stubs"
+import { downloadCalendarFile } from "@/modules/checkout/utils/generate-calendar-file"
+import { generateTicketsPdf } from "@/modules/checkout/utils/generate-tickets-pdf"
 
 interface CheckoutConfirmationStepProps {
   order: ConfirmedOrder
@@ -29,6 +34,23 @@ const INFO_CARDS = [
 
 export function CheckoutConfirmationStep({ order }: CheckoutConfirmationStepProps) {
   const stubs = buildTicketStubs(order.lines)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+
+  const handleDownloadPdf = async () => {
+    const qrElements = Array.from(
+      gridRef.current?.querySelectorAll<SVGSVGElement>("[data-qr-code] svg") ?? []
+    )
+
+    setIsGeneratingPdf(true)
+    try {
+      await generateTicketsPdf({ order, stubs, qrElements })
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsGeneratingPdf(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,7 +64,7 @@ export function CheckoutConfirmationStep({ order }: CheckoutConfirmationStepProp
         <p className="text-sm text-muted-foreground">Número de pedido: {order.orderNumber}</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div ref={gridRef} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stubs.map((stub) => (
           <TicketStubCard
             key={stub.ticketNumber}
@@ -66,11 +88,20 @@ export function CheckoutConfirmationStep({ order }: CheckoutConfirmationStepProp
         >
           Ver mis entradas
         </Button>
-        <Button variant="outline" className="flex-1">
+        <Button
+          variant="outline"
+          className="flex-1"
+          onClick={() => downloadCalendarFile(order)}
+        >
           Agregar al calendario
         </Button>
-        <Button variant="outline" className="flex-1">
-          Descargar PDF
+        <Button
+          variant="outline"
+          className="flex-1"
+          disabled={isGeneratingPdf}
+          onClick={handleDownloadPdf}
+        >
+          {isGeneratingPdf ? "Generando..." : "Descargar PDF"}
         </Button>
       </div>
 
