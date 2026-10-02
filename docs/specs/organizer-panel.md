@@ -157,7 +157,7 @@ Tarjeta de evento, vista del dashboard y los 3 pasos del formulario (incluye el 
 - Grupo paralelo: G5
 - Cubre: AC-1, AC-2, AC-16, AC-17, AC-18, AC-19, AC-20
 - Tests: no aplica (orquestación, páginas de composición y cambio de 2 botones ya presentacionales — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ## Fases siguientes
 - Fase 9: ventas/reportes/check-in del lado del organizador, si se decide continuar el panel.

@@ -42,7 +42,11 @@ export function SiteNavbar() {
           <Button variant="ghost" nativeButton={false} render={<Link href="/ingresar" />}>
             Iniciar sesión
           </Button>
-          <Button className="bg-cta text-cta-foreground hover:bg-cta/90">
+          <Button
+            className="bg-cta text-cta-foreground hover:bg-cta/90"
+            nativeButton={false}
+            render={<Link href="/organizador" />}
+          >
             Vender entradas
           </Button>
         </div>
@@ -84,7 +88,11 @@ export function SiteNavbar() {
               >
                 Iniciar sesión
               </Button>
-              <Button className="w-full bg-cta text-cta-foreground hover:bg-cta/90">
+              <Button
+                className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
+                nativeButton={false}
+                render={<Link href="/organizador" />}
+              >
                 Vender entradas
               </Button>
             </SheetFooter>
