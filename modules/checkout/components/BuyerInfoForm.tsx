@@ -17,7 +17,7 @@ export function BuyerInfoForm({ values, errors, onChange }: BuyerInfoFormProps) 
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="buyer-full-name" className="text-sm font-medium text-foreground">
-          Nombre completo
+          Nombre completo <span className="text-destructive">*</span>
         </label>
         <Input
           id="buyer-full-name"
@@ -32,7 +32,7 @@ export function BuyerInfoForm({ values, errors, onChange }: BuyerInfoFormProps) 
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="buyer-email" className="text-sm font-medium text-foreground">
-          Correo electrónico
+          Correo electrónico <span className="text-destructive">*</span>
         </label>
         <Input
           id="buyer-email"
@@ -47,7 +47,9 @@ export function BuyerInfoForm({ values, errors, onChange }: BuyerInfoFormProps) 
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-foreground">Documento de identidad</span>
+        <span className="text-sm font-medium text-foreground">
+          Documento de identidad <span className="text-destructive">*</span>
+        </span>
         <div className="flex items-center gap-3">
           <RadioGroup
             value={values.documentType}
@@ -82,7 +84,7 @@ export function BuyerInfoForm({ values, errors, onChange }: BuyerInfoFormProps) 
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="buyer-phone" className="text-sm font-medium text-foreground">
-          Celular
+          Celular <span className="text-destructive">*</span>
         </label>
         <Input
           id="buyer-phone"
