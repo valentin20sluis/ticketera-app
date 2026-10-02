@@ -62,7 +62,9 @@ export function TicketStubCard({
         <div className="border-t border-dashed border-border" />
 
         <div className="flex flex-col items-center gap-2">
-          <QRCodeSVG value={qrValue} />
+          <div data-qr-code>
+            <QRCodeSVG value={qrValue} />
+          </div>
           <span className="text-sm text-muted-foreground">
             Entrada {stub.ticketNumber} de {stub.totalTickets}
           </span>

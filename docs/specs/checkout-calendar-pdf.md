@@ -61,7 +61,7 @@ Lógica pura de armado del contenido `.ics` (testeable) + wrapper que dispara la
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: `generate-calendar-file.test.ts` — estructura completa de `buildIcsContent` con un `ConfirmedOrder` mock sin caracteres especiales (incluye verificar `DTEND` = `DTSTART` + 3 horas); escape de coma en `venueName`/`city` dentro de `LOCATION` con otro `ConfirmedOrder` mock.
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Utilidad de generación de PDF de entradas
 Rasteriza cada QR ya renderizado en el DOM a PNG y arma un PDF de una página por entrada con `jspdf`, descargándolo directamente.
@@ -71,7 +71,7 @@ Rasteriza cada QR ya renderizado en el DOM a PNG y arma un PDF de una página po
 - Grupo paralelo: G1
 - Cubre: AC-6
 - Tests: no aplica (depende de `Image`, `HTMLCanvasElement.toDataURL` y APIs de navegador internas de `jspdf`, sin soporte confiable en jsdom — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Selector estable del QR en `TicketStubCard`
 Envuelve el QR en un `data-qr-code` para que T2 pueda ubicarlo sin ambigüedad frente a otros `<svg>` del mismo card (ej. `MapPinIcon`).
@@ -81,7 +81,7 @@ Envuelve el QR en un `data-qr-code` para que T2 pueda ubicarlo sin ambigüedad f
 - Grupo paralelo: G1
 - Cubre: AC-5
 - Tests: no aplica (componente presentacional, cambio puramente estructural sin lógica nueva — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Conectar los botones en `CheckoutConfirmationStep`
 Agrega `"use client"`, el `ref` del grid y los dos `onClick` reales, consumiendo T1, T2 y T3.
