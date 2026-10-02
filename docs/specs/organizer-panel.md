@@ -118,7 +118,7 @@ Validación por paso del formulario de crear evento y la utilidad pura que convi
 - Grupo paralelo: G2
 - Cubre: AC-7, AC-8
 - Tests: `create-event.schema.test.ts` — casos descritos en AC-7. `build-organizer-event-entry.test.ts` — `buildStackedZoneShape` sin superposición, `buildOrganizerEventEntry` con `mode: "new"`/`"existing"`, `status` siempre `"draft"`, cantidad de zonas generadas.
-- [ ] Completada
+- [x] Completada
 
 ### T4 — Hooks de catálogo y de formulario multi-paso
 `useOrganizerCatalog` (hidratación desde `localStorage` + `addEvent`) y `useCreateEventForm` (estado y validación por paso del wizard), consumidos por los componentes de T5/T6.
