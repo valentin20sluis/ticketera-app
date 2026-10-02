@@ -5,7 +5,8 @@ import { ArrowLeftIcon } from "lucide-react"
 
 import { getZoneMaxQuantity } from "@/modules/events/services/venue-zone.service"
 import type { UseTicketSelectionResult } from "@/modules/events/hooks/useTicketSelection"
-import { VenueZoneMap } from "@/modules/events/components/VenueZoneMap"
+import { VenueZoneMapViewer } from "@/modules/events/components/VenueZoneMapViewer"
+import { VenueZoneMapLegend } from "@/modules/events/components/VenueZoneMapLegend"
 import { ZoneSelectorList } from "@/modules/events/components/ZoneSelectorList"
 import { TicketSummary } from "@/modules/events/components/TicketSummary"
 import type { Event } from "@/modules/events/types/event.types"
@@ -66,7 +67,10 @@ export function TicketSelectionView({
           </p>
         </div>
 
-        <VenueZoneMap zones={zonesWithStatus} onZoneSelect={selectZone} />
+        <div className="flex flex-col gap-3">
+          <VenueZoneMapViewer zones={zonesWithStatus} onZoneSelect={selectZone} />
+          <VenueZoneMapLegend />
+        </div>
 
         <ZoneSelectorList
           zones={zonesWithQuantity}
@@ -82,6 +86,7 @@ export function TicketSelectionView({
           totalQuantity={totalQuantity}
           totalAmount={totalAmount}
           onCtaClick={onContinue}
+          activeZoneId={activeZoneId}
         />
       </div>
     </div>

@@ -105,4 +105,4 @@ Compone T1 (vía T4)+T2+T3+T4 en la vista final: reemplaza el mapa por el viewer
 - Grupo paralelo: G3
 - Cubre: AC-1, AC-2, AC-11
 - Tests: no aplica (componente de composición, la lógica ya está cubierta/eximida en T1-T4 y en `useTicketSelection.test.ts` existente — SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
