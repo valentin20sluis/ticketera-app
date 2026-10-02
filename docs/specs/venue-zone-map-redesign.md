@@ -1,6 +1,6 @@
 # Rediseño del mapa de zonas del venue ("Escenario")
 
-Estado: in-progress
+Estado: done
 
 ## Objetivo
 El selector de zonas de `/eventos/[slug]/entradas` (`VenueZoneMap.tsx`) funciona pero el usuario lo probó y no le quedó claro el UX/UI: no hay leyenda de colores, no hay zoom/pan (el SVG es fijo y las zonas pequeñas son difíciles de leer/tocar), el feedback de hover/selección es sutil, y la conexión visual entre el mapa y el resumen de compra (`TicketSummary`) es débil. Esta spec rediseña la experiencia de selección de zona **sin cambiar el modelo de negocio**: se mantiene "zonas de cupo" (no asientos numerados), decisión ya fijada en `docs/specs/ticket-selection.md` (Fase 4) y en `docs/superpowers/specs/2026-09-30-ticketing-system-design.md`. Se mejora el SVG propio (ya accesible) agregando una leyenda de colores, zoom/pan real con controles visibles, feedback de hover/selección más notorio, y una conexión visual explícita entre la zona activa del mapa y su línea en el resumen de compra.
