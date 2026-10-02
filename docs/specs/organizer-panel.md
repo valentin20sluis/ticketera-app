@@ -92,7 +92,7 @@ Define los tipos que mirrorean `lib/db/schema.ts` y los datos mock (organizador 
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: no aplica (tipos + datos mock estáticos, sin lógica — mismo criterio que `events.mock.ts`, SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Persistencia en localStorage + selector de resumen
 Utilidad de lectura/escritura/merge defensivo contra `localStorage` (clave `ticketera:organizer-catalog`) y la función pura que arma los resúmenes que consume el dashboard.
