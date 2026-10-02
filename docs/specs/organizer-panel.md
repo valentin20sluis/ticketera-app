@@ -1,6 +1,6 @@
 # Panel de organizador
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Dar a "Ticketera" un panel mínimo para el organizador (Fase 8): una pantalla `/organizador` donde ve sus propios eventos (mock) y un flujo `/organizador/eventos/nuevo` para crear un evento nuevo (datos del evento, venue y una función con sus zonas de precio/cupo). Conecta el botón "Vender entradas" de `SiteNavbar` (hoy sin destino) a `/organizador`. Es, otra vez, **solo UI/UX con datos mock**: no hay backend real, no hay conexión a `lib/db/schema.ts` ni a `modules/ticketing/` (fundación de base de datos agregada en paralelo en `main`, fuera de esta sesión) — es trabajo totalmente aparte. A diferencia de fases anteriores, **los eventos y venues que el organizador crea sí persisten entre recargas de página**, pero únicamente en `localStorage` del navegador (sin sincronizar entre dispositivos ni con ningún backend).
