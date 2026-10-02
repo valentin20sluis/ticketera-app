@@ -105,7 +105,7 @@ Utilidad de lectura/escritura/merge defensivo contra `localStorage` (clave `tick
 - Grupo paralelo: G2
 - Cubre: AC-5, AC-6
 - Tests: `organizer-catalog-storage.test.ts` — nada guardado, valor corrupto, round-trip, `appendOrganizerEvent` con/sin `venue`. `get-organizer-event-summaries.test.ts` — evento con función y zonas, evento sin función, evento de otro organizador.
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Schema zod del wizard + armado de entidades
 Validación por paso del formulario de crear evento y la utilidad pura que convierte los valores validados en las entidades normalizadas (`venue`/`venueZones`/`event`/`eventFunction`/`functionZones`) listas para persistir.
