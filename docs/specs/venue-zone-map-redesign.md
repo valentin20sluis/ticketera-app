@@ -95,7 +95,7 @@ Nuevo componente que envuelve el SVG existente con `react-zoom-pan-pinch` y agre
 - Grupo paralelo: G1
 - Cubre: AC-6, AC-7, AC-8, AC-9
 - Tests: no aplica (componente de integración con una librería de terceros; el estado de zoom lo gestiona la librería, sin lógica propia testeable — SETUP.md 3.2). Incluye verificación manual de teclado descrita en AC-9.
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Integración en `TicketSelectionView`
 Compone T1 (vía T4)+T2+T3+T4 en la vista final: reemplaza el mapa por el viewer con zoom, agrega la leyenda y conecta `activeZoneId` al resumen.
