@@ -63,7 +63,7 @@ Hoy, tras un login/registro simulado en `/ingresar`, `AuthScreen` muestra un est
 - Grupo paralelo: G2
 - Cubre: AC-5
 - Tests: no aplica (ver justificación en AC-5)
-- [ ] Completada
+- [x] Completada
 
 ### T3 — Persistir sesión al validar login/registro en AuthScreen
 - Archivos: `modules/auth/components/AuthScreen.tsx` (modificar)
@@ -71,7 +71,7 @@ Hoy, tras un login/registro simulado en `/ingresar`, `AuthScreen` muestra un est
 - Grupo paralelo: G2
 - Cubre: AC-10
 - Tests: no aplica (orquestador de UI ya sin test en `auth-ui.md` T6; el orden de persistencia se valida por lectura de código según AC-10)
-- [ ] Completada
+- [x] Completada
 
 ### T4 — AuthNavSection
 - Archivos: `modules/auth/components/AuthNavSection.tsx` (crear)

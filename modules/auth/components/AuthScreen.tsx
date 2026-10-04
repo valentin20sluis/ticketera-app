@@ -10,6 +10,7 @@ import { LoginForm } from "@/modules/auth/components/LoginForm"
 import { RegisterForm } from "@/modules/auth/components/RegisterForm"
 import { useLoginForm } from "@/modules/auth/hooks/useLoginForm"
 import { useRegisterForm } from "@/modules/auth/hooks/useRegisterForm"
+import { writeStoredAuthSession } from "@/modules/auth/utils/auth-session-storage"
 
 type AuthTab = "login" | "register"
 type AuthStatus = "idle" | "success"
@@ -39,6 +40,7 @@ export function AuthScreen() {
     event.preventDefault()
 
     if (loginForm.validate()) {
+      writeStoredAuthSession({ email: loginForm.values.email, fullName: null })
       setStatus("success")
     }
   }
@@ -47,6 +49,10 @@ export function AuthScreen() {
     event.preventDefault()
 
     if (registerForm.validate()) {
+      writeStoredAuthSession({
+        email: registerForm.fields.email,
+        fullName: registerForm.fields.fullName.trim(),
+      })
       setStatus("success")
     }
   }
