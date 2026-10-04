@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import type { AuthSession } from "@/modules/auth/types/auth.types";
 import {
@@ -24,6 +24,7 @@ export interface UseAuthSessionResult {
  */
 export function useAuthSession(): UseAuthSessionResult {
   const pathname = usePathname();
+  const router = useRouter();
   const [session, setSession] = useState<AuthSession | null>(null);
 
   useEffect(() => {
@@ -38,7 +39,8 @@ export function useAuthSession(): UseAuthSessionResult {
   const logout = useCallback(() => {
     clearStoredAuthSession();
     setSession(null);
-  }, []);
+    router.push("/");
+  }, [router]);
 
   return { session, logout };
 }
