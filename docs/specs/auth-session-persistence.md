@@ -1,6 +1,6 @@
 # Persistencia de sesión mock de auth
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Hoy, tras un login/registro simulado en `/ingresar`, `AuthScreen` muestra un estado de éxito transitorio y redirige a `/`, pero no persiste nada: el navbar sigue mostrando "Iniciar sesión" aunque el usuario "inició sesión" segundos antes. Esta spec agrega una sesión mock persistida en `localStorage` (mismo patrón ya validado en `organizer-panel.md` para el catálogo del organizador) para que, tras un login/registro exitoso, `SiteNavbar` refleje "sesión iniciada" (nombre o correo + botón "Cerrar sesión") y ese estado sobreviva a recargas de página, hasta que el usuario cierre sesión explícitamente.
