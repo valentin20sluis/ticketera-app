@@ -10,6 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { AuthNavSection } from "@/modules/auth/components/AuthNavSection"
 
 const NAV_LINKS = [
   { label: "Eventos", href: "/eventos" },
@@ -39,9 +40,7 @@ export function SiteNavbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" nativeButton={false} render={<Link href="/ingresar" />}>
-            Iniciar sesión
-          </Button>
+          <AuthNavSection variant="desktop" />
           <Button
             className="bg-cta text-cta-foreground hover:bg-cta/90"
             nativeButton={false}
@@ -80,14 +79,7 @@ export function SiteNavbar() {
               ))}
             </nav>
             <SheetFooter className="gap-2">
-              <Button
-                variant="outline"
-                className="w-full"
-                nativeButton={false}
-                render={<Link href="/ingresar" />}
-              >
-                Iniciar sesión
-              </Button>
+              <AuthNavSection variant="mobile" />
               <Button
                 className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
                 nativeButton={false}

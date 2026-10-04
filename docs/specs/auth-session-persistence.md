@@ -87,4 +87,4 @@ Hoy, tras un login/registro simulado en `/ingresar`, `AuthScreen` muestra un est
 - Grupo paralelo: G4
 - Cubre: AC-1, AC-2, AC-9
 - Tests: no aplica (componente presentacional, SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
