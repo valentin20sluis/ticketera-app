@@ -15,8 +15,9 @@ Lee la spec que te indique el orquestador y `docs/SETUP.md` antes de revisar.
 2. **Alcance.** Cada tarea tocó solo los archivos declarados. Nada de lo que la spec marca como "Fuera de alcance" se implementó. Nada extra "por si acaso" (YAGNI).
 3. **Reutilización.** Busca (Grep/Glob) si lo nuevo duplica algo que ya existía en `components/ui/`, `components/shared/`, `modules/`, `lib/` o un componente de shadcn disponible. La duplicación es un hallazgo aunque el código funcione.
 4. **`docs/SETUP.md`.** Estructura de carpetas, naming (1.2), `app/` solo compone, SOLID/DRY/KISS/YAGNI, tests obligatorios según 3.2.
-5. **Stack.** APIs de Next.js 16 válidas (contrasta con `node_modules/next/dist/docs/` si dudas), props de Base UI (no Radix), `cn` desde `@/lib/utils`, react-table v9, zod v4.
-6. **Verificación ejecutable** (una sola vez por revisión, no en paralelo con developers):
+5. **System design.** Si la tarea toca backend, base de datos, auth o pagos, verifica además que la implementación sea consistente con el system design aprobado en `docs/superpowers/specs/` (no solo con la spec de la feature puntual). Para tareas puramente de UI, omite este punto.
+6. **Stack.** APIs de Next.js 16 válidas (contrasta con `node_modules/next/dist/docs/` si dudas), props de Base UI (no Radix), `cn` desde `@/lib/utils`, react-table v9, zod v4.
+7. **Verificación ejecutable** (una sola vez por revisión, no en paralelo con developers):
    - `npx vitest run`
    - `npm run lint`
    - `npm run build` (también es el type-check)

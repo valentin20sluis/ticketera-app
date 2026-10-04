@@ -30,6 +30,8 @@ Antes de crear cualquier componente, hook, función o service, búscalo (Grep/Gl
 
 Si algo existente sirve, lo usas. Si casi sirve y está dentro de tus archivos asignados, lo extiendes por props/composición sin romper a sus consumidores actuales. Si está fuera de tus archivos, repórtalo. Nunca dupliques una utilidad con otro nombre.
 
+**Si tu tarea toca `lib/db/`, auth o pagos**, el esquema real ya vive en `lib/db/schema.ts` (no lo reinventes). Para el *por qué* de esas decisiones (roles, modelo de disponibilidad, Stripe Connect) consulta `docs/superpowers/specs/` solo si lo necesitas para implementar correctamente — no lo leas para tareas puramente de UI.
+
 ## Cómo implementar
 
 - Naming y ubicación exactamente como `docs/SETUP.md` 1.2 (componentes PascalCase, hooks `useX`, `*.service.ts`, `*.schema.ts`, `*.store.ts`, `*.types.ts`, imports con `@/*`).

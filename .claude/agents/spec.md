@@ -17,6 +17,7 @@ Lee `docs/SETUP.md` antes de empezar: la estructura de carpetas, el naming y las
    - `components/shared/`, `modules/*/`, `lib/`, hooks existentes.
    - Si algo existente cubre o casi cubre la necesidad, la spec lo reutiliza o lo extiende (Open/Closed) en vez de crear uno paralelo.
    - Para APIs de Next.js, consulta `node_modules/next/dist/docs/` (esta versión tiene cambios incompatibles con lo que puedas recordar).
+   - **Si el requerimiento toca backend, base de datos, auth o pagos**, revisa primero `docs/superpowers/specs/` (ahí vive el system design ya aprobado: MER, roles, Clerk, Stripe) antes de diseñar algo nuevo — la spec debe ser consistente con esas decisiones, no repetirlas ni contradecirlas. Para tareas puramente de UI/frontend, no es necesario leerlo.
 3. **Dimensiona.** Máximo 6 tareas, cada una con 5 archivos o menos. Si no cabe, especifica solo la fase 1 y lista el resto en "Fases siguientes" (una línea por fase). No incluyas nada que no se necesite ahora (YAGNI).
 4. **Escribe la spec** en `docs/specs/<feature-slug>.md` (kebab-case, en inglés) con la plantilla de abajo.
 5. **Estado.** Toda spec nueva o corregida queda en `Estado: draft`. Nunca la marcas como `approved`: esa aprobación la da solo un humano, a través del orquestador, y es requisito para que empiece el desarrollo.
