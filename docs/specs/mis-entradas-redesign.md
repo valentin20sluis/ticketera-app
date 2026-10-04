@@ -1,6 +1,6 @@
 # Mis entradas — rediseño maestro-detalle
 
-Estado: draft
+Estado: in-progress
 
 ## Objetivo
 Rediseñar `/mis-entradas` (hoy una lista de tarjetas que se expanden en el lugar, de `mis-entradas.md`) a un layout maestro-detalle de dos columnas, según la referencia visual que adjuntó el usuario: a la izquierda la lista de pedidos (seleccionable), a la derecha el detalle de la entrada seleccionada dentro de ese pedido — banner del evento, datos (Zona, Asiento, Titular, Código, Estado), su QR, navegación "Entrada X de N" entre las entradas del mismo pedido, y los botones "Descargar PDF" / "Agregar al calendario" ya resueltos en la Fase 5 (`checkout-calendar-pdf.md`) pero nunca conectados a esta pantalla. Sigue siendo **solo UI/UX**: mock data, sin backend, sin sesión real más allá de `useAuthSession` (localStorage, de `auth-session-persistence.md`).
