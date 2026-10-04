@@ -29,13 +29,6 @@ export function SiteNavbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           <AuthNavSection variant="desktop" />
-          <Button
-            className="bg-cta text-cta-foreground hover:bg-cta/90"
-            nativeButton={false}
-            render={<Link href="/organizador" />}
-          >
-            Vender entradas
-          </Button>
         </div>
 
         <Sheet>
@@ -58,13 +51,6 @@ export function SiteNavbar() {
             <SiteNavLinks variant="mobile" />
             <SheetFooter className="gap-2">
               <AuthNavSection variant="mobile" />
-              <Button
-                className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
-                nativeButton={false}
-                render={<Link href="/organizador" />}
-              >
-                Vender entradas
-              </Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>

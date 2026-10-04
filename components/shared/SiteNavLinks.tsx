@@ -1,8 +1,4 @@
-"use client"
-
 import Link from "next/link"
-
-import { useAuthSession } from "@/modules/auth/hooks/useAuthSession"
 
 interface NavLink {
   label: string
@@ -11,7 +7,6 @@ interface NavLink {
 
 const NAV_LINKS: NavLink[] = [
   { label: "Eventos", href: "/eventos" },
-  { label: "Mis entradas", href: "/mis-entradas" },
   { label: "Categorías", href: "/#categorias" },
   { label: "Cómo funciona", href: "/#como-funciona" },
 ]
@@ -21,13 +16,10 @@ interface SiteNavLinksProps {
 }
 
 export function SiteNavLinks({ variant }: SiteNavLinksProps) {
-  const { session } = useAuthSession()
-  const links = session ? NAV_LINKS : NAV_LINKS.filter((link) => link.href !== "/mis-entradas")
-
   if (variant === "mobile") {
     return (
       <nav className="flex flex-col gap-1 px-4">
-        {links.map((link) => (
+        {NAV_LINKS.map((link) => (
           <Link
             key={link.label}
             href={link.href}
@@ -42,7 +34,7 @@ export function SiteNavLinks({ variant }: SiteNavLinksProps) {
 
   return (
     <nav className="hidden items-center gap-6 text-sm font-medium text-foreground md:flex">
-      {links.map((link) => (
+      {NAV_LINKS.map((link) => (
         <Link key={link.label} href={link.href} className="hover:text-brand">
           {link.label}
         </Link>
