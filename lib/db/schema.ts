@@ -58,17 +58,23 @@ export const eventCategories = pgTable("event_categories", {
   colorKey: varchar("color_key", { length: 50 }).notNull(),
 });
 
-export const venues = pgTable("venues", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  organizerId: uuid("organizer_id").notNull().references(() => users.id),
-  name: varchar("name", { length: 255 }).notNull(),
-  address: text("address").notNull(),
-  city: varchar("city", { length: 150 }).notNull(),
-  lat: doublePrecision("lat").notNull(),
-  lng: doublePrecision("lng").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const venues = pgTable(
+  "venues",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizerId: uuid("organizer_id").notNull().references(() => users.id),
+    name: varchar("name", { length: 255 }).notNull(),
+    address: text("address").notNull(),
+    city: varchar("city", { length: 150 }).notNull(),
+    lat: doublePrecision("lat").notNull(),
+    lng: doublePrecision("lng").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    organizerIdx: index("venues_organizer_idx").on(table.organizerId),
+  }),
+);
 
 export const venueZones = pgTable(
   "venue_zones",
@@ -84,34 +90,49 @@ export const venueZones = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
+    venueIdx: index("venue_zones_venue_idx").on(table.venueId),
     capacityNonNegative: check("venue_zones_capacity_non_negative", sql`${table.capacity} >= 0`),
   }),
 );
 
-export const events = pgTable("events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  organizerId: uuid("organizer_id").notNull().references(() => users.id),
-  categoryId: uuid("category_id").notNull().references(() => eventCategories.id),
-  venueId: uuid("venue_id").notNull().references(() => venues.id),
-  slug: varchar("slug", { length: 255 }).notNull().unique(),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description").notNull(),
-  imageUrl: text("image_url").notNull(),
-  doorsOpenTime: varchar("doors_open_time", { length: 50 }).notNull(),
-  showStartTime: varchar("show_start_time", { length: 50 }).notNull(),
-  minimumAge: varchar("minimum_age", { length: 50 }).notNull(),
-  admissionType: varchar("admission_type", { length: 100 }).notNull(),
-  status: eventStatusEnum("status").notNull().default("draft"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const events = pgTable(
+  "events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizerId: uuid("organizer_id").notNull().references(() => users.id),
+    categoryId: uuid("category_id").notNull().references(() => eventCategories.id),
+    venueId: uuid("venue_id").notNull().references(() => venues.id),
+    slug: varchar("slug", { length: 255 }).notNull().unique(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: text("description").notNull(),
+    imageUrl: text("image_url").notNull(),
+    doorsOpenTime: varchar("doors_open_time", { length: 50 }).notNull(),
+    showStartTime: varchar("show_start_time", { length: 50 }).notNull(),
+    minimumAge: varchar("minimum_age", { length: 50 }).notNull(),
+    admissionType: varchar("admission_type", { length: 100 }).notNull(),
+    status: eventStatusEnum("status").notNull().default("draft"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    organizerIdx: index("events_organizer_idx").on(table.organizerId),
+    categoryIdx: index("events_category_idx").on(table.categoryId),
+    venueIdx: index("events_venue_idx").on(table.venueId),
+  }),
+);
 
-export const eventFunctions = pgTable("event_functions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  eventId: uuid("event_id").notNull().references(() => events.id),
-  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const eventFunctions = pgTable(
+  "event_functions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id").notNull().references(() => events.id),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    eventIdx: index("event_functions_event_idx").on(table.eventId),
+  }),
+);
 
 export const functionZones = pgTable(
   "function_zones",
@@ -125,6 +146,8 @@ export const functionZones = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
+    functionIdx: index("function_zones_function_idx").on(table.functionId),
+    venueZoneIdx: index("function_zones_venue_zone_idx").on(table.venueZoneId),
     capacityNonNegative: check("function_zones_capacity_non_negative", sql`${table.capacity} >= 0`),
     priceNonNegative: check("function_zones_price_non_negative", sql`${table.price} >= 0`),
   }),
@@ -145,6 +168,7 @@ export const orders = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
+    customerIdx: index("orders_customer_idx").on(table.customerId),
     statusExpiresIdx: index("orders_status_expires_idx").on(table.status, table.expiresAt),
     totalAmountNonNegative: check("orders_total_amount_non_negative", sql`${table.totalAmount} >= 0`),
   }),
@@ -160,17 +184,24 @@ export const orderItems = pgTable(
     unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
   },
   (table) => ({
+    orderIdx: index("order_items_order_idx").on(table.orderId),
     functionZoneIdx: index("order_items_function_zone_idx").on(table.functionZoneId),
     quantityPositive: check("order_items_quantity_positive", sql`${table.quantity} > 0`),
     unitPriceNonNegative: check("order_items_unit_price_non_negative", sql`${table.unitPrice} >= 0`),
   }),
 );
 
-export const tickets = pgTable("tickets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orderItemId: uuid("order_item_id").notNull().references(() => orderItems.id),
-  qrCode: varchar("qr_code", { length: 255 }).notNull().unique(),
-  status: ticketStatusEnum("status").notNull().default("valid"),
-  checkedInAt: timestamp("checked_in_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const tickets = pgTable(
+  "tickets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderItemId: uuid("order_item_id").notNull().references(() => orderItems.id),
+    qrCode: varchar("qr_code", { length: 255 }).notNull().unique(),
+    status: ticketStatusEnum("status").notNull().default("valid"),
+    checkedInAt: timestamp("checked_in_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    orderItemIdx: index("tickets_order_item_idx").on(table.orderItemId),
+  }),
+);

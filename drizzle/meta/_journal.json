@@ -15,6 +15,13 @@
       "when": 1790820677404,
       "tag": "0001_lazy_chameleon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791148731482,
+      "tag": "0002_add_fk_indexes",
+      "breakpoints": true
     }
   ]
 }
