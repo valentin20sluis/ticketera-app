@@ -79,7 +79,7 @@ Hoy, tras un login/registro simulado en `/ingresar`, `AuthScreen` muestra un est
 - Grupo paralelo: G3
 - Cubre: AC-6, AC-7, AC-8
 - Tests: no aplica (componente presentacional que consume un hook ya cubierto en T1/T2, SETUP.md 3.2)
-- [ ] Completada
+- [x] Completada
 
 ### T5 — Integrar AuthNavSection en SiteNavbar
 - Archivos: `components/shared/SiteNavbar.tsx` (modificar)
