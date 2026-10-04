@@ -55,7 +55,7 @@ Hoy, tras un login/registro simulado en `/ingresar`, `AuthScreen` muestra un est
 - Grupo paralelo: G1
 - Cubre: AC-3, AC-4
 - Tests: `auth-session-storage.test.ts` — casos descritos en AC-4
-- [ ] Completada
+- [x] Completada
 
 ### T2 — Hook useAuthSession
 - Archivos: `modules/auth/hooks/useAuthSession.ts` (crear)

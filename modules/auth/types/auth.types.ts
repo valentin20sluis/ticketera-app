@@ -13,3 +13,8 @@ export interface RegisterFormFields {
 export type RegisterFormValues = RegisterFormFields & {
   termsAccepted: boolean
 }
+
+export interface AuthSession {
+  email: string
+  fullName: string | null
+}
