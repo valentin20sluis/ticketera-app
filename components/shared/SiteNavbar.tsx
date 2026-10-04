@@ -11,13 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { AuthNavSection } from "@/modules/auth/components/AuthNavSection"
-
-const NAV_LINKS = [
-  { label: "Eventos", href: "/eventos" },
-  { label: "Mis entradas", href: "/mis-entradas" },
-  { label: "Categorías", href: "/#categorias" },
-  { label: "Cómo funciona", href: "/#como-funciona" },
-]
+import { SiteNavLinks } from "@/components/shared/SiteNavLinks"
 
 export function SiteNavbar() {
   return (
@@ -31,13 +25,7 @@ export function SiteNavbar() {
           Ticketera
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium text-foreground md:flex">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.label} href={link.href} className="hover:text-brand">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <SiteNavLinks variant="desktop" />
 
         <div className="hidden items-center gap-3 md:flex">
           <AuthNavSection variant="desktop" />
@@ -67,17 +55,7 @@ export function SiteNavbar() {
             <SheetHeader>
               <SheetTitle>Ticketera</SheetTitle>
             </SheetHeader>
-            <nav className="flex flex-col gap-1 px-4">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+            <SiteNavLinks variant="mobile" />
             <SheetFooter className="gap-2">
               <AuthNavSection variant="mobile" />
               <Button
