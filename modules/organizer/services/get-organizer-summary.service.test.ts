@@ -94,8 +94,8 @@ describe("getOrganizerSummary", () => {
 
     const summaryA = result.publishedEvents.find((e) => e.id === eventA.id)
     const summaryB = result.publishedEvents.find((e) => e.id === eventB.id)
-    expect(summaryA).toMatchObject({ ticketsSold: 4, revenue: 200 })
-    expect(summaryB).toMatchObject({ ticketsSold: 2, revenue: 160 })
+    expect(summaryA).toMatchObject({ ticketsSold: 4, revenue: 200, imageUrl: eventA.imageUrl })
+    expect(summaryB).toMatchObject({ ticketsSold: 2, revenue: 160, imageUrl: eventB.imageUrl })
   })
 
   it("sorts published events by tickets sold, descending", async () => {

@@ -6,6 +6,7 @@ export interface OrganizerEventSummary {
   id: string
   title: string
   slug: string
+  imageUrl: string
   ticketsSold: number
   revenue: number
 }
@@ -24,7 +25,13 @@ export interface OrganizerSummary {
 // asked to see listed, sorted by tickets sold (ties broken by revenue).
 export async function getOrganizerSummary(db: Db, organizerId: string): Promise<OrganizerSummary> {
   const organizerEvents = await db
-    .select({ id: events.id, title: events.title, slug: events.slug, status: events.status })
+    .select({
+      id: events.id,
+      title: events.title,
+      slug: events.slug,
+      imageUrl: events.imageUrl,
+      status: events.status,
+    })
     .from(events)
     .where(eq(events.organizerId, organizerId))
 
@@ -61,7 +68,14 @@ export async function getOrganizerSummary(db: Db, organizerId: string): Promise<
   const publishedEvents = allEvents
     .filter((event) => event.status === "published")
     .sort((a, b) => b.ticketsSold - a.ticketsSold || b.revenue - a.revenue)
-    .map(({ id, title, slug, ticketsSold, revenue }) => ({ id, title, slug, ticketsSold, revenue }))
+    .map(({ id, title, slug, imageUrl, ticketsSold, revenue }) => ({
+      id,
+      title,
+      slug,
+      imageUrl,
+      ticketsSold,
+      revenue,
+    }))
 
   return {
     totalTicketsSold: allEvents.reduce((sum, event) => sum + event.ticketsSold, 0),
