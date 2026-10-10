@@ -29,24 +29,11 @@ function getInitials(fullName: string | null, email: string): string {
   return getDisplayName(fullName, email).slice(0, 2).toUpperCase()
 }
 
-function AccountIdentity({
-  name,
-  email,
-  roleLabel,
-}: {
-  name: string
-  email: string
-  roleLabel: string | null
-}) {
+function AccountIdentity({ name, email }: { name: string; email: string }) {
   return (
     <div className="min-w-0">
       <p className="truncate text-sm font-medium text-foreground">{name}</p>
       {email && <p className="truncate text-xs text-muted-foreground">{email}</p>}
-      {roleLabel && (
-        <Badge variant="outline" className="mt-1 w-fit">
-          {roleLabel}
-        </Badge>
-      )}
     </div>
   )
 }
@@ -89,7 +76,8 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground">
             {initials}
           </span>
-          <AccountIdentity name={displayName} email={session.email} roleLabel={roleLabel} />
+          {roleLabel && <Badge variant="outline">{roleLabel}</Badge>}
+          <AccountIdentity name={displayName} email={session.email} />
         </div>
         <Button
           variant="outline"
@@ -125,24 +113,27 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label={`Cuenta de ${displayName}`}
-        className="flex size-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/80 focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-        {initials}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <div className="mb-1 border-b border-border px-1.5 pb-2 pt-1">
-          <AccountIdentity name={displayName} email={session.email} roleLabel={roleLabel} />
-        </div>
-        <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
-        <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
-        {isSuperAdmin && (
-          <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={logout}>Cerrar sesión</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-2">
+      {roleLabel && <Badge variant="outline">{roleLabel}</Badge>}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label={`Cuenta de ${displayName}`}
+          className="flex size-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {initials}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <div className="mb-1 border-b border-border px-1.5 pb-2 pt-1">
+            <AccountIdentity name={displayName} email={session.email} />
+          </div>
+          <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
+          {isSuperAdmin && (
+            <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={logout}>Cerrar sesión</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
