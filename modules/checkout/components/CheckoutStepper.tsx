@@ -5,8 +5,7 @@ import type { CheckoutStep } from "@/modules/checkout/types/checkout.types"
 
 const STEPS: { id: CheckoutStep; label: string }[] = [
   { id: "tickets", label: "Entradas" },
-  { id: "payment", label: "Datos y pago" },
-  { id: "confirmation", label: "Confirmación" },
+  { id: "payment", label: "Pago" },
 ]
 
 interface CheckoutStepperProps {

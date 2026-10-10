@@ -57,6 +57,10 @@ export function TicketDetailPanel({
     }
   }
 
+  const realQrCode = order.ticketQrCodes?.[ticketNumber - 1]
+  const fullCode = realQrCode ?? getTicketCode(order.orderNumber, ticketNumber)
+  const shownCode = realQrCode ? realQrCode.slice(0, 8).toUpperCase() : fullCode
+
   return (
     <div ref={panelRef}>
       <Card className="pt-0!">
@@ -121,7 +125,12 @@ export function TicketDetailPanel({
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
             <div data-qr-code>
-              <QRCodeSVG value={`TICKETERA-${order.orderNumber}-${stub.ticketNumber}`} />
+              <QRCodeSVG
+                value={
+                  order.ticketQrCodes?.[ticketNumber - 1] ??
+                  `TICKETERA-${order.orderNumber}-${ticketNumber}`
+                }
+              />
             </div>
 
             <dl className="grid grid-cols-2 gap-3 text-sm">
@@ -139,8 +148,8 @@ export function TicketDetailPanel({
               </div>
               <div className="flex flex-col gap-0.5">
                 <dt className="text-muted-foreground">Código</dt>
-                <dd className="font-medium text-foreground">
-                  {getTicketCode(order.orderNumber, stub.ticketNumber)}
+                <dd className="font-medium text-foreground" title={fullCode}>
+                  {shownCode}
                 </dd>
               </div>
               <div className="flex flex-col gap-0.5">
@@ -167,6 +176,17 @@ export function TicketDetailPanel({
               Agregar al calendario
             </Button>
           </div>
+
+          {order.invoiceUrl && (
+            <a
+              href={order.invoiceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Ver factura
+            </a>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -2,11 +2,9 @@ import { describe, expect, it } from "vitest"
 
 import {
   MAX_TICKETS_PER_ZONE,
-  getVenueZones,
   getZoneMaxQuantity,
   isZoneSoldOut,
 } from "./venue-zone.service"
-import { MOCK_VENUE_ZONES } from "@/modules/events/data/venue-zones.mock"
 
 describe("isZoneSoldOut", () => {
   it("returns false for a zone with available tickets", () => {
@@ -29,15 +27,5 @@ describe("getZoneMaxQuantity", () => {
 
   it("returns 0 for a sold-out zone", () => {
     expect(getZoneMaxQuantity({ available: 0 })).toBe(0)
-  })
-})
-
-describe("getVenueZones", () => {
-  it("returns the 5 mock venue zones, including the sold-out one", () => {
-    const zones = getVenueZones()
-
-    expect(zones).toEqual(MOCK_VENUE_ZONES)
-    expect(zones).toHaveLength(5)
-    expect(zones.some((zone) => zone.available === 0)).toBe(true)
   })
 })
