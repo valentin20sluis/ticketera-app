@@ -43,3 +43,6 @@ next-env.d.ts
 
 # superpowers SDD scratch workspace (ledgers, briefs, review packages)
 .superpowers/
+
+# local symlinks created by `npx skills add` (absolute paths, recreate per machine)
+.claude/skills/
