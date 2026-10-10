@@ -128,10 +128,19 @@ manualmente, sin flujo de autoservicio.
      `PLATFORM_FEE_PERCENT`), y
      `payment_intent_data.transfer_data.destination` = `stripe_account_id`
      del organizador (destination charge — sin pasos manuales de transfer).
+     > **Estado de implementación:** hoy la sesión se crea en PEN y se cobra en
+     > la cuenta de la plataforma, con `invoice_creation` activado. La comisión
+     > (`application_fee_amount`) y el destino al organizador (`transfer_data`)
+     > dependen de Stripe Connect y siguen pendientes (ver
+     > `docs/specs/stripe-payments.md`, "Fuera de alcance").
   3. Redirige al Checkout hospedado por Stripe.
-  4. Webhook `checkout.session.completed` marca `order.status = paid` y
-     genera un `ticket` (con `qr_code` único) por cada unidad comprada.
-  5. `checkout.session.expired` (o el cálculo de disponibilidad que ignora
+  4. Webhook `checkout.session.completed` (y `checkout.session.async_payment_succeeded`
+     para métodos asíncronos), solo si `payment_status = paid`, marca
+     `order.status = paid`, guarda `stripe_payment_intent_id` y genera un
+     `ticket` (con `qr_code` único) por cada unidad comprada. Es idempotente.
+  5. Webhook `invoice.paid` guarda `orders.invoice_url` (factura hospedada de
+     Stripe), que `/mis-entradas` muestra como "Ver factura".
+  6. `checkout.session.expired` (o el cálculo de disponibilidad que ignora
      `pending` vencidos) libera la zona sin acción manual.
 - **No hay reembolsos**: ventas finales, sin endpoint ni UI de refund.
 - **La orden `pending` con `expires_at` ES el mecanismo de hold** (ver
@@ -163,7 +172,7 @@ manualmente, sin flujo de autoservicio.
 `id, function_id → event_functions.id, venue_zone_id → venue_zones.id, price, currency, capacity (snapshot, normalmente = venue_zones.capacity), created_at`
 
 **`orders`** — también actúa como el "hold" mientras está `pending`.
-`id, customer_id → users.id, status (pending|paid|expired|cancelled), total_amount, currency, stripe_checkout_session_id, stripe_payment_intent_id, expires_at, created_at, updated_at`
+`id, customer_id → users.id, status (pending|paid|expired|cancelled), total_amount, currency, stripe_checkout_session_id, stripe_payment_intent_id, invoice_url (nullable, enlace a la factura hospedada de Stripe; lo guarda el webhook `invoice.paid`), expires_at, created_at, updated_at`
 
 **`order_items`** — líneas de la orden (una por zona elegida).
 `id, order_id → orders.id, function_zone_id → function_zones.id, quantity, unit_price (precio congelado al momento de comprar)`
