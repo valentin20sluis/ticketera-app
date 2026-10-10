@@ -1,61 +1,16 @@
 "use client"
 
-import { useEffect, useState, type FormEvent } from "react"
+import { useState } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { CheckCircleIcon, TicketIcon } from "lucide-react"
+import { SignIn, SignUp } from "@clerk/nextjs"
+import { TicketIcon } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LoginForm } from "@/modules/auth/components/LoginForm"
-import { RegisterForm } from "@/modules/auth/components/RegisterForm"
-import { useLoginForm } from "@/modules/auth/hooks/useLoginForm"
-import { useRegisterForm } from "@/modules/auth/hooks/useRegisterForm"
-import { writeStoredAuthSession } from "@/modules/auth/utils/auth-session-storage"
 
 type AuthTab = "login" | "register"
-type AuthStatus = "idle" | "success"
-
-const SUCCESS_REDIRECT_DELAY_MS = 1200
 
 export function AuthScreen() {
-  const router = useRouter()
-  const loginForm = useLoginForm()
-  const registerForm = useRegisterForm()
   const [activeTab, setActiveTab] = useState<AuthTab>("login")
-  const [status, setStatus] = useState<AuthStatus>("idle")
-
-  useEffect(() => {
-    if (status !== "success") {
-      return
-    }
-
-    const timeoutId = setTimeout(() => {
-      router.push("/")
-    }, SUCCESS_REDIRECT_DELAY_MS)
-
-    return () => clearTimeout(timeoutId)
-  }, [status, router])
-
-  const handleLoginSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    if (loginForm.validate()) {
-      writeStoredAuthSession({ email: loginForm.values.email, fullName: null })
-      setStatus("success")
-    }
-  }
-
-  const handleRegisterSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    if (registerForm.validate()) {
-      writeStoredAuthSession({
-        email: registerForm.fields.email,
-        fullName: registerForm.fields.fullName.trim(),
-      })
-      setStatus("success")
-    }
-  }
 
   return (
     <div className="grid flex-1 md:grid-cols-2">
@@ -88,50 +43,24 @@ export function AuthScreen() {
 
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-sm">
-          {status === "success" ? (
-            <div className="flex flex-col items-center gap-3 text-center">
-              <CheckCircleIcon className="size-12 text-primary" />
-              <p className="text-lg font-medium text-foreground">¡Listo! Redirigiendo...</p>
-            </div>
-          ) : (
-            <Tabs
-              value={activeTab}
-              onValueChange={(value) => setActiveTab(value as AuthTab)}
-            >
-              <TabsList className="mb-6 w-full">
-                <TabsTrigger value="login" className="flex-1">
-                  Iniciar sesión
-                </TabsTrigger>
-                <TabsTrigger value="register" className="flex-1">
-                  Crear cuenta
-                </TabsTrigger>
-              </TabsList>
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AuthTab)}>
+            <TabsList className="mb-6 w-full">
+              <TabsTrigger value="login" className="flex-1">
+                Iniciar sesión
+              </TabsTrigger>
+              <TabsTrigger value="register" className="flex-1">
+                Crear cuenta
+              </TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="login">
-                <LoginForm
-                  values={loginForm.values}
-                  errors={loginForm.errors}
-                  isSubmitting={status !== "idle"}
-                  onChange={loginForm.updateField}
-                  onSubmit={handleLoginSubmit}
-                  onSwitchToRegister={() => setActiveTab("register")}
-                />
-              </TabsContent>
+            <TabsContent value="login">
+              <SignIn routing="hash" signUpUrl="/ingresar" fallbackRedirectUrl="/" />
+            </TabsContent>
 
-              <TabsContent value="register">
-                <RegisterForm
-                  fields={registerForm.fields}
-                  termsAccepted={registerForm.termsAccepted}
-                  errors={registerForm.errors}
-                  isSubmitting={status !== "idle"}
-                  onFieldChange={registerForm.updateField}
-                  onTermsChange={registerForm.setTermsAccepted}
-                  onSubmit={handleRegisterSubmit}
-                  onSwitchToLogin={() => setActiveTab("login")}
-                />
-              </TabsContent>
-            </Tabs>
-          )}
+            <TabsContent value="register">
+              <SignUp routing="hash" signInUrl="/ingresar" fallbackRedirectUrl="/" />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

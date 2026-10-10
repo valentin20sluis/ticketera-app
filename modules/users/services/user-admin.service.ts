@@ -1,12 +1,17 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, notInArray } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
 import type { Db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
+import { HIDDEN_FROM_PANEL_EMAILS } from "@/modules/users/constants";
 import type { CurrentUser } from "@/modules/users/services/current-user.service";
 import { canManageUser, type AssignableRole } from "@/modules/users/utils/permissions";
 
 export function listUsers(db: Db) {
-  return db.select().from(users).orderBy(asc(users.createdAt));
+  return db
+    .select()
+    .from(users)
+    .where(notInArray(users.email, HIDDEN_FROM_PANEL_EMAILS))
+    .orderBy(asc(users.createdAt));
 }
 
 // The role travels in the invitation's publicMetadata and is applied to the
