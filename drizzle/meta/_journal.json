@@ -29,6 +29,13 @@
       "when": 1791593115641,
       "tag": "0003_natural_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791665035761,
+      "tag": "0004_productive_naoko",
+      "breakpoints": true
     }
   ]
 }

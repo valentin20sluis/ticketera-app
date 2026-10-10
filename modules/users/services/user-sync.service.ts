@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { resolveInitialRole } from "@/modules/users/utils/permissions";
@@ -29,8 +29,9 @@ export async function upsertClerkUser(db: Db, input: ClerkUserInput) {
 }
 
 export async function markClerkUserDeleted(db: Db, clerkUserId: string) {
+  const now = new Date();
   await db
     .update(users)
-    .set({ isSuspended: true, updatedAt: new Date() })
-    .where(eq(users.clerkUserId, clerkUserId));
+    .set({ isSuspended: true, deletedAt: now, updatedAt: now })
+    .where(and(eq(users.clerkUserId, clerkUserId), isNull(users.deletedAt)));
 }

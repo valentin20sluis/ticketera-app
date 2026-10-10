@@ -57,5 +57,29 @@ describe("markClerkUserDeleted", () => {
 
     const [row] = await db.select().from(users).where(eq(users.clerkUserId, "clerk_4"));
     expect(row.isSuspended).toBe(true);
+    expect(row.deletedAt).toBeInstanceOf(Date);
+  });
+
+  it("is idempotent: keeps the first deleted_at", async () => {
+    const db = await createTestDb();
+    await upsertClerkUser(db, { clerkUserId: "clerk_5", email: "e@example.com", fullName: "E" });
+    await markClerkUserDeleted(db, "clerk_5");
+    const [first] = await db.select().from(users).where(eq(users.clerkUserId, "clerk_5"));
+
+    await markClerkUserDeleted(db, "clerk_5");
+
+    const [second] = await db.select().from(users).where(eq(users.clerkUserId, "clerk_5"));
+    expect(second.deletedAt?.getTime()).toBe(first.deletedAt?.getTime());
+  });
+
+  it("a later upsert does not revive a deleted user", async () => {
+    const db = await createTestDb();
+    await upsertClerkUser(db, { clerkUserId: "clerk_6", email: "f@example.com", fullName: "F" });
+    await markClerkUserDeleted(db, "clerk_6");
+
+    const row = await upsertClerkUser(db, { clerkUserId: "clerk_6", email: "f@example.com", fullName: "F2" });
+
+    expect(row.deletedAt).not.toBeNull();
+    expect(row.isSuspended).toBe(true);
   });
 });
