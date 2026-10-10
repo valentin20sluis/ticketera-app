@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { cn } from "cn"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -11,10 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthSession } from "@/modules/auth/hooks/useAuthSession"
-import { SUPER_ADMIN_EMAIL } from "@/modules/users/constants"
+import { ROLE_LABELS } from "@/modules/users/constants"
+import type { UserRole } from "@/modules/users/types/user.types"
 
 interface AuthNavSectionProps {
   variant: "desktop" | "mobile"
+  role: UserRole | null
 }
 
 function getInitials(fullName: string | null, email: string): string {
@@ -22,7 +25,7 @@ function getInitials(fullName: string | null, email: string): string {
   return source.slice(0, 2).toUpperCase()
 }
 
-export function AuthNavSection({ variant }: AuthNavSectionProps) {
+export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
   const { session, logout } = useAuthSession()
   const fullWidthClassName = variant === "mobile" ? "w-full" : undefined
 
@@ -50,7 +53,8 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
 
   const displayName = session.fullName ?? session.email
   const initials = getInitials(session.fullName, session.email)
-  const isSuperAdmin = session.email.toLowerCase() === SUPER_ADMIN_EMAIL
+  const isSuperAdmin = role === "super_admin"
+  const roleLabel = role ? ROLE_LABELS[role] : null
 
   if (variant === "mobile") {
     return (
@@ -59,7 +63,14 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground">
             {initials}
           </span>
-          <span className="truncate text-sm font-medium text-foreground">{displayName}</span>
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-medium text-foreground">{displayName}</span>
+            {roleLabel && (
+              <Badge variant="outline" className="w-fit">
+                {roleLabel}
+              </Badge>
+            )}
+          </span>
         </div>
         <Button
           variant="outline"
@@ -95,21 +106,24 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label={`Cuenta de ${displayName}`}
-        className="flex size-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/80 focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-        {initials}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
-        <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
-        {isSuperAdmin && (
-          <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={logout}>Cerrar sesión</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-2">
+      {roleLabel && <Badge variant="outline">{roleLabel}</Badge>}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label={`Cuenta de ${displayName}`}
+          className="flex size-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {initials}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
+          {isSuperAdmin && (
+            <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={logout}>Cerrar sesión</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
