@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthSession } from "@/modules/auth/hooks/useAuthSession"
+import { SUPER_ADMIN_EMAIL } from "@/modules/users/constants"
 
 interface AuthNavSectionProps {
   variant: "desktop" | "mobile"
@@ -49,6 +50,7 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
 
   const displayName = session.fullName ?? session.email
   const initials = getInitials(session.fullName, session.email)
+  const isSuperAdmin = session.email.toLowerCase() === SUPER_ADMIN_EMAIL
 
   if (variant === "mobile") {
     return (
@@ -75,6 +77,16 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
         >
           Vender entradas
         </Button>
+        {isSuperAdmin && (
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            nativeButton={false}
+            render={<Link href="/super-admin" />}
+          >
+            Administrar
+          </Button>
+        )}
         <Button variant="outline" className="w-full justify-start" onClick={logout}>
           Cerrar sesión
         </Button>
@@ -93,6 +105,9 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
       <DropdownMenuContent>
         <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
+        {isSuperAdmin && (
+          <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={logout}>Cerrar sesión</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
