@@ -3,6 +3,7 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatPrice } from "@/lib/format-currency"
+import { formatFullEventDate } from "@/modules/events/utils/format-event-date"
 import type { OrganizerEventSummary } from "@/modules/organizer/services/get-organizer-summary.service"
 
 interface OrganizerEventsTableProps {
@@ -60,7 +61,14 @@ export function OrganizerEventsTable({ events }: OrganizerEventsTableProps) {
                       className="object-cover"
                     />
                   </div>
-                  <span className="font-medium text-gray-900">{event.title}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-900">{event.title}</span>
+                    {event.startDate && (
+                      <span className="text-sm text-gray-500">
+                        {formatFullEventDate(event.startDate)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>

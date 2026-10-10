@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
 import type { Db } from "@/lib/db/client"
 import { eventFunctions, events, functionZones, orderItems, orders } from "@/lib/db/schema"
 
@@ -7,6 +7,7 @@ export interface OrganizerEventSummary {
   title: string
   slug: string
   imageUrl: string
+  startDate: string | null
   ticketsSold: number
   revenue: number
 }
@@ -39,6 +40,19 @@ export async function getOrganizerSummary(db: Db, organizerId: string): Promise<
     return { totalTicketsSold: 0, totalRevenue: 0, publishedEventsCount: 0, publishedEvents: [] }
   }
 
+  // An event can have more than one function; its "date" is the earliest one
+  // (deterministic, unlike "next upcoming" which would go null for a past event).
+  const functionRows = await db
+    .select({ eventId: eventFunctions.eventId, startsAt: eventFunctions.startsAt })
+    .from(eventFunctions)
+    .where(inArray(eventFunctions.eventId, organizerEvents.map((event) => event.id)))
+
+  const startDateByEvent = new Map<string, Date>()
+  for (const row of functionRows) {
+    const current = startDateByEvent.get(row.eventId)
+    if (!current || row.startsAt < current) startDateByEvent.set(row.eventId, row.startsAt)
+  }
+
   const salesRows = await db
     .select({
       eventId: events.id,
@@ -62,17 +76,19 @@ export async function getOrganizerSummary(db: Db, organizerId: string): Promise<
 
   const allEvents = organizerEvents.map((event) => ({
     ...event,
+    startDate: startDateByEvent.get(event.id)?.toISOString() ?? null,
     ...(salesByEvent.get(event.id) ?? { ticketsSold: 0, revenue: 0 }),
   }))
 
   const publishedEvents = allEvents
     .filter((event) => event.status === "published")
     .sort((a, b) => b.ticketsSold - a.ticketsSold || b.revenue - a.revenue)
-    .map(({ id, title, slug, imageUrl, ticketsSold, revenue }) => ({
+    .map(({ id, title, slug, imageUrl, startDate, ticketsSold, revenue }) => ({
       id,
       title,
       slug,
       imageUrl,
+      startDate,
       ticketsSold,
       revenue,
     }))

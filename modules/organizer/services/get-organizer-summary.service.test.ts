@@ -24,7 +24,7 @@ async function setup() {
   const [fnB] = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, eventB.id))
   const [zoneA] = await db.select().from(functionZones).where(eq(functionZones.functionId, fnA.id))
   const [zoneB] = await db.select().from(functionZones).where(eq(functionZones.functionId, fnB.id))
-  return { db, organizer, eventA, eventB, zoneA, zoneB }
+  return { db, organizer, eventA, eventB, fnA, fnB, zoneA, zoneB }
 }
 
 async function placeOrder(
@@ -79,7 +79,7 @@ describe("getOrganizerSummary", () => {
   })
 
   it("sums only paid orders into tickets sold and revenue, per event and in total", async () => {
-    const { db, organizer, eventA, eventB, zoneA, zoneB } = await setup()
+    const { db, organizer, eventA, eventB, fnA, fnB, zoneA, zoneB } = await setup()
     await placeOrder(db, zoneA.id, 3, "50.00", "paid")
     await placeOrder(db, zoneA.id, 1, "50.00", "paid")
     await placeOrder(db, zoneB.id, 2, "80.00", "paid")
@@ -94,8 +94,28 @@ describe("getOrganizerSummary", () => {
 
     const summaryA = result.publishedEvents.find((e) => e.id === eventA.id)
     const summaryB = result.publishedEvents.find((e) => e.id === eventB.id)
-    expect(summaryA).toMatchObject({ ticketsSold: 4, revenue: 200, imageUrl: eventA.imageUrl })
-    expect(summaryB).toMatchObject({ ticketsSold: 2, revenue: 160, imageUrl: eventB.imageUrl })
+    expect(summaryA).toMatchObject({
+      ticketsSold: 4,
+      revenue: 200,
+      imageUrl: eventA.imageUrl,
+      startDate: fnA.startsAt.toISOString(),
+    })
+    expect(summaryB).toMatchObject({
+      ticketsSold: 2,
+      revenue: 160,
+      imageUrl: eventB.imageUrl,
+      startDate: fnB.startsAt.toISOString(),
+    })
+  })
+
+  it("uses the earliest function's date when an event has more than one", async () => {
+    const { db, organizer, eventA, fnA } = await setup()
+    const earlier = new Date(fnA.startsAt.getTime() - 30 * 24 * 60 * 60 * 1000)
+    await db.insert(eventFunctions).values({ eventId: eventA.id, startsAt: earlier })
+
+    const result = await getOrganizerSummary(db, organizer.id)
+    const summaryA = result.publishedEvents.find((e) => e.id === eventA.id)
+    expect(summaryA?.startDate).toBe(earlier.toISOString())
   })
 
   it("sorts published events by tickets sold, descending", async () => {
