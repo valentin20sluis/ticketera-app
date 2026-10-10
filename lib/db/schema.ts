@@ -163,6 +163,7 @@ export const orders = pgTable(
     currency: varchar("currency", { length: 3 }).notNull().default("PEN"),
     stripeCheckoutSessionId: varchar("stripe_checkout_session_id", { length: 255 }),
     stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }),
+    invoiceUrl: varchar("invoice_url", { length: 2048 }),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

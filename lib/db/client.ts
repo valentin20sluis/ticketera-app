@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
+import { Pool as NeonPool } from "@neondatabase/serverless";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { Connector, IpAddressTypes } from "@google-cloud/cloud-sql-connector";
@@ -56,7 +56,10 @@ export async function getDb(): Promise<Db> {
   const config = resolveDbConfig(process.env);
 
   if (config.driver === "neon") {
-    dbInstance = drizzleNeon(neon(config.connectionString), { schema });
+    // Node >= 22 has a global WebSocket; on Node <= 21 set neonConfig.webSocketConstructor = ws
+    dbInstance = drizzleNeon(new NeonPool({ connectionString: config.connectionString }), {
+      schema,
+    });
     return dbInstance;
   }
 

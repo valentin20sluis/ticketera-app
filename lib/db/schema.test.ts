@@ -131,6 +131,27 @@ describe("database schema", () => {
     expect(ticket.status).toBe("valid");
   });
 
+  it("stores orders.invoice_url as nullable", async () => {
+    const db = await createTestDb();
+    const [customer] = await db
+      .insert(users)
+      .values({ clerkUserId: `clerk_${crypto.randomUUID()}`, email: "inv@example.com", fullName: "Inv", role: "customer" })
+      .returning();
+
+    const [order] = await db
+      .insert(orders)
+      .values({ customerId: customer.id, status: "pending", totalAmount: "0", currency: "PEN", expiresAt: new Date() })
+      .returning();
+    expect(order.invoiceUrl).toBeNull();
+
+    const [updated] = await db
+      .update(orders)
+      .set({ invoiceUrl: "https://invoice.stripe.com/i/test" })
+      .where(eq(orders.id, order.id))
+      .returning();
+    expect(updated.invoiceUrl).toBe("https://invoice.stripe.com/i/test");
+  });
+
   it("rejects an order_item referencing a nonexistent function_zone", async () => {
     const db = await createTestDb();
     const [customer] = await db
