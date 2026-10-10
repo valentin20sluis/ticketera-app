@@ -11,18 +11,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthSession } from "@/modules/auth/hooks/useAuthSession"
-import { SUPER_ADMIN_EMAIL } from "@/modules/users/constants"
 
 interface AuthNavSectionProps {
   variant: "desktop" | "mobile"
+  isSuperAdmin: boolean
+}
+
+// Without a profile name, fall back to the part of the email before the "@".
+function getDisplayName(fullName: string | null, email: string): string {
+  return fullName?.trim() || email.split("@")[0]
 }
 
 function getInitials(fullName: string | null, email: string): string {
-  const source = fullName?.trim() || email.split("@")[0]
-  return source.slice(0, 2).toUpperCase()
+  return getDisplayName(fullName, email).slice(0, 2).toUpperCase()
 }
 
-export function AuthNavSection({ variant }: AuthNavSectionProps) {
+function AccountIdentity({ name, email }: { name: string; email: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-sm font-medium text-foreground">{name}</p>
+      {email && <p className="truncate text-xs text-muted-foreground">{email}</p>}
+    </div>
+  )
+}
+
+export function AuthNavSection({ variant, isSuperAdmin }: AuthNavSectionProps) {
   const { session, logout } = useAuthSession()
   const fullWidthClassName = variant === "mobile" ? "w-full" : undefined
 
@@ -48,9 +61,8 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
     )
   }
 
-  const displayName = session.fullName ?? session.email
+  const displayName = getDisplayName(session.fullName, session.email)
   const initials = getInitials(session.fullName, session.email)
-  const isSuperAdmin = session.email.toLowerCase() === SUPER_ADMIN_EMAIL
 
   if (variant === "mobile") {
     return (
@@ -59,7 +71,7 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground">
             {initials}
           </span>
-          <span className="truncate text-sm font-medium text-foreground">{displayName}</span>
+          <AccountIdentity name={displayName} email={session.email} />
         </div>
         <Button
           variant="outline"
@@ -103,6 +115,9 @@ export function AuthNavSection({ variant }: AuthNavSectionProps) {
         {initials}
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <div className="mb-1 border-b border-border px-1.5 pb-2 pt-1">
+          <AccountIdentity name={displayName} email={session.email} />
+        </div>
         <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
         {isSuperAdmin && (

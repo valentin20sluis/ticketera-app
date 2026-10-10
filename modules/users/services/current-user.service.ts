@@ -22,6 +22,17 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   return upsertClerkUser(db, fromClerkApiUser(clerkUser));
 }
 
+// Same source of truth as requireRole (the DB role). Never throws: the navbar
+// calls it on every public page, so a failure must hide the link, not the site.
+export async function isSuperAdmin(): Promise<boolean> {
+  try {
+    const user = await getCurrentUser();
+    return user?.role === "super_admin" && !user.isSuspended;
+  } catch {
+    return false;
+  }
+}
+
 export async function requireRole(roles: UserRole[]): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/ingresar");
