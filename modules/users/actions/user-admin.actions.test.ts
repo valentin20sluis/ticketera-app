@@ -15,7 +15,12 @@ const { requireRole, revalidatePath, svc, UserActionError } = vi.hoisted(() => (
   },
 }));
 
+const { headersGet } = vi.hoisted(() => ({ headersGet: vi.fn() }));
+
 vi.mock("next/cache", () => ({ revalidatePath }));
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => ({ get: headersGet })),
+}));
 vi.mock("@/lib/db/client", () => ({ getDb: vi.fn(async () => "db") }));
 vi.mock("@/modules/users/services/current-user.service", () => ({ requireRole }));
 vi.mock("@/modules/users/services/user-account.service", () => ({ ...svc, UserActionError }));
@@ -27,6 +32,7 @@ vi.mock("@/modules/users/services/user-admin.service", () => ({
 import {
   bulkUsersAction,
   deleteUserAction,
+  inviteUserAction,
   setSuspendedAction,
   updateUserAction,
 } from "./user-admin.actions";
@@ -49,6 +55,62 @@ describe("requireRole first", () => {
     await expect(bulkUsersAction({ type: "delete", userIds: [id] })).rejects.toThrow();
     for (const fn of Object.values(svc)) expect(fn).not.toHaveBeenCalled();
     expect(requireRole).toHaveBeenCalledWith(["super_admin"]);
+  });
+});
+
+describe("inviteUserAction", () => {
+  const form = (email = "a@b.co", role = "organizer") => {
+    const data = new FormData();
+    data.set("email", email);
+    data.set("role", role);
+    return data;
+  };
+  const headerValues = (values: Record<string, string>) =>
+    headersGet.mockImplementation((name: string) => values[name] ?? null);
+
+  it("requires super_admin before anything else", async () => {
+    requireRole.mockRejectedValue(new Error("redirect"));
+    await expect(inviteUserAction({}, form())).rejects.toThrow();
+    expect(requireRole).toHaveBeenCalledWith(["super_admin"]);
+    expect(svc.inviteUser).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid input without inviting", async () => {
+    headerValues({ host: "x.com" });
+    expect(await inviteUserAction({}, form("nope"))).toEqual({ error: "Revisa el email y el rol" });
+    expect(svc.inviteUser).not.toHaveBeenCalled();
+  });
+
+  it("uses the origin header for the redirect url", async () => {
+    headerValues({ origin: "https://app.example.com", host: "other.com" });
+    expect(await inviteUserAction({}, form())).toEqual({ success: true });
+    expect(svc.inviteUser).toHaveBeenCalledWith("a@b.co", "organizer", "https://app.example.com/ingresar");
+    expect(revalidatePath).toHaveBeenCalledWith("/super-admin/usuarios");
+  });
+
+  it("falls back to x-forwarded-proto and host", async () => {
+    headerValues({ host: "app.example.com", "x-forwarded-proto": "https" });
+    await inviteUserAction({}, form());
+    expect(svc.inviteUser).toHaveBeenCalledWith("a@b.co", "organizer", "https://app.example.com/ingresar");
+  });
+
+  it("defaults to http when there is no proto header", async () => {
+    headerValues({ host: "localhost:3000" });
+    await inviteUserAction({}, form());
+    expect(svc.inviteUser).toHaveBeenCalledWith("a@b.co", "organizer", "http://localhost:3000/ingresar");
+  });
+
+  it("returns the translated Clerk reason, never the raw message", async () => {
+    headerValues({ host: "x.com" });
+    svc.inviteUser.mockRejectedValue(
+      Object.assign(new Error("Bad Request"), { errors: [{ code: "duplicate_record" }] }),
+    );
+    expect(await inviteUserAction({}, form())).toEqual({
+      error: "Ese correo ya tiene una invitación pendiente",
+    });
+    svc.inviteUser.mockRejectedValue(new Error("secret"));
+    expect(await inviteUserAction({}, form())).toEqual({ error: "No se pudo enviar la invitación" });
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });
 

@@ -4,7 +4,33 @@ import { users } from "@/lib/db/schema";
 import { parseUserListParams } from "@/modules/users/schemas/user-list-params.schema";
 import { eq } from "drizzle-orm";
 import { UserActionError } from "./user-account.service";
-import { countUsersByTab, listUsers, setUserSuspended } from "./user-admin.service";
+import { countUsersByTab, inviteUser, listUsers, setUserSuspended } from "./user-admin.service";
+
+const { createInvitation } = vi.hoisted(() => ({ createInvitation: vi.fn() }));
+vi.mock("@clerk/nextjs/server", () => ({
+  clerkClient: async () => ({ invitations: { createInvitation } }),
+}));
+
+describe("inviteUser", () => {
+  it("passes redirectUrl to Clerk when given", async () => {
+    await inviteUser("a@b.co", "organizer", "https://app.test/ingresar");
+    expect(createInvitation).toHaveBeenLastCalledWith({
+      emailAddress: "a@b.co",
+      publicMetadata: { role: "organizer" },
+      notify: true,
+      redirectUrl: "https://app.test/ingresar",
+    });
+  });
+
+  it("omits redirectUrl when not given", async () => {
+    await inviteUser("a@b.co", "organizer");
+    expect(createInvitation).toHaveBeenLastCalledWith({
+      emailAddress: "a@b.co",
+      publicMetadata: { role: "organizer" },
+      notify: true,
+    });
+  });
+});
 
 vi.mock("@/modules/users/constants", () => ({ HIDDEN_FROM_PANEL_EMAILS: ["hidden@example.com"] }));
 

@@ -97,12 +97,13 @@ export async function countUsersByTab(db: Db, params: UserListParams) {
 
 // The role travels in the invitation's publicMetadata and is applied to the
 // local row when the invited user signs up (see resolveInitialRole).
-export async function inviteUser(email: string, role: AssignableRole) {
+export async function inviteUser(email: string, role: AssignableRole, redirectUrl?: string) {
   const client = await clerkClient();
   await client.invitations.createInvitation({
     emailAddress: email,
     publicMetadata: { role },
     notify: true,
+    ...(redirectUrl && { redirectUrl }),
   });
 }
 

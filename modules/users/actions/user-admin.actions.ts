@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { getDb } from "@/lib/db/client";
 import { requireRole } from "@/modules/users/services/current-user.service";
@@ -14,6 +15,7 @@ import {
   UserActionError,
   type BulkResult,
 } from "@/modules/users/services/user-account.service";
+import { describeInviteError } from "@/modules/users/utils/invite-error";
 import { ASSIGNABLE_ROLES } from "@/modules/users/utils/permissions";
 
 const PANEL_PATH = "/super-admin/usuarios";
@@ -81,10 +83,15 @@ export async function inviteUserAction(
   });
   if (!parsed.success) return { error: "Revisa el email y el rol" };
 
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host");
+  const origin =
+    requestHeaders.get("origin") ?? `${requestHeaders.get("x-forwarded-proto") ?? "http"}://${host}`;
+
   try {
-    await inviteUser(parsed.data.email, parsed.data.role);
+    await inviteUser(parsed.data.email, parsed.data.role, `${origin}/ingresar`);
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "No se pudo enviar la invitación" };
+    return { error: describeInviteError(error) };
   }
 
   revalidatePath(PANEL_PATH);
