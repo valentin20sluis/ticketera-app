@@ -1,87 +1,79 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { getDb } from "@/lib/db/client";
-import { ROLE_LABELS } from "@/modules/users/constants";
+import { InviteUserDialog } from "@/modules/users/components/InviteUserDialog";
+import { UsersFilters } from "@/modules/users/components/UsersFilters";
+import { UsersPagination } from "@/modules/users/components/UsersPagination";
+import { UsersTable } from "@/modules/users/components/UsersTable";
+import { UsersTabs } from "@/modules/users/components/UsersTabs";
 import {
-  changeRoleAction,
-  setSuspendedAction,
-} from "@/modules/users/actions/user-admin.actions";
-import { InviteUserForm } from "@/modules/users/components/InviteUserForm";
+  buildUserListHref,
+  parseUserListParams,
+  USERS_BASE_PATH,
+} from "@/modules/users/schemas/user-list-params.schema";
 import { requireRole } from "@/modules/users/services/current-user.service";
-import { listUsers } from "@/modules/users/services/user-admin.service";
-import { ASSIGNABLE_ROLES } from "@/modules/users/utils/permissions";
+import { countUsersByTab, listUsers } from "@/modules/users/services/user-admin.service";
 
-export default async function SuperAdminUsersPage() {
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function SuperAdminUsersPage({ searchParams }: Props) {
   await requireRole(["super_admin"]);
-  const rows = await listUsers(await getDb());
+  const params = parseUserListParams(await searchParams);
+  const db = await getDb();
+  const [list, counts] = await Promise.all([listUsers(db, params), countUsersByTab(db, params)]);
+
+  // Only what the table renders crosses to the client (no Clerk or Stripe ids).
+  const rows = list.rows.map(({ id, fullName, email, role, isSuspended, createdAt }) => ({
+    id,
+    fullName,
+    email,
+    role,
+    isSuspended,
+    createdAt,
+  }));
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10">
-      <header>
-        <h1 className="text-2xl font-semibold">Usuarios y roles</h1>
-        <p className="text-sm text-muted-foreground">
-          Invita administradores y organizadores, cambia roles y suspende cuentas.
-        </p>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Usuarios</h1>
+          <p className="text-sm text-muted-foreground">
+            Invita personas, edita sus datos, cambia roles y suspende o elimina cuentas.
+          </p>
+        </div>
+        <InviteUserDialog />
       </header>
 
-      <section className="rounded-xl border p-4">
-        <h2 className="mb-3 font-medium">Invitar usuario</h2>
-        <InviteUserForm />
-      </section>
+      <UsersTabs params={params} counts={counts} />
 
-      <section className="flex flex-col divide-y rounded-xl border">
-        {rows.map((user) => {
-          const isRoot = user.role === "super_admin";
-          return (
-            <div
-              key={user.id}
-              className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+      <section className="flex flex-col gap-4 rounded-xl border p-4">
+        <UsersFilters params={params} />
+        {list.total === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-10 text-center">
+            <p className="font-medium">No hay usuarios que coincidan</p>
+            <p className="text-sm text-muted-foreground">Prueba con otra búsqueda o quita los filtros.</p>
+            <Link
+              href={USERS_BASE_PATH}
+              className="inline-flex min-h-10 items-center rounded-lg px-3 text-sm underline underline-offset-4 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
-              <div className="min-w-0">
-                <p className="truncate font-medium">{user.fullName}</p>
-                <p className="truncate text-sm text-muted-foreground">{user.email}</p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {user.isSuspended && <Badge variant="destructive">Suspendido</Badge>}
-                {isRoot ? (
-                  <Badge>{ROLE_LABELS.super_admin} · cuenta raíz</Badge>
-                ) : (
-                  <>
-                    <form action={changeRoleAction} className="flex items-center gap-2">
-                      <input type="hidden" name="userId" value={user.id} />
-                      <select
-                        name="role"
-                        defaultValue={user.role}
-                        className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30"
-                      >
-                        {ASSIGNABLE_ROLES.map((role) => (
-                          <option key={role} value={role}>
-                            {ROLE_LABELS[role]}
-                          </option>
-                        ))}
-                      </select>
-                      <Button type="submit" variant="outline" size="sm">
-                        Guardar rol
-                      </Button>
-                    </form>
-                    <form action={setSuspendedAction}>
-                      <input type="hidden" name="userId" value={user.id} />
-                      <input
-                        type="hidden"
-                        name="suspended"
-                        value={user.isSuspended ? "false" : "true"}
-                      />
-                      <Button type="submit" variant="ghost" size="sm">
-                        {user.isSuspended ? "Reactivar" : "Suspender"}
-                      </Button>
-                    </form>
-                  </>
-                )}
-              </div>
+              Limpiar filtros
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="-mx-4 border-y">
+              <UsersTable key={buildUserListHref(params, { page: list.page })} rows={rows} />
             </div>
-          );
-        })}
+            <UsersPagination
+              params={params}
+              page={list.page}
+              pageSize={list.pageSize}
+              total={list.total}
+              totalPages={list.totalPages}
+            />
+          </>
+        )}
       </section>
     </div>
   );

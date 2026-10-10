@@ -9,8 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type AuthTab = "login" | "register"
 
-export function AuthScreen() {
-  const [activeTab, setActiveTab] = useState<AuthTab>("login")
+export function AuthScreen({ defaultTab = "login" }: { defaultTab?: AuthTab }) {
+  const [activeTab, setActiveTab] = useState<AuthTab>(defaultTab)
 
   return (
     <div className="grid flex-1 md:grid-cols-2">

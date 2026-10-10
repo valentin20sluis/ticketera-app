@@ -13,10 +13,22 @@ import {
 import { AuthNavSection } from "@/modules/auth/components/AuthNavSection"
 import { SiteNavLinks } from "@/components/shared/SiteNavLinks"
 import { getCurrentUser } from "@/modules/users/services/current-user.service"
+import type { UserRole } from "@/modules/users/types/user.types"
+
+// Every public page renders the navbar, so a DB hiccup here must hide the
+// role badge/admin link, not break the whole site (same guarantee the
+// removed isSuperAdmin() helper used to provide).
+async function getCurrentUserRole(): Promise<UserRole | null> {
+  try {
+    const user = await getCurrentUser()
+    return user && !user.isSuspended ? user.role : null
+  } catch {
+    return null
+  }
+}
 
 export async function SiteNavbar() {
-  const currentUser = await getCurrentUser()
-  const role = currentUser?.role ?? null
+  const role = await getCurrentUserRole()
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">

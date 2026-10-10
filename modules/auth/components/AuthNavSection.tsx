@@ -20,9 +20,35 @@ interface AuthNavSectionProps {
   role: UserRole | null
 }
 
+// Without a profile name, fall back to the part of the email before the "@".
+function getDisplayName(fullName: string | null, email: string): string {
+  return fullName?.trim() || email.split("@")[0]
+}
+
 function getInitials(fullName: string | null, email: string): string {
-  const source = fullName?.trim() || email.split("@")[0]
-  return source.slice(0, 2).toUpperCase()
+  return getDisplayName(fullName, email).slice(0, 2).toUpperCase()
+}
+
+function AccountIdentity({
+  name,
+  email,
+  roleLabel,
+}: {
+  name: string
+  email: string
+  roleLabel: string | null
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-sm font-medium text-foreground">{name}</p>
+      {email && <p className="truncate text-xs text-muted-foreground">{email}</p>}
+      {roleLabel && (
+        <Badge variant="outline" className="mt-1 w-fit">
+          {roleLabel}
+        </Badge>
+      )}
+    </div>
+  )
 }
 
 export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
@@ -51,7 +77,7 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
     )
   }
 
-  const displayName = session.fullName ?? session.email
+  const displayName = getDisplayName(session.fullName, session.email)
   const initials = getInitials(session.fullName, session.email)
   const isSuperAdmin = role === "super_admin"
   const roleLabel = role ? ROLE_LABELS[role] : null
@@ -63,14 +89,7 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground">
             {initials}
           </span>
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate text-sm font-medium text-foreground">{displayName}</span>
-            {roleLabel && (
-              <Badge variant="outline" className="w-fit">
-                {roleLabel}
-              </Badge>
-            )}
-          </span>
+          <AccountIdentity name={displayName} email={session.email} roleLabel={roleLabel} />
         </div>
         <Button
           variant="outline"
@@ -106,24 +125,24 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      {roleLabel && <Badge variant="outline">{roleLabel}</Badge>}
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          aria-label={`Cuenta de ${displayName}`}
-          className="flex size-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/80 focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          {initials}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
-          {isSuperAdmin && (
-            <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={logout}>Cerrar sesión</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Cuenta de ${displayName}`}
+        className="flex size-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        {initials}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <div className="mb-1 border-b border-border px-1.5 pb-2 pt-1">
+          <AccountIdentity name={displayName} email={session.email} roleLabel={roleLabel} />
+        </div>
+        <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
+        <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
+        {isSuperAdmin && (
+          <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={logout}>Cerrar sesión</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
