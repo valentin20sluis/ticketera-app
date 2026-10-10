@@ -10,7 +10,8 @@
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx --env-file=.env scripts/seed-events.ts"
+    "db:seed": "tsx --env-file=.env scripts/seed-events.ts",
+    "db:assign-events": "tsx --env-file=.env scripts/assign-events-to-organizers.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
