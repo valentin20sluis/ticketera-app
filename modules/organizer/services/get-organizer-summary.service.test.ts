@@ -239,7 +239,7 @@ describe("getOrganizerSummary", () => {
     )
 
     it.each(["admin", "super_admin"] as const)(
-      "%s only gets their own events; another organizer's paid sales do not count",
+      "%s sees every organizer's events and sales",
       async (role) => {
         const { db, organizer, zoneA } = await setup()
         await placeOrder(db, zoneA.id, 4, "50.00", "paid")
@@ -248,7 +248,9 @@ describe("getOrganizerSummary", () => {
           .values({ clerkUserId: `clerk_${role}`, email: `${role}@example.com`, fullName: "A", role })
           .returning()
 
-        expect(await getOrganizerSummary(db, admin)).toEqual(EMPTY)
+        const summary = await getOrganizerSummary(db, admin)
+        expect(summary.events.length).toBeGreaterThan(0)
+        expect(summary.totalTicketsSold).toBe(4)
         expect((await getOrganizerSummary(db, organizer)).totalTicketsSold).toBe(4)
       },
     )

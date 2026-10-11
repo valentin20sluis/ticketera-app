@@ -55,6 +55,10 @@ describe("nextStatuses", () => {
     expect(nextStatuses(actor("organizer"), ev("draft", "other"))).toEqual([])
   })
 
+  it("admin cannot publish a draft, only the owner does", () => {
+    expect(nextStatuses(actor("admin"), ev("draft", "other"))).toEqual(["cancelled", "suspended"])
+  })
+
   it("admin can suspend and lift suspension; cancelled is terminal", () => {
     expect(nextStatuses(actor("admin"), ev("published", "other"))).toEqual(["cancelled", "suspended"])
     expect(nextStatuses(actor("super_admin"), ev("suspended", "other"))).toEqual(["published", "cancelled"])

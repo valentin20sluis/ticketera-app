@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatPrice } from "@/lib/format-currency"
 import { EventRowActions } from "@/modules/organizer/components/EventRowActions"
-import { canWriteEvent, nextStatuses, type EventActor } from "@/modules/organizer/utils/event-permissions"
+import { canWriteEvent, isEventAdmin, nextStatuses, type EventActor } from "@/modules/organizer/utils/event-permissions"
 import { formatFullEventDate } from "@/modules/events/utils/format-event-date"
 import type { OrganizerEventSummary } from "@/modules/organizer/services/get-organizer-summary.service"
 
@@ -69,6 +69,7 @@ export function OrganizerEventsTable({ events, emptyState, actor }: OrganizerEve
     )
   }
 
+  const showOrganizer = isEventAdmin(actor ?? null)
   const maxTicketsSold = Math.max(...events.map((event) => event.ticketsSold))
 
   return (
@@ -77,6 +78,7 @@ export function OrganizerEventsTable({ events, emptyState, actor }: OrganizerEve
         <TableHeader>
           <TableRow>
             <TableHead>Evento</TableHead>
+            {showOrganizer && <TableHead>Organizador</TableHead>}
             <TableHead>Estado</TableHead>
             <TableHead>Entradas vendidas</TableHead>
             <TableHead className="text-right">Ingresos</TableHead>
@@ -107,6 +109,7 @@ export function OrganizerEventsTable({ events, emptyState, actor }: OrganizerEve
                   </div>
                 </div>
               </TableCell>
+              {showOrganizer && <TableCell>{event.organizerName}</TableCell>}
               <TableCell>
                 <Badge className={cn("gap-1.5", STATUS_STYLES[event.status].badge)}>
                   <span

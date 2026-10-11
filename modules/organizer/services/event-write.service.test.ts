@@ -113,6 +113,13 @@ describe("createEvent", () => {
     expect(await owner(byRoot.id)).toBe(orgB.id)
   })
 
+  it("requires admins to name an active organizer as owner", async () => {
+    const { db, admin, customer, form } = await setup()
+    await rejects(createEvent(db, admin, form()))
+    await rejects(createEvent(db, admin, form(), customer.id))
+    await rejects(createEvent(db, admin, form(), crypto.randomUUID()))
+  })
+
   it("denies customer, suspended, deleted and anonymous actors", async () => {
     const { db, orgA, customer, form } = await setup()
     await rejects(createEvent(db, customer, form()))

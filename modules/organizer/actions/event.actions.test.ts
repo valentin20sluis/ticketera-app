@@ -45,7 +45,7 @@ describe("createEventAction", () => {
   it("forwards the actor and payload but never an owner from the client", async () => {
     svc.createEvent.mockResolvedValue({ id })
     const result = await createEventAction({ organizerId: "someone-else" })
-    expect(svc.createEvent).toHaveBeenCalledWith("db", actor, { organizerId: "someone-else" })
+    expect(svc.createEvent).toHaveBeenCalledWith("db", actor, { organizerId: "someone-else" }, undefined)
     expect(result).toEqual({ success: true, eventId: id })
     expect(revalidatePath).toHaveBeenCalledWith("/organizador")
   })

@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db/client";
 import {
@@ -157,7 +157,7 @@ async function assertCategory(db: Db | Tx, categoryId: string) {
   if (!found) throw new EventActionError("Categoría no válida");
 }
 
-// ownerId is honoured only for admins; an organizer always creates for themselves.
+// ownerId is honoured only for admins, who must name an active organizer; an organizer always creates for themselves.
 export async function createEvent(
   db: Db,
   actor: EventActor,
@@ -165,13 +165,20 @@ export async function createEvent(
   ownerId?: string,
 ): Promise<{ id: string }> {
   const form = parseInput(input);
-  const owner = actor && isEventAdmin(actor) && ownerId ? ownerId : actor?.id;
+  const asAdmin = isEventAdmin(actor);
+  if (asAdmin && !ownerId) throw new EventActionError("Elige un organizador");
+  const owner = asAdmin ? ownerId : actor?.id;
   if (!owner || !canWriteEvent(actor, { organizerId: owner, status: "draft" }, "edit")) {
     throw new EventActionError(NOT_ALLOWED);
   }
   if (owner !== actor?.id) {
-    const [found] = await db.select({ id: users.id }).from(users).where(eq(users.id, owner));
-    if (!found) throw new EventActionError(INVALID);
+    const [found] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(
+        and(eq(users.id, owner), eq(users.role, "organizer"), eq(users.isSuspended, false), isNull(users.deletedAt)),
+      );
+    if (!found) throw new EventActionError("Organizador no válido");
   }
   parseStartsAt(form.functionZones.startsAt);
   await assertCategory(db, form.details.categoryId);
