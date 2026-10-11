@@ -6,13 +6,10 @@ import { HIDDEN_FROM_PANEL_EMAILS } from "@/modules/users/constants";
 import type { UserListParams } from "@/modules/users/schemas/user-list-params.schema";
 import type { CurrentUser } from "@/modules/users/services/current-user.service";
 import { UserActionError } from "@/modules/users/services/user-account.service";
+import { escapeLike } from "@/modules/users/utils/escape-like";
 import { canManageUser, type AssignableRole } from "@/modules/users/utils/permissions";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-function escapeLike(text: string) {
-  return text.replace(/[\\%_]/g, "\\$&");
-}
 
 function registeredSince(registro: UserListParams["registro"]) {
   if (registro === "7d") return new Date(Date.now() - 7 * DAY_MS);

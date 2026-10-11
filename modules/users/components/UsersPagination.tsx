@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import {
-  buildUserListHref,
-  PAGE_SIZES,
-  type UserListParams,
-} from "@/modules/users/schemas/user-list-params.schema";
+import { PAGE_SIZES } from "@/modules/users/schemas/user-list-params.schema";
 import { paginationWindow } from "@/modules/users/utils/pagination-window";
 
 type Props = {
-  params: UserListParams;
+  // Builds the link for a page / page-size change, keeping the other filters.
+  hrefFor: (override: { page?: number; porPagina?: (typeof PAGE_SIZES)[number] }) => string;
+  porPagina: number;
+  noun?: string;
   page: number;
   pageSize: number;
   total: number;
@@ -19,15 +18,15 @@ const linkClass =
   "inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-border px-3 text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50";
 const disabledClass = "pointer-events-none opacity-50";
 
-export function UsersPagination({ params, page, pageSize, total, totalPages }: Props) {
+export function UsersPagination({ hrefFor, porPagina, noun = "usuarios", page, pageSize, total, totalPages }: Props) {
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
-  const href = (override: Partial<UserListParams>) => buildUserListHref(params, override);
+  const href = hrefFor;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
       <p className="text-muted-foreground">
-        Mostrando {from}–{to} de {total} usuarios
+        Mostrando {from}–{to} de {total} {noun}
       </p>
 
       <nav aria-label="Paginación" className="flex flex-wrap items-center gap-2">
@@ -70,16 +69,16 @@ export function UsersPagination({ params, page, pageSize, total, totalPages }: P
         )}
       </nav>
 
-      <nav aria-label="Usuarios por página" className="flex items-center gap-2">
+      <nav aria-label="Elementos por página" className="flex items-center gap-2">
         <span className="text-muted-foreground">Por página:</span>
         {PAGE_SIZES.map((size) => (
           <Link
             key={size}
             href={href({ porPagina: size })}
-            aria-current={size === params.porPagina ? "page" : undefined}
+            aria-current={size === porPagina ? "page" : undefined}
             className={cn(
               linkClass,
-              size === params.porPagina && "border-brand bg-brand text-brand-foreground hover:bg-brand",
+              size === porPagina && "border-brand bg-brand text-brand-foreground hover:bg-brand",
             )}
           >
             {size}

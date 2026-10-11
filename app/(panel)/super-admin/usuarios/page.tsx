@@ -66,7 +66,8 @@ export default async function SuperAdminUsersPage({ searchParams }: Props) {
               <UsersTable key={buildUserListHref(params, { page: list.page })} rows={rows} />
             </div>
             <UsersPagination
-              params={params}
+              hrefFor={(override) => buildUserListHref(params, override)}
+              porPagina={params.porPagina}
               page={list.page}
               pageSize={list.pageSize}
               total={list.total}
