@@ -1,26 +1,31 @@
 import { notFound } from "next/navigation"
+import { connection } from "next/server"
+
+import { getDb } from "@/lib/db/client"
 
 import { EventAboutSection } from "@/modules/events/components/EventAboutSection"
 import { EventDetailHero } from "@/modules/events/components/EventDetailHero"
 import { EventImportantInfo } from "@/modules/events/components/EventImportantInfo"
 import { EventTicketSidebar } from "@/modules/events/components/EventTicketSidebar"
 import { RelatedEventsSection } from "@/modules/events/components/RelatedEventsSection"
-import { MOCK_EVENTS } from "@/modules/events/data/events.mock"
 import { getEventBySlug, getRelatedEvents } from "@/modules/events/services/event.service"
+import { listPublicEvents } from "@/modules/events/services/list-public-events.service"
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>
 }
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
+  await connection()
   const { slug } = await params
-  const event = getEventBySlug(MOCK_EVENTS, slug)
+  const events = await listPublicEvents(await getDb())
+  const event = getEventBySlug(events, slug)
 
   if (!event) {
     notFound()
   }
 
-  const relatedEvents = getRelatedEvents(MOCK_EVENTS, event)
+  const relatedEvents = getRelatedEvents(events, event)
 
   return (
     <>
