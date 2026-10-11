@@ -50,7 +50,7 @@ function initials(name: string) {
     .join("");
 }
 
-function Avatar({ name }: { name: string }) {
+export function Avatar({ name }: { name: string }) {
   return (
     <span
       aria-hidden
@@ -65,7 +65,7 @@ function RoleBadge({ role }: { role: UserRole }) {
   return <Badge className={ROLE_STYLES[role]}>{ROLE_LABELS[role]}</Badge>;
 }
 
-function StatusBadge({ suspended }: { suspended: boolean }) {
+export function StatusBadge({ suspended }: { suspended: boolean }) {
   return (
     <Badge
       className={
