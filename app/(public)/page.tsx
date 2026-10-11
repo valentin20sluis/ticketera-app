@@ -3,21 +3,27 @@ import { CategoryChips } from "@/modules/events/components/CategoryChips"
 import { HeroCarousel } from "@/modules/events/components/HeroCarousel"
 import { HowItWorksSection } from "@/modules/events/components/HowItWorksSection"
 import { UpcomingEventsSection } from "@/modules/events/components/UpcomingEventsSection"
-import { MOCK_CATEGORIES, MOCK_EVENTS } from "@/modules/events/data/events.mock"
-import { getFeaturedEvents } from "@/modules/events/services/event.service"
+import { getDb } from "@/lib/db/client"
+import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
+import {
+  listPublicEvents,
+  pickHeroEvents,
+} from "@/modules/events/services/list-public-events.service"
+import { connection } from "next/server"
 
-export default function Home() {
-  const featuredEvents = getFeaturedEvents(MOCK_EVENTS)
+export default async function Home() {
+  await connection()
+  const events = await listPublicEvents(await getDb())
 
   return (
     <>
-      <HeroCarousel events={featuredEvents} />
+      <HeroCarousel events={pickHeroEvents(events)} />
       <div id="categorias">
         <CategoryChips categories={MOCK_CATEGORIES} />
       </div>
       <div id="eventos">
         <UpcomingEventsSection
-          events={MOCK_EVENTS}
+          events={events}
           categories={MOCK_CATEGORIES.map(({ id, name }) => ({ id, name }))}
         />
       </div>

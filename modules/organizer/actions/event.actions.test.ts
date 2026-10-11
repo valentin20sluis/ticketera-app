@@ -4,7 +4,13 @@ const { requireRole, revalidatePath, svc, EventActionError } = vi.hoisted(() => 
   EventActionError: class EventActionError extends Error {},
   requireRole: vi.fn(),
   revalidatePath: vi.fn(),
-  svc: { createEvent: vi.fn(), updateEvent: vi.fn(), setEventStatus: vi.fn(), deleteEvent: vi.fn() },
+  svc: {
+    createEvent: vi.fn(),
+    updateEvent: vi.fn(),
+    setEventStatus: vi.fn(),
+    setEventFeatured: vi.fn(),
+    deleteEvent: vi.fn(),
+  },
 }))
 
 vi.mock("next/cache", () => ({ revalidatePath }))
@@ -15,6 +21,7 @@ vi.mock("@/modules/organizer/services/event-write.service", () => ({ ...svc, Eve
 import {
   createEventAction,
   deleteEventAction,
+  setEventFeaturedAction,
   setEventStatusAction,
   updateEventAction,
 } from "./event.actions"
@@ -68,6 +75,31 @@ describe("input validation", () => {
     expect(svc.updateEvent).toHaveBeenCalledWith("db", actor, id, { a: 1 })
     await deleteEventAction({ eventId: id })
     expect(svc.deleteEvent).toHaveBeenCalledWith("db", actor, id)
+  })
+})
+
+describe("setEventFeaturedAction", () => {
+  it("guards, validates strictly, forwards and revalidates the three routes", async () => {
+    expect(await setEventFeaturedAction({ eventId: id, featured: "true" })).toEqual({ error: "Datos no válidos" })
+    expect(await setEventFeaturedAction({ eventId: id, featured: true, extra: 1 })).toEqual({ error: "Datos no válidos" })
+    expect(await setEventFeaturedAction({ eventId: "nope", featured: true })).toEqual({ error: "Datos no válidos" })
+    expect(svc.setEventFeatured).not.toHaveBeenCalled()
+
+    expect(await setEventFeaturedAction({ eventId: id, featured: true })).toEqual({ success: true })
+    expect(requireRole).toHaveBeenCalledWith(["organizer", "admin", "super_admin"])
+    expect(svc.setEventFeatured).toHaveBeenCalledWith("db", actor, id, true)
+    expect(revalidatePath.mock.calls.map(([path]) => path).sort()).toEqual(["/", "/eventos", "/organizador"])
+  })
+
+  it("returns service error messages and hides unexpected ones", async () => {
+    svc.setEventFeatured.mockRejectedValueOnce(new EventActionError("No puedes modificar este evento"))
+    expect(await setEventFeaturedAction({ eventId: id, featured: true })).toEqual({
+      error: "No puedes modificar este evento",
+    })
+    svc.setEventFeatured.mockRejectedValueOnce(new Error("db down"))
+    expect(await setEventFeaturedAction({ eventId: id, featured: true })).toEqual({
+      error: "No se pudo completar la acción",
+    })
   })
 })
 

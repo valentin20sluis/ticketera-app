@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatPrice } from "@/lib/format-currency"
+import { FeaturedToggle } from "@/modules/organizer/components/FeaturedToggle"
 import { EventRowActions } from "@/modules/organizer/components/EventRowActions"
 import { canWriteEvent, isEventAdmin, nextStatuses, type EventActor } from "@/modules/organizer/utils/event-permissions"
 import { formatFullEventDate } from "@/modules/events/utils/format-event-date"
@@ -80,6 +81,7 @@ export function OrganizerEventsTable({ events, emptyState, actor }: OrganizerEve
             <TableHead>Evento</TableHead>
             {showOrganizer && <TableHead>Organizador</TableHead>}
             <TableHead>Estado</TableHead>
+            {showOrganizer && <TableHead>Destacado</TableHead>}
             <TableHead>Entradas vendidas</TableHead>
             <TableHead className="text-right">Ingresos</TableHead>
             {actor && <TableHead className="text-right">Acciones</TableHead>}
@@ -119,6 +121,13 @@ export function OrganizerEventsTable({ events, emptyState, actor }: OrganizerEve
                   {STATUS_STYLES[event.status].label}
                 </Badge>
               </TableCell>
+              {showOrganizer && (
+                <TableCell>
+                  {event.status === "published" && (
+                    <FeaturedToggle eventId={event.id} title={event.title} featured={event.featured} />
+                  )}
+                </TableCell>
+              )}
               <TableCell>
                 <TicketsSoldMeter value={event.ticketsSold} max={maxTicketsSold} />
               </TableCell>

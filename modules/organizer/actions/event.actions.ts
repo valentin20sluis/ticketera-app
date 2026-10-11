@@ -7,12 +7,13 @@ import {
   createEvent,
   deleteEvent,
   EventActionError,
+  setEventFeatured,
   setEventStatus,
   updateEvent,
 } from "@/modules/organizer/services/event-write.service";
 import { requireRole } from "@/modules/users/services/current-user.service";
 
-const PANEL_PATH = "/organizador";
+const REVALIDATE_PATHS = ["/organizador", "/", "/eventos"];
 const ROLES = ["organizer", "admin", "super_admin"] as const;
 const INVALID_INPUT = "Datos no válidos";
 const FAILED = "No se pudo completar la acción";
@@ -26,12 +27,14 @@ export interface EventActionState {
 const eventId = z.uuid();
 const statusSchema = z.object({ eventId, status: z.enum(["published", "cancelled", "suspended"]) });
 const deleteSchema = z.object({ eventId });
+const featuredSchema = z.strictObject({ eventId, featured: z.boolean() });
 
 // Only EventActionError messages are shown; anything else stays generic.
 async function run(work: () => Promise<{ id?: string } | void>): Promise<EventActionState> {
   try {
     const result = await work();
-    revalidatePath(PANEL_PATH);
+    // The public landing and catalog list published/featured events.
+    for (const path of REVALIDATE_PATHS) revalidatePath(path);
     return { success: true, ...(result?.id && { eventId: result.id }) };
   } catch (error) {
     return { error: error instanceof EventActionError ? error.message : FAILED };
@@ -58,6 +61,13 @@ export async function setEventStatusAction(input: unknown): Promise<EventActionS
   const parsed = statusSchema.safeParse(input);
   if (!parsed.success) return { error: INVALID_INPUT };
   return run(async () => setEventStatus(await getDb(), actor, parsed.data.eventId, parsed.data.status));
+}
+
+export async function setEventFeaturedAction(input: unknown): Promise<EventActionState> {
+  const actor = await requireRole([...ROLES]);
+  const parsed = featuredSchema.safeParse(input);
+  if (!parsed.success) return { error: INVALID_INPUT };
+  return run(async () => setEventFeatured(await getDb(), actor, parsed.data.eventId, parsed.data.featured));
 }
 
 export async function deleteEventAction(input: unknown): Promise<EventActionState> {

@@ -17,6 +17,7 @@ export interface ViewerEvent {
   slug: string;
   imageUrl: string;
   status: (typeof events.$inferSelect)["status"];
+  featured: boolean;
   startDate: string | null;
 }
 
@@ -55,6 +56,7 @@ export async function listEventsForViewer(
       slug: events.slug,
       imageUrl: events.imageUrl,
       status: events.status,
+      featured: events.featured,
     })
     .from(events)
     .where(and(...filters))

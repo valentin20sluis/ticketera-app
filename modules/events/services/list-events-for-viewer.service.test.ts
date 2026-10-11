@@ -128,7 +128,8 @@ describe("listEventsForViewer", () => {
   it("returns exactly the closed key list, with null startDate when there is no function", async () => {
     const { db, orgA } = await setup();
     const [row] = await listEventsForViewer(db, viewer(orgA.id, "organizer"));
-    expect(Object.keys(row).sort()).toEqual(["id", "imageUrl", "slug", "startDate", "status", "title"]);
+    expect(Object.keys(row).sort()).toEqual(["featured", "id", "imageUrl", "slug", "startDate", "status", "title"]);
+    expect(row.featured).toBe(false);
     expect(row.startDate).toBeNull();
   });
 

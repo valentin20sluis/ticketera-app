@@ -18,6 +18,7 @@ import {
   createEvent,
   deleteEvent,
   EventActionError,
+  setEventFeatured,
   setEventStatus,
   updateEvent,
 } from "./event-write.service"
@@ -265,6 +266,57 @@ describe("setEventStatus", () => {
     const { db, orgA, orgB, form } = await setup()
     const { id } = await createEvent(db, orgA, form())
     await rejects(setEventStatus(db, orgB, id, "published"))
+  })
+})
+
+describe("featured", () => {
+  const featuredOf = async (db: Awaited<ReturnType<typeof setup>>["db"], id: string) =>
+    (await db.select().from(events).where(eq(events.id, id)))[0].featured
+
+  it("lets admin and super_admin toggle a published event", async () => {
+    const { db, orgA, admin, root, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    await setEventStatus(db, orgA, id, "published")
+    await setEventFeatured(db, admin, id, true)
+    expect(await featuredOf(db, id)).toBe(true)
+    await setEventFeatured(db, root, id, false)
+    expect(await featuredOf(db, id)).toBe(false)
+  })
+
+  it("denies organizer (owner), customer, null, suspended/deleted admin and bad ids", async () => {
+    const { db, orgA, admin, customer, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    await setEventStatus(db, orgA, id, "published")
+    await rejects(setEventFeatured(db, orgA, id, true))
+    await rejects(setEventFeatured(db, customer, id, true))
+    await rejects(setEventFeatured(db, null, id, true))
+    await rejects(setEventFeatured(db, { ...admin, isSuspended: true }, id, true))
+    await rejects(setEventFeatured(db, { ...admin, deletedAt: new Date() }, id, true))
+    await rejects(setEventFeatured(db, admin, "nope", true))
+    await rejects(setEventFeatured(db, admin, "7b0c2f3e-5a1d-4c8e-9f21-0a1b2c3d4e5f", true))
+    expect(await featuredOf(db, id)).toBe(false)
+  })
+
+  it("refuses to feature a non-published event", async () => {
+    const { db, orgA, admin, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    await rejects(setEventFeatured(db, admin, id, true))
+  })
+
+  it("clears on cancel/suspend and does not restore on republish", async () => {
+    const { db, orgA, admin, root, form } = await setup()
+    const a = (await createEvent(db, orgA, form())).id
+    const b = (await createEvent(db, orgA, form())).id
+    for (const id of [a, b]) {
+      await setEventStatus(db, orgA, id, "published")
+      await setEventFeatured(db, admin, id, true)
+    }
+    await setEventStatus(db, orgA, a, "cancelled")
+    await setEventStatus(db, root, b, "suspended")
+    expect(await featuredOf(db, a)).toBe(false)
+    expect(await featuredOf(db, b)).toBe(false)
+    await setEventStatus(db, root, b, "published")
+    expect(await featuredOf(db, b)).toBe(false)
   })
 })
 

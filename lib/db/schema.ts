@@ -112,6 +112,7 @@ export const events = pgTable(
     minimumAge: varchar("minimum_age", { length: 50 }).notNull(),
     admissionType: varchar("admission_type", { length: 100 }).notNull(),
     status: eventStatusEnum("status").notNull().default("draft"),
+    featured: boolean("featured").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

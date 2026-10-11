@@ -1,7 +1,12 @@
 import { EventsCatalog } from "@/modules/events/components/EventsCatalog"
-import { MOCK_CATEGORIES, MOCK_EVENTS } from "@/modules/events/data/events.mock"
+import { getDb } from "@/lib/db/client"
+import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
+import { listPublicEvents } from "@/modules/events/services/list-public-events.service"
+import { connection } from "next/server"
 
-export default function EventosPage() {
+export default async function EventosPage() {
+  await connection()
+  const events = await listPublicEvents(await getDb())
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col gap-2">
@@ -14,7 +19,7 @@ export default function EventosPage() {
       </div>
 
       <EventsCatalog
-        events={MOCK_EVENTS}
+        events={events}
         categories={MOCK_CATEGORIES.map(({ id, name }) => ({ id, name }))}
       />
     </section>

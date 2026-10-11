@@ -2,6 +2,10 @@ import { and, eq, gt, or, sql } from "drizzle-orm";
 import { functionZones, orderItems, orders } from "@/lib/db/schema";
 import type { Db } from "@/lib/db/client";
 
+// Orders that hold inventory: paid, or pending and not yet expired.
+export const reservingOrderCondition = (now: Date = new Date()) =>
+  or(eq(orders.status, "paid"), and(eq(orders.status, "pending"), gt(orders.expiresAt, now)));
+
 export async function getZoneAvailability(db: Db, functionZoneId: string): Promise<number> {
   const [zone] = await db
     .select({ capacity: functionZones.capacity })
@@ -19,7 +23,7 @@ export async function getZoneAvailability(db: Db, functionZoneId: string): Promi
     .where(
       and(
         eq(orderItems.functionZoneId, functionZoneId),
-        or(eq(orders.status, "paid"), and(eq(orders.status, "pending"), gt(orders.expiresAt, new Date()))),
+        reservingOrderCondition(),
       ),
     );
 
