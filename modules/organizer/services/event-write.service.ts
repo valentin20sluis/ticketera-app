@@ -1,5 +1,3 @@
-import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
-import type * as schema from "@/lib/db/schema";
 import { and, eq, gt, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db/client";
@@ -16,7 +14,7 @@ import {
   createEventFormSchema,
   type CreateEventFormValues,
 } from "@/modules/organizer/schemas/create-event.schema";
-import { getStructureLock } from "@/modules/organizer/services/event-read.service";
+import { getStructureLock, type Tx } from "@/modules/organizer/services/event-read.service";
 import {
   canWriteEvent,
   isEventAdmin,
@@ -33,10 +31,10 @@ export class EventActionError extends Error {}
 
 const INVALID = "Datos no válidos";
 const NOT_FOUND = "Evento no encontrado";
+const STALE = "El evento cambió mientras lo editabas. Recarga e inténtalo de nuevo";
 const NOT_ALLOWED = "No puedes modificar este evento";
 const DEFAULT_CURRENCY = "PEN";
 
-type Tx = PgDatabase<PgQueryResultHKT, typeof schema>;
 
 function parseInput(input: unknown): CreateEventFormValues {
   const parsed = createEventFormSchema.safeParse(input);
@@ -204,19 +202,28 @@ export async function updateEvent(db: Db, actor: EventActor, eventId: string, in
   if (!canWriteEvent(actor, event, "edit")) throw new EventActionError(NOT_ALLOWED);
   await assertCategory(db, form.details.categoryId);
   const lock = await getStructureLock(db, event.id);
-  if (!lock.locked) parseStartsAt(form.functionZones.startsAt);
+  if (!lock.locked) {
+    const startsAt = parseStartsAt(form.functionZones.startsAt);
+    // A published event keeps the "future function" rule that publishing required.
+    if (event.status === "published" && startsAt <= new Date()) {
+      throw new EventActionError("Un evento publicado necesita una fecha futura");
+    }
+  }
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async (transaction) => {
+    const tx: Tx = transaction;
     let venueId = event.venueId;
     if (!lock.locked) {
       venueId = await resolveVenue(tx, event.organizerId, form.venue);
       await deleteStructure(tx, event.id);
       await insertFunction(tx, event.id, venueId, form);
     }
-    await tx
+    const updated = await tx
       .update(events)
       .set({ ...detailsOf(form), venueId, updatedAt: new Date() })
-      .where(eq(events.id, event.id));
+      .where(and(eq(events.id, event.id), eq(events.status, event.status)))
+      .returning({ id: events.id });
+    if (updated.length === 0) throw new EventActionError(STALE);
   });
 }
 
@@ -235,7 +242,14 @@ export async function setEventStatus(db: Db, actor: EventActor, eventId: string,
       throw new EventActionError("Para publicar necesitas una función futura con al menos una zona");
     }
   }
-  await db.update(events).set({ status: to, updatedAt: new Date() }).where(eq(events.id, event.id));
+  // Guarded by the status read above, so a concurrent change is refused instead of overwritten.
+  const writer: Tx = db;
+  const updated = await writer
+    .update(events)
+    .set({ status: to, updatedAt: new Date() })
+    .where(and(eq(events.id, event.id), eq(events.status, event.status)))
+    .returning({ id: events.id });
+  if (updated.length === 0) throw new EventActionError(STALE);
 }
 
 export async function deleteEvent(db: Db, actor: EventActor, eventId: string) {
@@ -248,13 +262,18 @@ export async function deleteEvent(db: Db, actor: EventActor, eventId: string) {
     throw new EventActionError(NOT_ALLOWED);
   }
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async (transaction) => {
+    const tx: Tx = transaction;
     // Checked inside the transaction so an order cannot slip in between.
-    const lock = await getStructureLock(tx as unknown as Db, event.id);
+    const lock = await getStructureLock(tx, event.id);
     if (lock.hasOrders) {
       throw new EventActionError("El evento ya tiene pedidos. Cancélalo en lugar de eliminarlo");
     }
     await deleteStructure(tx, event.id);
-    await tx.delete(events).where(eq(events.id, event.id));
+    const deleted = await tx
+      .delete(events)
+      .where(and(eq(events.id, event.id), eq(events.status, "draft")))
+      .returning({ id: events.id });
+    if (deleted.length === 0) throw new EventActionError(STALE);
   });
 }

@@ -1,5 +1,7 @@
 import { asc, eq, inArray } from "drizzle-orm";
+import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import type { Db } from "@/lib/db/client";
+import type * as schema from "@/lib/db/schema";
 import {
   eventCategories,
   eventFunctions,
@@ -13,12 +15,15 @@ import type { CreateEventFormValues } from "@/modules/organizer/schemas/create-e
 import { canWriteEvent, type EventActor, type EventStatus } from "@/modules/organizer/utils/event-permissions";
 import { formatLimaDateTime } from "@/modules/organizer/utils/lima-time";
 
+// A pool-backed db or a transaction of it.
+export type Tx = PgDatabase<PgQueryResultHKT, typeof schema>;
+
 export type StructureLock = { hasOrders: boolean; functionCount: number; locked: boolean };
 
 // Structure (venue, function, zones, prices, capacity) is frozen once any order
 // references the event's zones, or when the event has several functions (the
 // wizard only edits one).
-export async function getStructureLock(db: Db, eventId: string): Promise<StructureLock> {
+export async function getStructureLock(db: Db | Tx, eventId: string): Promise<StructureLock> {
   const functions = await db
     .select({ id: eventFunctions.id })
     .from(eventFunctions)
