@@ -1,15 +1,20 @@
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
 import type { EventDetailsValues } from "@/modules/organizer/hooks/useCreateEventForm"
 
+export interface CategoryOption {
+  id: string
+  name: string
+}
+
 interface EventDetailsStepProps {
+  categories: CategoryOption[]
   values: EventDetailsValues
   errors: Partial<Record<string, string>>
   onChange: (field: keyof EventDetailsValues, value: string) => void
 }
 
-export function EventDetailsStep({ values, errors, onChange }: EventDetailsStepProps) {
+export function EventDetailsStep({ categories, values, errors, onChange }: EventDetailsStepProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
@@ -124,7 +129,7 @@ export function EventDetailsStep({ values, errors, onChange }: EventDetailsStepP
           onValueChange={(value) => onChange("categoryId", String(value))}
           className="grid grid-cols-2 gap-2 sm:grid-cols-3"
         >
-          {MOCK_CATEGORIES.map((category) => {
+          {categories.map((category) => {
             const inputId = `event-category-${category.id}`
 
             return (

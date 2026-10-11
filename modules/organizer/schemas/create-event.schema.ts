@@ -7,7 +7,10 @@ export const eventDetailsSchema = z.object({
     .trim()
     .min(10, "Ingresa una descripción de al menos 10 caracteres"),
   categoryId: z.string().min(1, "Selecciona una categoría"),
-  imageUrl: z.url("Ingresa una URL de imagen válida"),
+  imageUrl: z.url({
+    protocol: /^https?$/,
+    error: "Ingresa una URL de imagen válida (http o https)",
+  }),
   doorsOpenTime: z
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Ingresa una hora válida (HH:MM)"),
@@ -53,3 +56,5 @@ export const createEventFormSchema = z.object({
   venue: venueStepSchema,
   functionZones: functionZonesStepSchema,
 });
+
+export type CreateEventFormValues = z.infer<typeof createEventFormSchema>;

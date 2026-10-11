@@ -169,3 +169,25 @@ describe("useCreateEventForm", () => {
     expect(result.current.errors["zones.0.capacity"]).toBeDefined();
   });
 });
+
+describe("useCreateEventForm with initial values", () => {
+  it("starts from the given values instead of the blank form", () => {
+    const initial = {
+      details: {
+        title: "Rock",
+        description: "Una descripción larga",
+        categoryId: "cat",
+        imageUrl: "https://example.com/a.jpg",
+        doorsOpenTime: "19:00",
+        showStartTime: "20:00",
+        minimumAge: "18+",
+        admissionType: "General",
+      },
+      venue: { mode: "existing" as const, venueId: "v1" },
+      functionZones: { startsAt: "2099-01-01T20:00", zones: [{ name: "VIP", capacity: 5, price: 10 }] },
+    };
+    const { result } = renderHook(() => useCreateEventForm(initial));
+
+    expect(result.current.values).toEqual(initial);
+  });
+});

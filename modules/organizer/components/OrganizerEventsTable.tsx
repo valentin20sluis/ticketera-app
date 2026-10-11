@@ -5,12 +5,16 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatPrice } from "@/lib/format-currency"
+import { EventRowActions } from "@/modules/organizer/components/EventRowActions"
+import { canWriteEvent, nextStatuses, type EventActor } from "@/modules/organizer/utils/event-permissions"
 import { formatFullEventDate } from "@/modules/events/utils/format-event-date"
 import type { OrganizerEventSummary } from "@/modules/organizer/services/get-organizer-summary.service"
 
 interface OrganizerEventsTableProps {
   events: OrganizerEventSummary[]
   emptyState?: ReactNode
+  // When given, each row gets an actions menu. Rows are the actor's own events (see getOrganizerSummary).
+  actor?: EventActor
 }
 
 const STATUS_STYLES: Record<
@@ -54,7 +58,7 @@ function TicketsSoldMeter({ value, max }: { value: number; max: number }) {
   )
 }
 
-export function OrganizerEventsTable({ events, emptyState }: OrganizerEventsTableProps) {
+export function OrganizerEventsTable({ events, emptyState, actor }: OrganizerEventsTableProps) {
   if (events.length === 0) {
     return (
       emptyState ?? (
@@ -76,6 +80,7 @@ export function OrganizerEventsTable({ events, emptyState }: OrganizerEventsTabl
             <TableHead>Estado</TableHead>
             <TableHead>Entradas vendidas</TableHead>
             <TableHead className="text-right">Ingresos</TableHead>
+            {actor && <TableHead className="text-right">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -115,10 +120,27 @@ export function OrganizerEventsTable({ events, emptyState }: OrganizerEventsTabl
                 <TicketsSoldMeter value={event.ticketsSold} max={maxTicketsSold} />
               </TableCell>
               <TableCell className="text-right">{formatPrice(event.revenue)}</TableCell>
+              {actor && <TableCell className="text-right">{renderActions(actor, event)}</TableCell>}
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </div>
+  )
+}
+
+function renderActions(actor: NonNullable<EventActor>, event: OrganizerEventSummary) {
+  const target = { organizerId: actor.id, status: event.status }
+  const next = nextStatuses(actor, target)
+
+  return (
+    <EventRowActions
+      eventId={event.id}
+      title={event.title}
+      canEdit={canWriteEvent(actor, target, "edit")}
+      canPublish={next.includes("published")}
+      canCancel={next.includes("cancelled")}
+      canDelete={canWriteEvent(actor, target, "delete")}
+    />
   )
 }

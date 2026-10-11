@@ -34,14 +34,6 @@ export default async function OrganizadorPage() {
         </Button>
       </div>
 
-      <div
-        role="status"
-        className="rounded-lg border bg-muted px-4 py-3 text-sm text-muted-foreground"
-      >
-        El asistente &quot;Crear evento&quot; aún guarda los eventos solo en este navegador, por
-        eso no aparecerán en esta lista hasta que se guarden en la base de datos.
-      </div>
-
       <OrganizerSummaryStats
         totalTicketsSold={summary.totalTicketsSold}
         totalRevenue={summary.totalRevenue}
@@ -50,6 +42,7 @@ export default async function OrganizadorPage() {
 
       <OrganizerEventsTable
         events={summary.events}
+        actor={user}
         emptyState={
           <div className="flex flex-col items-center gap-3 py-8">
             <p>Todavía no tienes eventos</p>
