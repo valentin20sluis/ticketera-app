@@ -289,3 +289,40 @@ describe("deleteEvent", () => {
     await deleteEvent(db, admin, draft.id)
   })
 })
+
+describe("review findings", () => {
+  it("refuses a past date when editing a published event but allows it on a draft", async () => {
+    const { db, orgA, form } = await setup()
+    const past = form({
+      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+    })
+    const { id } = await createEvent(db, orgA, form())
+    const venueId = (await db.select().from(events).where(eq(events.id, id)))[0].venueId
+    const withVenue = { ...past, venue: { mode: "existing" as const, venueId } }
+
+    await updateEvent(db, orgA, id, withVenue)
+    await setEventStatus(db, orgA, id, "cancelled").catch(() => undefined)
+
+    const { id: published } = await createEvent(db, orgA, form())
+    await setEventStatus(db, orgA, published, "published")
+    const publishedVenue = (await db.select().from(events).where(eq(events.id, published)))[0].venueId
+    await rejects(
+      updateEvent(db, orgA, published, { ...past, venue: { mode: "existing", venueId: publishedVenue } }),
+    )
+  })
+
+  it("does not let a stale cancel overwrite a concurrent suspension", async () => {
+    const { db, orgA, admin, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    await setEventStatus(db, orgA, id, "published")
+
+    const results = await Promise.allSettled([
+      setEventStatus(db, orgA, id, "cancelled"),
+      setEventStatus(db, admin, id, "suspended"),
+    ])
+
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1)
+    const [event] = await db.select().from(events).where(eq(events.id, id))
+    expect(["cancelled", "suspended"]).toContain(event.status)
+  })
+})
