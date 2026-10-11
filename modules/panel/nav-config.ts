@@ -4,7 +4,6 @@ import {
   Calendar,
   LayoutDashboard,
   type LucideIcon,
-  PlusCircle,
   ScanLine,
   Users,
   Wallet,
@@ -32,7 +31,6 @@ export const ADMIN_NAV_ITEMS: PanelNavItem[] = [
 export const ORGANIZER_NAV_ITEMS: PanelNavItem[] = [
   { href: "/organizador/resumen", label: "Resumen", icon: LayoutDashboard },
   { href: "/organizador", label: "Mis eventos", icon: Calendar },
-  { href: "/organizador/eventos/nuevo", label: "Crear evento", icon: PlusCircle },
   { href: "/organizador/check-in", label: "Check-in", icon: ScanLine },
   { href: "/organizador/pagos", label: "Pagos", icon: Wallet },
 ];

@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { SelectField } from "@/components/shared/SelectField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -6,8 +10,8 @@ import {
   type UserListParams,
 } from "@/modules/users/schemas/user-list-params.schema";
 
-const selectClass =
-  "h-10 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30";
+// Sentinel for "any": the select needs a non-empty item value.
+const ANY = "__any";
 
 const ROLE_OPTIONS = [
   ["customer", "Cliente"],
@@ -30,7 +34,8 @@ const ORDER_OPTIONS = [
   ["nombre-desc", "Nombre Z-A"],
 ] as const;
 
-function Select({
+// The form submits by GET, so the chosen value travels in a hidden input ("" = any).
+function FilterSelect({
   id,
   label,
   name,
@@ -45,17 +50,22 @@ function Select({
   options: readonly (readonly [string, string])[];
   anyLabel?: string;
 }) {
+  const [current, setCurrent] = useState(value ?? (anyLabel ? "" : options[0][0]));
+  const items = [
+    ...(anyLabel ? [{ value: ANY, label: anyLabel }] : []),
+    ...options.map(([optionValue, optionLabel]) => ({ value: optionValue, label: optionLabel })),
+  ];
+
   return (
-    <div className="flex flex-col gap-1 text-sm">
+    <div className="flex min-w-40 flex-col gap-1 text-sm">
       <label htmlFor={id}>{label}</label>
-      <select id={id} name={name} defaultValue={value ?? ""} className={selectClass}>
-        {anyLabel && <option value="">{anyLabel}</option>}
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>
-            {optionLabel}
-          </option>
-        ))}
-      </select>
+      <input type="hidden" name={name} value={current} />
+      <SelectField
+        id={id}
+        options={items}
+        value={current || ANY}
+        onValueChange={(next) => setCurrent(next === ANY ? "" : next)}
+      />
     </div>
   );
 }
@@ -80,10 +90,10 @@ export function UsersFilters({ params }: { params: UserListParams }) {
           className="h-10"
         />
       </div>
-      <Select id="users-rol" label="Rol" name="rol" value={params.rol} options={ROLE_OPTIONS} anyLabel="Todos" />
-      <Select id="users-estado" label="Estado" name="estado" value={params.estado} options={STATE_OPTIONS} anyLabel="Todos" />
-      <Select id="users-registro" label="Registro" name="registro" value={params.registro} options={REGISTRATION_OPTIONS} anyLabel="Cualquier fecha" />
-      <Select id="users-orden" label="Ordenar por" name="orden" value={params.orden} options={ORDER_OPTIONS} />
+      <FilterSelect id="users-rol" label="Rol" name="rol" value={params.rol} options={ROLE_OPTIONS} anyLabel="Todos" />
+      <FilterSelect id="users-estado" label="Estado" name="estado" value={params.estado} options={STATE_OPTIONS} anyLabel="Todos" />
+      <FilterSelect id="users-registro" label="Registro" name="registro" value={params.registro} options={REGISTRATION_OPTIONS} anyLabel="Cualquier fecha" />
+      <FilterSelect id="users-orden" label="Ordenar por" name="orden" value={params.orden} options={ORDER_OPTIONS} />
       <div className="flex items-center gap-2">
         <Button type="submit" className="h-10">
           Aplicar
