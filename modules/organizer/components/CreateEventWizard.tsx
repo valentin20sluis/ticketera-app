@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   createEventAction,
   updateEventAction,
@@ -15,9 +16,17 @@ import { VenueStep, type VenueOption } from "@/modules/organizer/components/Venu
 import { useCreateEventForm, type CreateEventStep } from "@/modules/organizer/hooks/useCreateEventForm"
 import type { CreateEventFormValues } from "@/modules/organizer/schemas/create-event.schema"
 
+interface OwnerOption {
+  id: string
+  name: string
+  email: string
+}
+
 interface CreateEventWizardProps {
   categories: CategoryOption[]
   venues: VenueOption[]
+  // Admin flow: the organizer who will own (and publish) the event. Absent for organizers.
+  owners?: OwnerOption[]
   // Edit mode: the event id and its current values. Without them the wizard creates.
   edit?: { eventId: string; values: CreateEventFormValues; structureLocked: boolean }
 }
@@ -29,9 +38,11 @@ const STEP_LABELS: Record<CreateEventStep, string> = {
   zones: "Función y zonas",
 }
 
-export function CreateEventWizard({ categories, venues, edit }: CreateEventWizardProps) {
+export function CreateEventWizard({ categories, venues, owners, edit }: CreateEventWizardProps) {
   const router = useRouter()
   const [submitError, setSubmitError] = useState<string>()
+  const [ownerId, setOwnerId] = useState("")
+  const [ownerError, setOwnerError] = useState<string>()
   const [pending, startTransition] = useTransition()
   const {
     step,
@@ -65,7 +76,7 @@ export function CreateEventWizard({ categories, venues, edit }: CreateEventWizar
     startTransition(async () => {
       const state: EventActionState = edit
         ? await updateEventAction(edit.eventId, values)
-        : await createEventAction(values)
+        : await createEventAction(values, ownerId)
       if (state.error) {
         setSubmitError(state.error)
         return
@@ -75,7 +86,18 @@ export function CreateEventWizard({ categories, venues, edit }: CreateEventWizar
     })
   }
 
+  function handleOwnerChange(id: string) {
+    setOwnerId(id)
+    setOwnerError(undefined)
+    // Venues belong to one organizer, so a previous pick no longer applies.
+    setVenueMode("new")
+  }
+
   function handleContinue() {
+    if (step === "details" && owners && !edit && !ownerId) {
+      setOwnerError("Elige un organizador")
+      return
+    }
     if (!validateStep(step)) {
       return
     }
@@ -102,6 +124,31 @@ export function CreateEventWizard({ categories, venues, edit }: CreateEventWizar
         </div>
       )}
 
+      {step === "details" && owners && !edit && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="event-owner" className="text-sm font-medium text-foreground">
+            Organizador
+          </label>
+          <Select
+            items={owners.map((o) => ({ value: o.id, label: `${o.name} (${o.email})` }))}
+            value={ownerId || null}
+            onValueChange={(value) => handleOwnerChange(value ?? "")}
+          >
+            <SelectTrigger id="event-owner" className="h-10 w-full" aria-invalid={Boolean(ownerError)}>
+              <SelectValue placeholder="Elegir organizador" />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false}>
+              {owners.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  {o.name} ({o.email})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {ownerError && <p className="text-sm text-destructive">{ownerError}</p>}
+        </div>
+      )}
+
       {step === "details" && (
         <EventDetailsStep
           categories={categories}
@@ -113,7 +160,7 @@ export function CreateEventWizard({ categories, venues, edit }: CreateEventWizar
 
       {step === "venue" && (
         <VenueStep
-          existingVenues={venues}
+          existingVenues={owners ? venues.filter((v) => v.organizerId === ownerId) : venues}
           values={values.venue}
           errors={errors}
           onModeChange={setVenueMode}
@@ -147,7 +194,7 @@ export function CreateEventWizard({ categories, venues, edit }: CreateEventWizar
         )}
 
         <Button type="button" onClick={handleContinue} disabled={pending}>
-          {isLastStep ? (edit ? "Guardar cambios" : "Crear evento") : "Continuar"}
+          {isLastStep ? (edit ? "Guardar cambios" : owners ? "Guardar borrador" : "Crear evento") : "Continuar"}
         </Button>
       </div>
     </div>

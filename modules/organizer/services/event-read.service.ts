@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import type { Db } from "@/lib/db/client";
 import type * as schema from "@/lib/db/schema";
@@ -8,6 +8,7 @@ import {
   events,
   functionZones,
   orderItems,
+  users,
   venues,
   venueZones,
 } from "@/lib/db/schema";
@@ -55,6 +56,22 @@ export function listVenuesForOrganizer(db: Db, organizerId: string) {
     .select({ id: venues.id, name: venues.name, city: venues.city })
     .from(venues)
     .where(eq(venues.organizerId, organizerId))
+    .orderBy(asc(venues.name));
+}
+
+// Admin-only pickers for creating an event on behalf of an organizer.
+export function listActiveOrganizers(db: Db) {
+  return db
+    .select({ id: users.id, name: users.fullName, email: users.email })
+    .from(users)
+    .where(and(eq(users.role, "organizer"), eq(users.isSuspended, false), isNull(users.deletedAt)))
+    .orderBy(asc(users.fullName));
+}
+
+export function listVenuesWithOwner(db: Db) {
+  return db
+    .select({ id: venues.id, name: venues.name, city: venues.city, organizerId: venues.organizerId })
+    .from(venues)
     .orderBy(asc(venues.name));
 }
 

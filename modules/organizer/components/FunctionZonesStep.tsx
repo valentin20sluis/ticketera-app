@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { DatePicker } from "@/components/shared/DatePicker"
 import { Input } from "@/components/ui/input"
 import { VenueZoneMap, type VenueZoneMapZone } from "@/modules/events/components/VenueZoneMap"
 import type {
@@ -24,6 +25,7 @@ export function FunctionZonesStep({
   onRemoveZone,
   onZoneFieldChange,
 }: FunctionZonesStepProps) {
+  const [startDate, startTime = ""] = values.startsAt.split("T")
   const previewZones: VenueZoneMapZone[] = values.zones.map((zone, index) => ({
     id: String(index),
     name: zone.name,
@@ -40,12 +42,21 @@ export function FunctionZonesStep({
         <label htmlFor="function-starts-at" className="text-sm font-medium text-foreground">
           Fecha y hora de la función
         </label>
-        <Input
-          id="function-starts-at"
-          type="datetime-local"
-          value={values.startsAt}
-          onChange={(event) => onStartsAtChange(event.target.value)}
-        />
+        <div className="grid grid-cols-[1fr_8rem] gap-3">
+          <DatePicker
+            id="function-starts-at"
+            value={startDate}
+            onChange={(date) => onStartsAtChange(date ? `${date}T${startTime || "20:00"}` : "")}
+          />
+          <Input
+            type="time"
+            aria-label="Hora de la función"
+            className="h-10"
+            value={startTime}
+            disabled={!startDate}
+            onChange={(event) => onStartsAtChange(`${startDate}T${event.target.value}`)}
+          />
+        </div>
         {errors.startsAt && <p className="text-sm text-destructive">{errors.startsAt}</p>}
       </div>
 
@@ -62,7 +73,7 @@ export function FunctionZonesStep({
                 >
                   Nombre
                 </label>
-                <Input
+                <Input className="h-10"
                   id={`zone-name-${index}`}
                   value={zone.name}
                   onChange={(event) => onZoneFieldChange(index, "name", event.target.value)}
@@ -80,7 +91,7 @@ export function FunctionZonesStep({
                 >
                   Capacidad
                 </label>
-                <Input
+                <Input className="h-10"
                   id={`zone-capacity-${index}`}
                   type="number"
                   value={zone.capacity}
@@ -102,7 +113,7 @@ export function FunctionZonesStep({
                 >
                   Precio
                 </label>
-                <Input
+                <Input className="h-10"
                   id={`zone-price-${index}`}
                   type="number"
                   value={zone.price}

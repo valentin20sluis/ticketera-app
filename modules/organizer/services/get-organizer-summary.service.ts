@@ -1,6 +1,6 @@
 import { and, count, eq, inArray, sql } from "drizzle-orm"
 import type { Db } from "@/lib/db/client"
-import { eventFunctions, events, functionZones, orderItems, orders } from "@/lib/db/schema"
+import { eventFunctions, events, functionZones, orderItems, orders, users } from "@/lib/db/schema"
 import {
   listEventsForViewer,
   resolveEventScope,
@@ -11,6 +11,7 @@ import {
 export interface OrganizerEventSummary extends ViewerEvent {
   ticketsSold: number
   revenue: number
+  organizerName: string
 }
 
 export interface OrganizerSummary {
@@ -34,14 +35,16 @@ const EMPTY_SUMMARY: OrganizerSummary = {
 // status, so a sale on a since-cancelled or unpublished event still counts
 // towards their historical totals; "publishedEvents" is the subset the organizer
 // asked to see listed, sorted by tickets sold (ties broken by revenue).
-// Always the viewer's OWN events, even for admin/super_admin.
+// Organizers see their own events; admin/super_admin see every event (they create drafts
+// on behalf of organizers), and totals follow the same scope.
 export async function getOrganizerSummary(db: Db, viewer: EventViewer): Promise<OrganizerSummary> {
   if (!viewer || resolveEventScope(viewer).kind === "public") return EMPTY_SUMMARY
 
   // The list (and per-event sales) is bounded by listEventsForViewer's default limit;
   // the totals below are SQL aggregates over ALL the viewer's events, so they never
   // depend on that limit.
-  const ownEvents = await listEventsForViewer(db, viewer, { organizerId: viewer.id })
+  const ownerOnly = resolveEventScope(viewer).kind === "own"
+  const ownEvents = await listEventsForViewer(db, viewer, ownerOnly ? { organizerId: viewer.id } : {})
   if (ownEvents.length === 0) return EMPTY_SUMMARY
 
   const [[totals], [published]] = await Promise.all([
@@ -55,11 +58,11 @@ export async function getOrganizerSummary(db: Db, viewer: EventViewer): Promise<
       .innerJoin(functionZones, eq(functionZones.id, orderItems.functionZoneId))
       .innerJoin(eventFunctions, eq(eventFunctions.id, functionZones.functionId))
       .innerJoin(events, eq(events.id, eventFunctions.eventId))
-      .where(and(eq(events.organizerId, viewer.id), eq(orders.status, "paid"))),
+      .where(and(ownerOnly ? eq(events.organizerId, viewer.id) : undefined, eq(orders.status, "paid"))),
     db
       .select({ value: count() })
       .from(events)
-      .where(and(eq(events.organizerId, viewer.id), eq(events.status, "published"))),
+      .where(and(ownerOnly ? eq(events.organizerId, viewer.id) : undefined, eq(events.status, "published"))),
   ])
 
   const salesRows = await db
@@ -82,8 +85,16 @@ export async function getOrganizerSummary(db: Db, viewer: EventViewer): Promise<
     salesByEvent.set(row.eventId, current)
   }
 
+  const ownerRows = await db
+    .select({ eventId: events.id, name: users.fullName })
+    .from(events)
+    .innerJoin(users, eq(users.id, events.organizerId))
+    .where(inArray(events.id, ownEvents.map((event) => event.id)))
+  const ownerByEvent = new Map(ownerRows.map((row) => [row.eventId, row.name]))
+
   const allEvents: OrganizerEventSummary[] = ownEvents.map((event) => ({
     ...event,
+    organizerName: ownerByEvent.get(event.id) ?? "",
     ...(salesByEvent.get(event.id) ?? { ticketsSold: 0, revenue: 0 }),
   }))
 

@@ -39,10 +39,11 @@ async function run(work: () => Promise<{ id?: string } | void>): Promise<EventAc
 }
 
 // The form payload is validated by the service (createEventFormSchema), the single source of truth.
-// The owner is never read from the client: organizers create for themselves.
-export async function createEventAction(input: unknown): Promise<EventActionState> {
+// ownerId only matters for admins (the service ignores it for organizers) and is checked there.
+export async function createEventAction(input: unknown, ownerId?: unknown): Promise<EventActionState> {
   const actor = await requireRole([...ROLES]);
-  return run(async () => createEvent(await getDb(), actor, input));
+  const owner = eventId.safeParse(ownerId);
+  return run(async () => createEvent(await getDb(), actor, input, owner.success ? owner.data : undefined));
 }
 
 export async function updateEventAction(id: unknown, input: unknown): Promise<EventActionState> {

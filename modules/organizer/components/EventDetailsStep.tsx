@@ -21,7 +21,7 @@ export function EventDetailsStep({ categories, values, errors, onChange }: Event
         <label htmlFor="event-title" className="text-sm font-medium text-foreground">
           Título
         </label>
-        <Input
+        <Input className="h-10"
           id="event-title"
           value={values.title}
           onChange={(event) => onChange("title", event.target.value)}
@@ -34,7 +34,7 @@ export function EventDetailsStep({ categories, values, errors, onChange }: Event
         <label htmlFor="event-description" className="text-sm font-medium text-foreground">
           Descripción
         </label>
-        <Input
+        <Input className="h-10"
           id="event-description"
           value={values.description}
           onChange={(event) => onChange("description", event.target.value)}
@@ -49,7 +49,7 @@ export function EventDetailsStep({ categories, values, errors, onChange }: Event
         <label htmlFor="event-image-url" className="text-sm font-medium text-foreground">
           URL de imagen
         </label>
-        <Input
+        <Input className="h-10"
           id="event-image-url"
           value={values.imageUrl}
           onChange={(event) => onChange("imageUrl", event.target.value)}
@@ -63,7 +63,7 @@ export function EventDetailsStep({ categories, values, errors, onChange }: Event
           <label htmlFor="event-doors-open-time" className="text-sm font-medium text-foreground">
             Apertura de puertas
           </label>
-          <Input
+          <Input className="h-10"
             id="event-doors-open-time"
             value={values.doorsOpenTime}
             onChange={(event) => onChange("doorsOpenTime", event.target.value)}
@@ -78,7 +78,7 @@ export function EventDetailsStep({ categories, values, errors, onChange }: Event
           <label htmlFor="event-show-start-time" className="text-sm font-medium text-foreground">
             Inicio del show
           </label>
-          <Input
+          <Input className="h-10"
             id="event-show-start-time"
             value={values.showStartTime}
             onChange={(event) => onChange("showStartTime", event.target.value)}
@@ -95,7 +95,7 @@ export function EventDetailsStep({ categories, values, errors, onChange }: Event
           <label htmlFor="event-minimum-age" className="text-sm font-medium text-foreground">
             Edad mínima
           </label>
-          <Input
+          <Input className="h-10"
             id="event-minimum-age"
             value={values.minimumAge}
             onChange={(event) => onChange("minimumAge", event.target.value)}
@@ -110,7 +110,7 @@ export function EventDetailsStep({ categories, values, errors, onChange }: Event
           <label htmlFor="event-admission-type" className="text-sm font-medium text-foreground">
             Tipo de admisión
           </label>
-          <Input
+          <Input className="h-10"
             id="event-admission-type"
             value={values.admissionType}
             onChange={(event) => onChange("admissionType", event.target.value)}

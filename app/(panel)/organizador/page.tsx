@@ -3,7 +3,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { getDb } from "@/lib/db/client"
-import { OrganizerEventsTable } from "@/modules/organizer/components/OrganizerEventsTable"
+import { OrganizerEventsFilters } from "@/modules/organizer/components/OrganizerEventsFilters"
 import { OrganizerSummaryStats } from "@/modules/organizer/components/OrganizerSummaryStats"
 import { getOrganizerSummary } from "@/modules/organizer/services/get-organizer-summary.service"
 import { requireRole } from "@/modules/users/services/current-user.service"
@@ -40,7 +40,7 @@ export default async function OrganizadorPage() {
         publishedEventsCount={summary.publishedEventsCount}
       />
 
-      <OrganizerEventsTable
+      <OrganizerEventsFilters
         events={summary.events}
         actor={user}
         emptyState={

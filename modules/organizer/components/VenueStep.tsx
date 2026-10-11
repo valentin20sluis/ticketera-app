@@ -8,6 +8,7 @@ export interface VenueOption {
   id: string
   name: string
   city: string
+  organizerId?: string
 }
 
 interface VenueStepProps {
@@ -75,7 +76,7 @@ export function VenueStep({
             <label htmlFor="new-venue-name" className="text-sm font-medium text-foreground">
               Nombre
             </label>
-            <Input
+            <Input className="h-10"
               id="new-venue-name"
               value={values.venue.name}
               onChange={(event) => onNewVenueFieldChange("name", event.target.value)}
@@ -90,7 +91,7 @@ export function VenueStep({
             <label htmlFor="new-venue-address" className="text-sm font-medium text-foreground">
               Dirección
             </label>
-            <Input
+            <Input className="h-10"
               id="new-venue-address"
               value={values.venue.address}
               onChange={(event) => onNewVenueFieldChange("address", event.target.value)}
@@ -105,7 +106,7 @@ export function VenueStep({
             <label htmlFor="new-venue-city" className="text-sm font-medium text-foreground">
               Ciudad
             </label>
-            <Input
+            <Input className="h-10"
               id="new-venue-city"
               value={values.venue.city}
               onChange={(event) => onNewVenueFieldChange("city", event.target.value)}
@@ -121,7 +122,7 @@ export function VenueStep({
               <label htmlFor="new-venue-lat" className="text-sm font-medium text-foreground">
                 Latitud
               </label>
-              <Input
+              <Input className="h-10"
                 id="new-venue-lat"
                 type="number"
                 value={values.venue.lat}
@@ -136,7 +137,7 @@ export function VenueStep({
               <label htmlFor="new-venue-lng" className="text-sm font-medium text-foreground">
                 Longitud
               </label>
-              <Input
+              <Input className="h-10"
                 id="new-venue-lng"
                 type="number"
                 value={values.venue.lng}

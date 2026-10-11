@@ -40,7 +40,8 @@ export function nextStatuses(actor: EventActor, event: EventTarget): EventStatus
   };
   if (!isEventAdmin(actor)) return own[event.status] ?? [];
   const admin: Partial<Record<EventStatus, EventStatus[]>> = {
-    draft: ["published", "cancelled", "suspended"],
+    // Admins never publish a draft: the owning organizer does. They can still lift a suspension.
+    draft: ["cancelled", "suspended"],
     published: ["cancelled", "suspended"],
     suspended: ["published", "cancelled"],
   };
