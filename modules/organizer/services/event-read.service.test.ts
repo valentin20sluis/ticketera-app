@@ -43,6 +43,13 @@ describe("getEventForEdit", () => {
     expect(await getEventForEdit(db, admin, event.id)).not.toBeNull()
   })
 
+  it("returns featured from the column", async () => {
+    const { db, orgA, event } = await setup()
+    expect((await getEventForEdit(db, orgA, event.id))?.featured).toBe(false)
+    await db.update(events).set({ featured: true }).where(eq(events.id, event.id))
+    expect((await getEventForEdit(db, orgA, event.id))?.featured).toBe(true)
+  })
+
   it("returns null for others, customers, missing ids and cancelled events", async () => {
     const { db, orgB, customer, event } = await setup()
     expect(await getEventForEdit(db, orgB, event.id)).toBeNull()

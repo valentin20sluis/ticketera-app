@@ -4,6 +4,8 @@ import { z } from "zod"
 
 import { getDb } from "@/lib/db/client"
 import { CreateEventWizard } from "@/modules/organizer/components/CreateEventWizard"
+import { FeaturedToggle } from "@/modules/organizer/components/FeaturedToggle"
+import { isEventAdmin } from "@/modules/organizer/utils/event-permissions"
 import {
   getEventForEdit,
   listCategories,
@@ -36,6 +38,13 @@ export default async function EditarEventoPage({ params }: { params: Promise<{ i
         <h1 className="font-heading text-3xl font-bold text-foreground">Editar evento</h1>
         <p className="text-muted-foreground">Actualiza los datos de {event.values.details.title}.</p>
       </div>
+
+      {isEventAdmin(user) && event.status === "published" && (
+        <div className="mb-6 flex items-center gap-3">
+          <FeaturedToggle eventId={event.id} title={event.values.details.title} featured={event.featured} />
+          <span className="text-sm text-foreground">Destacar en la portada</span>
+        </div>
+      )}
 
       <CreateEventWizard
         categories={categories}

@@ -253,10 +253,25 @@ export async function setEventStatus(db: Db, actor: EventActor, eventId: string,
   const writer: Tx = db;
   const updated = await writer
     .update(events)
-    .set({ status: to, updatedAt: new Date() })
+    // Leaving "published" drops the highlight; coming back does not restore it.
+    .set({ status: to, updatedAt: new Date(), ...(to !== "published" && { featured: false }) })
     .where(and(eq(events.id, event.id), eq(events.status, event.status)))
     .returning({ id: events.id });
   if (updated.length === 0) throw new EventActionError(STALE);
+}
+
+// Admin-only. Only published events can be highlighted.
+export async function setEventFeatured(db: Db, actor: EventActor, eventId: string, featured: boolean) {
+  const event = await loadEvent(db, eventId);
+  if (!isEventAdmin(actor) || !canWriteEvent(actor, event, "edit")) throw new EventActionError(NOT_ALLOWED);
+  if (featured && event.status !== "published") {
+    throw new EventActionError("Solo se pueden destacar eventos publicados");
+  }
+  const writer: Tx = db;
+  await writer
+    .update(events)
+    .set({ featured, updatedAt: new Date() })
+    .where(and(eq(events.id, event.id), eq(events.status, event.status)));
 }
 
 export async function deleteEvent(db: Db, actor: EventActor, eventId: string) {

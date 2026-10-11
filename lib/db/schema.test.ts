@@ -131,6 +131,12 @@ describe("database schema", () => {
     expect(ticket.status).toBe("valid");
   });
 
+  it("defaults events.featured to false", async () => {
+    const db = await createTestDb();
+    const { event } = await seedCore(db);
+    expect(event.featured).toBe(false);
+  });
+
   it("stores orders.invoice_url as nullable", async () => {
     const db = await createTestDb();
     const [customer] = await db

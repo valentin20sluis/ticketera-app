@@ -79,6 +79,7 @@ export type EventForEdit = {
   id: string;
   organizerId: string;
   status: EventStatus;
+  featured: boolean;
   structureLocked: boolean;
   values: CreateEventFormValues;
 };
@@ -116,6 +117,7 @@ export async function getEventForEdit(
     id: event.id,
     organizerId: event.organizerId,
     status: event.status,
+    featured: event.featured,
     structureLocked: lock.locked,
     values: {
       details: {
