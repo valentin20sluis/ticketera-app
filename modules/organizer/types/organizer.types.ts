@@ -74,19 +74,6 @@ export interface OrganizerCatalog {
   functionZones: OrganizerFunctionZone[];
 }
 
-export interface OrganizerEventSummary {
-  id: string;
-  title: string;
-  imageUrl: string;
-  status: EventStatus;
-  categoryName: string;
-  venueName: string;
-  city: string;
-  startsAt: string | null;
-  zonesCount: number;
-  totalCapacity: number;
-}
-
 export interface CurrentOrganizer {
   id: string;
   fullName: string;

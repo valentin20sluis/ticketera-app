@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function OrganizerOverviewPage() {
   const user = await requireRole(["organizer", "admin", "super_admin"]);
   const db = await getDb();
-  const summary = await getOrganizerSummary(db, user.id);
+  const summary = await getOrganizerSummary(db, user);
 
   return (
     <div className="flex flex-col gap-6">

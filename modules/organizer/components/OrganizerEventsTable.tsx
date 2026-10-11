@@ -1,5 +1,7 @@
+import type { ReactNode } from "react"
 import Image from "next/image"
 
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatPrice } from "@/lib/format-currency"
@@ -8,6 +10,33 @@ import type { OrganizerEventSummary } from "@/modules/organizer/services/get-org
 
 interface OrganizerEventsTableProps {
   events: OrganizerEventSummary[]
+  emptyState?: ReactNode
+}
+
+const STATUS_STYLES: Record<
+  OrganizerEventSummary["status"],
+  { label: string; badge: string; dot: string }
+> = {
+  draft: {
+    label: "Borrador",
+    badge: "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-300",
+    dot: "bg-gray-500",
+  },
+  published: {
+    label: "Publicado",
+    badge: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300",
+    dot: "bg-green-500",
+  },
+  cancelled: {
+    label: "Cancelado",
+    badge: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
+    dot: "bg-red-500",
+  },
+  suspended: {
+    label: "Suspendido",
+    badge: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+    dot: "bg-amber-500",
+  },
 }
 
 function TicketsSoldMeter({ value, max }: { value: number; max: number }) {
@@ -25,12 +54,14 @@ function TicketsSoldMeter({ value, max }: { value: number; max: number }) {
   )
 }
 
-export function OrganizerEventsTable({ events }: OrganizerEventsTableProps) {
+export function OrganizerEventsTable({ events, emptyState }: OrganizerEventsTableProps) {
   if (events.length === 0) {
     return (
-      <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white text-sm text-gray-500">
-        Todavía no tienes eventos publicados.
-      </div>
+      emptyState ?? (
+        <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white text-sm text-gray-500">
+          Todavía no tienes eventos publicados.
+        </div>
+      )
     )
   }
 
@@ -72,9 +103,12 @@ export function OrganizerEventsTable({ events }: OrganizerEventsTableProps) {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className="gap-1.5 bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300">
-                  <span aria-hidden="true" className="size-1.5 rounded-full bg-green-500" />
-                  Publicado
+                <Badge className={cn("gap-1.5", STATUS_STYLES[event.status].badge)}>
+                  <span
+                    aria-hidden="true"
+                    className={cn("size-1.5 rounded-full", STATUS_STYLES[event.status].dot)}
+                  />
+                  {STATUS_STYLES[event.status].label}
                 </Badge>
               </TableCell>
               <TableCell>

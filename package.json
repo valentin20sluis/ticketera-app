@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file=.env scripts/seed-events.ts",
-    "db:assign-events": "tsx --env-file=.env scripts/assign-events-to-organizers.ts"
+    "db:assign-events": "tsx --env-file=.env scripts/assign-events-to-organizers.ts",
+    "stripe:listen": "tsx --env-file=.env scripts/stripe-listen.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

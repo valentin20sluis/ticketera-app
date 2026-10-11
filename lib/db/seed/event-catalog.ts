@@ -1,5 +1,5 @@
 import { inArray } from "drizzle-orm";
-import type { Db } from "@/lib/db/client";
+import type { DbLike } from "@/lib/db/seed/reset-catalog";
 import {
   eventCategories,
   eventFunctions,
@@ -19,6 +19,13 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   Trujillo: { lat: -8.1116, lng: -79.0288 },
 };
 
+// Shifts a past date forward by whole years (same month, day and time) until it is in the future.
+export function upcomingDate(date: Date | string, now: Date = new Date()): Date {
+  const result = new Date(date);
+  while (result <= now) result.setFullYear(result.getFullYear() + 1);
+  return result;
+}
+
 export interface EventCatalogRows {
   eventCategories: (typeof eventCategories.$inferInsert)[];
   venues: (typeof venues.$inferInsert)[];
@@ -29,7 +36,7 @@ export interface EventCatalogRows {
 }
 
 // Pure: builds every row with pre-generated ids so inserts need no read-back.
-export function buildEventCatalog(organizerId: string): EventCatalogRows {
+export function buildEventCatalog(organizerId: string, now: Date = new Date()): EventCatalogRows {
   const categoryRows = MOCK_CATEGORIES.map((category) => ({
     id: crypto.randomUUID(),
     name: category.name,
@@ -110,7 +117,7 @@ export function buildEventCatalog(organizerId: string): EventCatalogRows {
     eventFunctionRows.push({
       id: functionId,
       eventId,
-      startsAt: new Date(event.startDate),
+      startsAt: upcomingDate(event.startDate, now),
     });
 
     for (const { mock, id } of zonesByVenueId.get(venueId) ?? []) {
@@ -135,9 +142,9 @@ export function buildEventCatalog(organizerId: string): EventCatalogRows {
 }
 
 // Refuses to run when any mock event is already loaded, so it never duplicates
-// rows. The inserts are not one transaction (the Neon HTTP driver has none);
-// if a run fails midway, clean the partial rows before retrying.
-export async function seedEventCatalog(db: Db, organizerId: string) {
+// rows. The inserts are atomic only when the caller passes a transaction
+// (the seed script does); otherwise clean partial rows before retrying.
+export async function seedEventCatalog(db: DbLike, organizerId: string) {
   const rows = buildEventCatalog(organizerId);
 
   const existing = await db
