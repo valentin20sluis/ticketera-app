@@ -2,9 +2,37 @@ import { describe, expect, it } from "vitest";
 import { count } from "drizzle-orm";
 import { createTestDb } from "@/lib/db/test-helpers";
 import { events, functionZones, users } from "@/lib/db/schema";
-import { buildEventCatalog, seedEventCatalog } from "./event-catalog";
+import { buildEventCatalog, seedEventCatalog, upcomingDate } from "./event-catalog";
+
+describe("upcomingDate", () => {
+  const now = new Date("2026-10-11T12:00:00.000Z");
+
+  it("shifts a past date by whole years keeping month, day and time", () => {
+    const result = upcomingDate("2026-09-30T20:30:00.000Z", now);
+    expect(result.toISOString()).toBe("2027-09-30T20:30:00.000Z");
+  });
+
+  it("shifts several years when needed", () => {
+    expect(upcomingDate("2022-01-05T10:00:00.000Z", now).toISOString()).toBe("2027-01-05T10:00:00.000Z");
+  });
+
+  it("keeps a future date unchanged", () => {
+    expect(upcomingDate("2026-12-01T20:00:00.000Z", now).toISOString()).toBe("2026-12-01T20:00:00.000Z");
+  });
+
+  it("moves a date exactly equal to now one year ahead", () => {
+    expect(upcomingDate(now, now).toISOString()).toBe("2027-10-11T12:00:00.000Z");
+  });
+});
 
 describe("buildEventCatalog", () => {
+  it("starts every function after the injected now", () => {
+    const now = new Date("2026-10-11T12:00:00.000Z");
+    const rows = buildEventCatalog("organizer-id", now);
+
+    expect(rows.eventFunctions.every((fn) => (fn.startsAt as Date) > now)).toBe(true);
+  });
+
   it("builds the mock catalog with one function and five zones per event", () => {
     const rows = buildEventCatalog("organizer-id");
 
