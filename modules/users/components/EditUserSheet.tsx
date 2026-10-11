@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
+import { SelectField } from "@/components/shared/SelectField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -81,18 +82,12 @@ export function EditUserSheet({ user, summary, onClose, onDelete }: Props) {
 
           <div className="flex flex-col gap-1">
             <label htmlFor="edit-role">Rol</label>
-            <select
+            <SelectField
               id="edit-role"
+              options={ASSIGNABLE_ROLES.map((value) => ({ value, label: ROLE_LABELS[value] }))}
               value={role}
-              onChange={(event) => isAssignableRole(event.target.value) && setRole(event.target.value)}
-              className="h-10 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
-            >
-              {ASSIGNABLE_ROLES.map((value) => (
-                <option key={value} value={value}>
-                  {ROLE_LABELS[value]}
-                </option>
-              ))}
-            </select>
+              onValueChange={(value) => isAssignableRole(value) && setRole(value)}
+            />
           </div>
 
           <label className="flex min-h-10 items-start justify-between gap-4">

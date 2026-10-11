@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { SelectField } from "@/components/shared/SelectField";
 import { Button } from "@/components/ui/button";
 import {
   bulkUsersAction,
@@ -8,7 +9,7 @@ import {
 } from "@/modules/users/actions/user-admin.actions";
 import { DeleteUserDialog } from "@/modules/users/components/DeleteUserDialog";
 import { ROLE_LABELS } from "@/modules/users/constants";
-import { ASSIGNABLE_ROLES, type AssignableRole } from "@/modules/users/utils/permissions";
+import { ASSIGNABLE_ROLES, isAssignableRole, type AssignableRole } from "@/modules/users/utils/permissions";
 
 type Props = {
   userIds: string[];
@@ -50,19 +51,14 @@ export function BulkActionsBar({ userIds, onDone }: Props) {
       </span>
 
       <div className="flex items-center gap-2">
-        <select
+        <SelectField
           aria-label="Nuevo rol"
+          className="w-44"
+          placeholder="Elegir rol…"
+          options={ASSIGNABLE_ROLES.map((value) => ({ value, label: ROLE_LABELS[value] }))}
           value={role}
-          onChange={(event) => setRole(event.target.value as AssignableRole | "")}
-          className="h-10 rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        >
-          <option value="">Elegir rol…</option>
-          {ASSIGNABLE_ROLES.map((value) => (
-            <option key={value} value={value}>
-              {ROLE_LABELS[value]}
-            </option>
-          ))}
-        </select>
+          onValueChange={(value) => setRole(isAssignableRole(value) ? value : "")}
+        />
         <Button
           type="button"
           variant="outline"
