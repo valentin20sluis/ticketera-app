@@ -5,7 +5,7 @@ import type {
   FunctionZonesValues,
   ZoneRowValues,
 } from "@/modules/organizer/hooks/useCreateEventForm"
-import { buildStackedZoneShape } from "@/modules/organizer/utils/build-organizer-event-entry"
+import { buildStackedZoneShape } from "@/modules/organizer/utils/zone-shape"
 
 interface FunctionZonesStepProps {
   values: FunctionZonesValues

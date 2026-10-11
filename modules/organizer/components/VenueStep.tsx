@@ -4,10 +4,14 @@ import type {
   NewVenueValues,
   VenueStepValues,
 } from "@/modules/organizer/hooks/useCreateEventForm"
-import type { OrganizerVenue } from "@/modules/organizer/types/organizer.types"
+export interface VenueOption {
+  id: string
+  name: string
+  city: string
+}
 
 interface VenueStepProps {
-  existingVenues: OrganizerVenue[]
+  existingVenues: VenueOption[]
   values: VenueStepValues
   errors: Partial<Record<string, string>>
   onModeChange: (mode: VenueStepValues["mode"]) => void

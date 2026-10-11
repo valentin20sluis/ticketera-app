@@ -7,7 +7,7 @@ import {
   functionZonesStepSchema,
   venueStepSchema,
 } from "@/modules/organizer/schemas/create-event.schema";
-import type { CreateEventFormValues } from "@/modules/organizer/utils/build-organizer-event-entry";
+import type { CreateEventFormValues } from "@/modules/organizer/schemas/create-event.schema";
 
 export type CreateEventStep = "details" | "venue" | "zones";
 
@@ -61,12 +61,12 @@ export interface UseCreateEventFormResult {
   validateStep: (step: CreateEventStep) => boolean;
 }
 
-export function useCreateEventForm(): UseCreateEventFormResult {
+export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCreateEventFormResult {
   const [step, setStep] = useState<CreateEventStep>("details");
-  const [details, setDetails] = useState<EventDetailsValues>(buildInitialDetails);
-  const [venue, setVenue] = useState<VenueStepValues>(buildInitialVenue);
+  const [details, setDetails] = useState<EventDetailsValues>(() => initialValues?.details ?? buildInitialDetails());
+  const [venue, setVenue] = useState<VenueStepValues>(() => initialValues?.venue ?? buildInitialVenue());
   const [functionZones, setFunctionZones] = useState<FunctionZonesValues>(
-    buildInitialFunctionZones
+    () => initialValues?.functionZones ?? buildInitialFunctionZones()
   );
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
