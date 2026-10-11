@@ -60,12 +60,12 @@ decidida siempre en el servidor. Cierra la "Fase 2" de `organizer-events-real-da
   - `modules/events/services/list-events-for-viewer.service.ts` (Read, sin cambios) y `lib/db/test-helpers.ts` + `lib/db/seed/event-catalog.ts` para tests con PGlite.
   - `modules/organizer/schemas/create-event.schema.ts` (`createEventFormSchema`, `eventDetailsSchema`…): fuente única de validación, cliente y servidor.
   - `modules/organizer/components/{CreateEventWizard,EventDetailsStep,VenueStep,FunctionZonesStep}.tsx` y `hooks/useCreateEventForm.ts`.
-  - `modules/organizer/components/OrganizerEventsTable.tsx` (se extiende), `modules/users/components/DeleteUserDialog.tsx` (patrón del diálogo), shadcn `dropdown-menu`, `alert-dialog`/`dialog` si ya están en `components/ui/`.
+  - `modules/organizer/components/OrganizerEventsTable.tsx` (se extiende), `modules/users/components/DeleteUserDialog.tsx` (patrón del diálogo), shadcn `button` y `dialog` (ya en `components/ui/`).
   - `buildStackedZoneShape` y `slugify` de `utils/build-organizer-event-entry.ts` (se mueven, no se reescriben).
 - Existente que se extiende: `useCreateEventForm` (valores iniciales opcionales para modo edición), `CreateEventWizard` (modo crear/editar, recibe categorías y sedes por props), `EventDetailsStep` (categorías por props en vez de `MOCK_CATEGORIES`), `create-event.schema.ts` (restricción `http/https` en `imageUrl` y tipo `CreateEventFormValues` derivado con `z.infer`).
 - Nuevo (y por qué): permisos y transiciones (`modules/users/utils/permissions.ts` es solo de usuarios), servicio de escritura de eventos (no existe ninguno), lecturas de categorías/sedes/evento-para-editar (hoy salen de mocks), actions.
 - Se elimina (verificar con grep antes): `hooks/useOrganizerCatalog.ts`, `utils/organizer-catalog-storage.ts` (+ test), `utils/build-organizer-event-entry.ts` (+ test, tras mover sus dos helpers), `data/current-organizer.mock.ts`, `data/organizer-catalog.mock.ts`, tipos mock huérfanos de `organizer.types.ts`, el aviso del asistente en `app/(panel)/organizador/page.tsx`.
-- Dependencias / componentes shadcn a instalar antes de implementar: verificar `dropdown-menu` y `alert-dialog` en `components/ui/`; si faltan, `npx shadcn@latest add dropdown-menu alert-dialog` (Base UI, no Radix). Sin migraciones de schema.
+- Dependencias / componentes shadcn a instalar antes de implementar: ninguno (`button` y `dialog` ya existen en `components/ui/`). Sin migraciones de schema.
 
 ## Criterios de aceptación
 
@@ -80,7 +80,7 @@ decidida siempre en el servidor. Cierra la "Fase 2" de `organizer-events-real-da
 - AC-9: Cada Server Action llama `requireRole([...])`, valida el input con zod (`safeParse`, ids `z.uuid()`), nunca confía en `organizerId` del cliente para organizers y devuelve `{ error }` sin filtrar detalles internos; hace `revalidatePath("/organizador")` al éxito.
 - AC-10: `/organizador/eventos/nuevo` crea en la DB y redirige a `/organizador` mostrando el evento; `CreateEventWizard` ya no usa `localStorage`, `CURRENT_ORGANIZER` ni `SEED_ORGANIZER_CATALOG`, y el aviso del asistente desaparece de `/organizador`.
 - AC-11: `/organizador/eventos/[id]/editar` (Server Component, `requireRole`) precarga el evento con `getEventForEdit`; `notFound()` si no existe o no corresponde al actor; con pedidos los pasos de sede/función/zonas se muestran bloqueados con un aviso.
-- AC-12: La tabla muestra por fila un menú con solo las acciones permitidas para ese actor y estado (Editar, Publicar, Cancelar, Eliminar; Eliminar solo en `draft`). Cancelar y Eliminar piden confirmación y muestran el error devuelto por la action.
+- AC-12: La tabla muestra por fila botones (Editar, Publicar, Cancelar, Eliminar) con solo las acciones permitidas para ese actor y estado (Eliminar solo en `draft`). Cancelar y Eliminar piden confirmación y muestran el error devuelto por la action.
 - AC-13: Las tablas del seed (futuros eventos) no se alteran: tests existentes siguen pasando; `grep -rn "useOrganizerCatalog\|organizer-catalog-storage\|CURRENT_ORGANIZER\|SEED_ORGANIZER_CATALOG" --include=*.ts --include=*.tsx .` solo devuelve resultados en `docs/`.
 - AC-14: `npm run lint`, `npm run test` y `npm run build` pasan.
 
@@ -131,7 +131,7 @@ decidida siempre en el servidor. Cierra la "Fase 2" de `organizer-events-real-da
 - Tests: `useCreateEventForm` con valores iniciales (modo edición); schema con `javascript:` y `ftp:` rechazados. Componentes presentacionales sin test (SETUP.md 3.2).
 - [x] Completada
 
-### T6 — Menú de acciones por fila y confirmaciones
+### T6 — Botones de acción por fila y confirmaciones
 
 - Archivos: `modules/organizer/components/OrganizerEventsTable.tsx` (modificar: columna de acciones), `modules/organizer/components/EventRowActions.tsx` (crear), `modules/organizer/components/ConfirmEventActionDialog.tsx` (crear), `app/(panel)/organizador/page.tsx` (modificar: pasar el actor a la tabla y quitar el aviso)
 - Depende de: T4
