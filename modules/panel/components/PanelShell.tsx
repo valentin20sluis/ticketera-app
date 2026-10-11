@@ -75,7 +75,7 @@ export function PanelShell({ role, fullName, children }: PanelShellProps) {
         fullName={fullName}
         roleLabel={roleLabel}
         onLogout={logout}
-        className="hidden lg:flex"
+        className="sticky top-0 hidden lg:flex"
       />
 
       {mobileOpen && (

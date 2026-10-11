@@ -30,7 +30,7 @@ export function SidebarNav({
     <aside
       aria-label="Menú lateral"
       className={cn(
-        "flex flex-col border-r border-gray-200 bg-white p-3 transition-[width] duration-200",
+        "flex h-dvh flex-col border-r border-gray-200 bg-white p-3 transition-[width] duration-200",
         collapsed ? "w-[76px]" : "w-[264px]",
         className,
       )}
@@ -54,7 +54,7 @@ export function SidebarNav({
         )}
       </div>
 
-      <nav aria-label="Menú principal" className="flex flex-1 flex-col gap-5 overflow-y-auto">
+      <nav aria-label="Menú principal" className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
         {sections.map((section) => (
           <div key={section.heading} className="flex flex-col gap-0.5">
             {collapsed ? (
