@@ -6,6 +6,8 @@ import { getDb } from "@/lib/db/client"
 import { OrganizerEventsFilters } from "@/modules/organizer/components/OrganizerEventsFilters"
 import { OrganizerSummaryStats } from "@/modules/organizer/components/OrganizerSummaryStats"
 import { getOrganizerSummary } from "@/modules/organizer/services/get-organizer-summary.service"
+import { StripeConnectBanner } from "@/modules/payments/components/StripeConnectBanner"
+import { deriveConnectState } from "@/modules/payments/utils/connect-status"
 import { requireRole } from "@/modules/users/services/current-user.service"
 
 export const metadata: Metadata = {
@@ -33,6 +35,10 @@ export default async function OrganizadorPage() {
           Crear evento
         </Button>
       </div>
+
+      {user.role === "organizer" && (
+        <StripeConnectBanner state={deriveConnectState(user)} />
+      )}
 
       <OrganizerSummaryStats
         totalTicketsSold={summary.totalTicketsSold}

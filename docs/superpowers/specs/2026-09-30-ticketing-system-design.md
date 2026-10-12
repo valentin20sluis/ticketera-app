@@ -128,11 +128,14 @@ manualmente, sin flujo de autoservicio.
      `PLATFORM_FEE_PERCENT`), y
      `payment_intent_data.transfer_data.destination` = `stripe_account_id`
      del organizador (destination charge — sin pasos manuales de transfer).
-     > **Estado de implementación:** hoy la sesión se crea en PEN y se cobra en
-     > la cuenta de la plataforma, con `invoice_creation` activado. La comisión
-     > (`application_fee_amount`) y el destino al organizador (`transfer_data`)
-     > dependen de Stripe Connect y siguen pendientes (ver
-     > `docs/specs/stripe-payments.md`, "Fuera de alcance").
+     > **Estado de implementación:** la sesión se crea en PEN con
+     > `invoice_creation` activado y ya incluye la comisión
+     > (`application_fee_amount`, `PLATFORM_FEE_PERCENT`) y el destino al
+     > organizador (`transfer_data.destination`), sin `on_behalf_of`. Cada orden
+     > admite un solo evento. Salvedad abierta: la combinación moneda (PEN) /
+     > país de las cuentas conectadas (`STRIPE_CONNECT_ACCOUNT_COUNTRY`) debe
+     > confirmarse en sandbox (ver `docs/specs/stripe-destination-charges.md`,
+     > pregunta abierta 1).
   3. Redirige al Checkout hospedado por Stripe.
   4. Webhook `checkout.session.completed` (y `checkout.session.async_payment_succeeded`
      para métodos asíncronos), solo si `payment_status = paid`, marca
