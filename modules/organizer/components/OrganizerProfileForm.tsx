@@ -40,7 +40,7 @@ export function OrganizerProfileForm({ fullName, email, ruc }: OrganizerProfileF
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="ruc" className="text-sm font-medium">RUC</label>
-            <Input id="ruc" name="ruc" defaultValue={ruc ?? ""} inputMode="numeric" maxLength={11} />
+            <Input key={ruc ?? ""} id="ruc" name="ruc" defaultValue={ruc ?? ""} inputMode="numeric" maxLength={11} />
           </div>
           <div aria-live="polite" className="text-sm">
             {state.error ? <p role="alert" className="text-destructive">{state.error}</p> : null}
