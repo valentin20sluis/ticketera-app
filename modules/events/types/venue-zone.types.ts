@@ -1,3 +1,5 @@
+import type { SeatLayout, SeatRef } from "@/modules/ticketing/types/seat.types"
+
 /**
  * Coordinates are expressed on a `0-100` grid, meant to be rendered inside
  * an SVG with `viewBox="0 0 100 100"` (percentage-like units, not pixels).
@@ -18,4 +20,8 @@ export interface VenueZone {
   capacity: number;
   available: number;
   shape: VenueZoneShape;
+  /** undefined = standing zone. */
+  seatLayout?: SeatLayout;
+  /** Held or paid seats at load time (numbered zones only). */
+  takenSeats?: SeatRef[];
 }

@@ -14,4 +14,6 @@ export interface ConfirmedOrder {
   totalAmount: number
   invoiceUrl?: string
   ticketQrCodes?: string[]
+  /** Parallel to ticketQrCodes: formatSeat() text or null for standing tickets. */
+  ticketSeats?: (string | null)[]
 }

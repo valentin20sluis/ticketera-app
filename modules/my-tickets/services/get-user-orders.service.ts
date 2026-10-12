@@ -3,6 +3,7 @@ import {
   eventFunctions,
   events,
   functionZones,
+  orderItemSeats,
   orderItems,
   orders,
   tickets,
@@ -10,6 +11,7 @@ import {
   venues,
 } from "@/lib/db/schema"
 import type { Db } from "@/lib/db/client"
+import { formatSeat } from "@/modules/ticketing/utils/seat-label"
 import type { ConfirmedOrder } from "@/modules/checkout/types/checkout.types"
 
 export async function getPaidOrdersForUser(db: Db, userId: string): Promise<ConfirmedOrder[]> {
@@ -42,14 +44,26 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
   if (rows.length === 0) return []
 
   const ticketRows = await db
-    .select({ orderItemId: tickets.orderItemId, qrCode: tickets.qrCode })
+    .select({
+      orderItemId: tickets.orderItemId,
+      qrCode: tickets.qrCode,
+      seatRow: orderItemSeats.seatRow,
+      seatNumber: orderItemSeats.seatNumber,
+    })
     .from(tickets)
+    .leftJoin(orderItemSeats, eq(orderItemSeats.id, tickets.orderItemSeatId))
     .where(inArray(tickets.orderItemId, rows.map((r) => r.itemId)))
     .orderBy(tickets.createdAt, tickets.qrCode)
 
   const qrByItem = new Map<string, string[]>()
+  const seatByItem = new Map<string, (string | null)[]>()
   for (const t of ticketRows) {
     qrByItem.set(t.orderItemId, [...(qrByItem.get(t.orderItemId) ?? []), t.qrCode])
+    const seat =
+      t.seatRow != null && t.seatNumber != null
+        ? formatSeat({ row: t.seatRow, number: t.seatNumber })
+        : null
+    seatByItem.set(t.orderItemId, [...(seatByItem.get(t.orderItemId) ?? []), seat])
   }
 
   // Una orden pertenece a un solo evento: el evento se toma del primer order_item.
@@ -70,6 +84,7 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
         totalAmount: Number(r.totalAmount),
         invoiceUrl: r.invoiceUrl ?? undefined,
         ticketQrCodes: [],
+        ticketSeats: [],
       }
       byOrder.set(r.orderId, order)
     }
@@ -82,6 +97,7 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
     })
     order.totalQuantity += r.quantity
     order.ticketQrCodes = [...(order.ticketQrCodes ?? []), ...(qrByItem.get(r.itemId) ?? [])]
+    order.ticketSeats = [...(order.ticketSeats ?? []), ...(seatByItem.get(r.itemId) ?? [])]
   }
 
   return [...byOrder.values()]

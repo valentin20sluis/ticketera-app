@@ -1,6 +1,10 @@
 import type { CheckoutSessionInput } from "@/modules/checkout/schemas/checkout-session.schema"
 
-export type CheckoutRequestError = "unauthorized" | "insufficient_stock" | "unknown"
+export type CheckoutRequestError =
+  | "unauthorized"
+  | "insufficient_stock"
+  | "seat_taken"
+  | "unknown"
 
 export type CheckoutRequestResult =
   | { ok: true; url: string }
@@ -20,7 +24,13 @@ export async function requestCheckoutUrl(
       return url ? { ok: true, url } : { ok: false, error: "unknown" }
     }
     if (response.status === 401) return { ok: false, error: "unauthorized" }
-    if (response.status === 409) return { ok: false, error: "insufficient_stock" }
+    if (response.status === 409) {
+      const body = (await response.json().catch(() => ({}))) as { error?: string }
+      return {
+        ok: false,
+        error: body.error === "seat_taken" ? "seat_taken" : "insufficient_stock",
+      }
+    }
     return { ok: false, error: "unknown" }
   } catch {
     return { ok: false, error: "unknown" }

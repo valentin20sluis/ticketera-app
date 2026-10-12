@@ -190,4 +190,21 @@ describe("useCreateEventForm with initial values", () => {
 
     expect(result.current.values).toEqual(initial);
   });
+
+  it("updateZoneRow computes capacity from seat rows and columns, and clearing them makes the zone standing", () => {
+    const { result } = renderHook(() => useCreateEventForm());
+
+    act(() => {
+      result.current.updateZoneRow(0, "seatRows", "4");
+      result.current.updateZoneRow(0, "seatColumns", "5");
+    });
+    expect(result.current.values.functionZones.zones[0]).toMatchObject({ seatRows: 4, seatColumns: 5, capacity: 20 });
+
+    act(() => {
+      result.current.updateZoneRow(0, "seatRows", "");
+      result.current.updateZoneRow(0, "seatColumns", "");
+    });
+    expect(result.current.values.functionZones.zones[0].seatRows).toBeUndefined();
+    expect(result.current.values.functionZones.zones[0].seatColumns).toBeUndefined();
+  });
 });

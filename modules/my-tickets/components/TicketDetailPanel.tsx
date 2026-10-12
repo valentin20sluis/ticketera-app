@@ -35,7 +35,7 @@ export function TicketDetailPanel({
   const panelRef = useRef<HTMLDivElement>(null)
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
-  const stubs = buildTicketStubs(order.lines)
+  const stubs = buildTicketStubs(order.lines, order.ticketSeats)
   const stub = stubs[ticketNumber - 1]
   const { month, day } = formatEventDateBadge(order.startDate)
   const holderName = session?.fullName ?? session?.email ?? "Invitado"
@@ -140,7 +140,7 @@ export function TicketDetailPanel({
               </div>
               <div className="flex flex-col gap-0.5">
                 <dt className="text-muted-foreground">Asiento</dt>
-                <dd className="font-medium text-foreground">Sin asiento asignado</dd>
+                <dd className="font-medium text-foreground">{stub.seat ?? "Sin asiento asignado"}</dd>
               </div>
               <div className="flex flex-col gap-0.5">
                 <dt className="text-muted-foreground">Titular</dt>

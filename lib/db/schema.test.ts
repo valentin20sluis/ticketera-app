@@ -6,6 +6,7 @@ import {
   eventFunctions,
   events,
   functionZones,
+  orderItemSeats,
   orderItems,
   orders,
   tickets,
@@ -316,5 +317,52 @@ describe("database schema", () => {
         capacity: 10,
       }),
     ).rejects.toThrow();
+  });
+
+  it("keeps existing zones standing (seat layout null)", async () => {
+    const db = await createTestDb();
+    const { zone } = await seedCore(db);
+    expect(zone.seatRows).toBeNull();
+    expect(zone.seatColumns).toBeNull();
+  });
+
+  it("enforces the venue_zones seat layout check", async () => {
+    const db = await createTestDb();
+    const { venue } = await seedCore(db);
+    const base = { venueId: venue.id, name: "Z", shapeX: 0, shapeY: 0, shapeWidth: 10, shapeHeight: 10 };
+
+    await expect(db.insert(venueZones).values({ ...base, capacity: 10, seatRows: 2 })).rejects.toThrow();
+    await expect(db.insert(venueZones).values({ ...base, capacity: 0, seatRows: 0, seatColumns: 0 })).rejects.toThrow();
+    await expect(db.insert(venueZones).values({ ...base, capacity: 11, seatRows: 2, seatColumns: 5 })).rejects.toThrow();
+    const [ok] = await db.insert(venueZones).values({ ...base, capacity: 10, seatRows: 2, seatColumns: 5 }).returning();
+    expect(ok.seatRows).toBe(2);
+  });
+
+  it("rejects duplicate seats per function zone and links a ticket to a seat", async () => {
+    const db = await createTestDb();
+    const { functionZone } = await seedCore(db);
+    const [customer] = await db
+      .insert(users)
+      .values({ clerkUserId: `clerk_${crypto.randomUUID()}`, email: "s@example.com", fullName: "S", role: "customer" })
+      .returning();
+    const [order] = await db
+      .insert(orders)
+      .values({ customerId: customer.id, status: "pending", totalAmount: "19.99", currency: "PEN", expiresAt: new Date() })
+      .returning();
+    const [item] = await db
+      .insert(orderItems)
+      .values({ orderId: order.id, functionZoneId: functionZone.id, quantity: 1, unitPrice: "19.99" })
+      .returning();
+    const seat = { orderItemId: item.id, functionZoneId: functionZone.id, seatRow: 1, seatNumber: 1 };
+
+    const [saved] = await db.insert(orderItemSeats).values(seat).returning();
+    await expect(db.insert(orderItemSeats).values(seat)).rejects.toThrow();
+    await expect(db.insert(orderItemSeats).values({ ...seat, seatRow: 0 })).rejects.toThrow();
+
+    const [ticket] = await db
+      .insert(tickets)
+      .values({ orderItemId: item.id, orderItemSeatId: saved.id, qrCode: `QR-${crypto.randomUUID()}` })
+      .returning();
+    expect(ticket.orderItemSeatId).toBe(saved.id);
   });
 });

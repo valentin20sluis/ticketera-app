@@ -72,6 +72,27 @@ describe("zoneRowSchema", () => {
   });
 });
 
+describe("zoneRowSchema numbered seats", () => {
+  const base = { name: "VIP", capacity: 0, price: 10 };
+
+  it("fuerza capacity a filas x columnas", () => {
+    const result = zoneRowSchema.safeParse({ ...base, capacity: 999, seatRows: 4, seatColumns: 5 });
+
+    expect(result.success && result.data.capacity).toBe(20);
+  });
+
+  it("rechaza solo uno de los dos", () => {
+    expect(zoneRowSchema.safeParse({ ...base, seatRows: 4 }).success).toBe(false);
+    expect(zoneRowSchema.safeParse({ ...base, seatColumns: 4 }).success).toBe(false);
+  });
+
+  it("rechaza filas > 26 y columnas > 40", () => {
+    expect(zoneRowSchema.safeParse({ ...base, seatRows: 27, seatColumns: 5 }).success).toBe(false);
+    expect(zoneRowSchema.safeParse({ ...base, seatRows: 26, seatColumns: 41 }).success).toBe(false);
+    expect(zoneRowSchema.safeParse({ ...base, seatRows: 26, seatColumns: 40 }).success).toBe(true);
+  });
+});
+
 describe("functionZonesStepSchema", () => {
   it("rechaza zones vacío", () => {
     const result = functionZonesStepSchema.safeParse({

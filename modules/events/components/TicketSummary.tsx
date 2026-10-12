@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatPrice } from "@/lib/format-currency"
 import { cn } from "@/lib/utils"
+import type { SeatRef } from "@/modules/ticketing/types/seat.types"
+import { seatLabel } from "@/modules/ticketing/utils/seat-label"
 
 export interface TicketSummaryLine {
   zoneId: string
@@ -9,6 +11,7 @@ export interface TicketSummaryLine {
   price: number
   quantity: number
   subtotal: number
+  seats?: SeatRef[]
 }
 
 interface TicketSummaryProps {
@@ -57,14 +60,21 @@ export function TicketSummary({
                   <div
                     key={line.zoneId}
                     className={cn(
-                      "flex items-center justify-between gap-2 text-sm",
+                      "flex items-start justify-between gap-2 text-sm",
                       isActive &&
                         "rounded-lg border border-primary bg-primary/5 p-2"
                     )}
                   >
-                    <span className="text-muted-foreground">
-                      {line.quantity} × {line.zoneName}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground">
+                        {line.quantity} × {line.zoneName}
+                      </span>
+                      {line.seats && (
+                        <span className="text-xs text-muted-foreground">
+                          {line.seats.map(seatLabel).join(", ")}
+                        </span>
+                      )}
+                    </div>
                     <span className="font-medium text-foreground">
                       {formatPrice(line.subtotal)}
                     </span>

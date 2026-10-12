@@ -103,6 +103,31 @@ describe("createEvent", () => {
     expect(zones.map((z) => z.price).sort()).toEqual(["150.00", "50.00"])
   })
 
+  it("persists the seat layout and computed capacity of numbered zones", async () => {
+    const { db, orgA, form } = await setup()
+    const { id } = await createEvent(
+      db,
+      orgA,
+      form({
+        functionZones: {
+          startsAt: FUTURE,
+          zones: [
+            { name: "Campo VIP", capacity: 1, price: 50, seatRows: 4, seatColumns: 5 },
+            { name: "General", capacity: 100, price: 20 },
+          ],
+        },
+      }),
+    )
+    const [fn] = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, id))
+    const rows = await db
+      .select({ name: venueZones.name, rows: venueZones.seatRows, cols: venueZones.seatColumns, cap: functionZones.capacity })
+      .from(functionZones)
+      .innerJoin(venueZones, eq(functionZones.venueZoneId, venueZones.id))
+      .where(eq(functionZones.functionId, fn.id))
+    expect(rows.find((r) => r.name === "Campo VIP")).toMatchObject({ rows: 4, cols: 5, cap: 20 })
+    expect(rows.find((r) => r.name === "General")).toMatchObject({ rows: null, cols: null, cap: 100 })
+  })
+
   it("ignores ownerId from an organizer but honours it for admin and super_admin", async () => {
     const { db, orgA, orgB, admin, root, form } = await setup()
     const own = await createEvent(db, orgA, form(), orgB.id)
