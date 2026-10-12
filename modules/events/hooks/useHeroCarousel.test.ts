@@ -64,6 +64,29 @@ describe("useHeroCarousel", () => {
     expect(result.current.index).toBe(2)
   })
 
+  it("restarts the countdown when the index changes manually", () => {
+    const { result } = renderHook(() => useHeroCarousel(3, { intervalMs: 1000 }))
+
+    act(() => {
+      vi.advanceTimersByTime(900)
+    })
+    act(() => {
+      result.current.next()
+    })
+    expect(result.current.index).toBe(1)
+
+    // 900ms after the manual change: a stale interval would already have fired.
+    act(() => {
+      vi.advanceTimersByTime(900)
+    })
+    expect(result.current.index).toBe(1)
+
+    act(() => {
+      vi.advanceTimersByTime(100)
+    })
+    expect(result.current.index).toBe(2)
+  })
+
   it("togglePause() stops and resumes the auto-advance", () => {
     const { result } = renderHook(() => useHeroCarousel(3, { intervalMs: 1000 }))
 
