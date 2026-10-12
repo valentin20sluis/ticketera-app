@@ -215,3 +215,12 @@ Orden: T0 -> (T1 || T2 || T3 || T4). AC16 al final, con todo integrado. Cinco ta
 - Barrido periódico de órdenes vencidas y reembolso automático de pagos tardíos.
 - Mostrar asiento en el escáner de check-in cuando se implemente.
 - Seed de demo con una zona numerada (ej. "Campo VIP").
+
+## Enmienda 2026-10-12 (pedido directo del usuario): layout fijo para todas las zonas
+
+Decisión humana que reemplaza las preguntas abiertas 1, 3 y 7 y el control del organizador (T2/AC13):
+- **Todas** las zonas (existentes y nuevas) son numeradas con el mismo layout por defecto: **10 filas × 10 asientos = 100** (`DEFAULT_SEAT_LAYOUT`, constante única).
+- El formulario de crear/editar evento **no** pide filas, asientos ni capacidad: se quita el switch "Asientos numerados", los inputs de layout y el input de capacidad de `FunctionZonesStep`. El servidor fuerza el layout y `capacity = 100` al guardar.
+- Migración de datos `0007` (SQL a mano, `drizzle-kit generate --custom`): `UPDATE venue_zones SET seat_rows = 10, seat_columns = 10, capacity = 100` para todas las zonas; incluye eventos publicados y borradores. Los tickets ya vendidos (sin asiento) se conservan y siguen contando contra la capacidad; los asientos concretos no se les asignan.
+- Las zonas de pie dejan de crearse; el código de pie se mantiene por compatibilidad (columnas nullable) pero no se alcanza desde el formulario.
+- AC13 pasa a: crear un evento deja cada zona con 10×10 sin que el organizador lo configure.

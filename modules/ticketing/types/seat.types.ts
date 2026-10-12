@@ -9,3 +9,8 @@ export interface SeatLayout {
   rows: number
   columns: number
 }
+
+/** Layout every zone gets; the single source of truth for seats per zone. */
+export const DEFAULT_SEAT_LAYOUT: SeatLayout = { rows: 10, columns: 10 }
+
+export const DEFAULT_SEAT_CAPACITY = DEFAULT_SEAT_LAYOUT.rows * DEFAULT_SEAT_LAYOUT.columns

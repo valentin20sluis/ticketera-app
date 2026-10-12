@@ -21,7 +21,7 @@ describe("useCreateEventForm", () => {
     expect(result.current.values.venue).toEqual({ mode: "existing", venueId: "" });
     expect(result.current.values.functionZones).toEqual({
       startsAt: "",
-      zones: [{ name: "", capacity: 0, price: 0 }],
+      zones: [{ name: "", price: 0 }],
     });
     expect(result.current.errors).toEqual({});
   });
@@ -53,8 +53,8 @@ describe("useCreateEventForm", () => {
     });
 
     expect(result.current.values.functionZones.zones).toEqual([
-      { name: "", capacity: 0, price: 0 },
-      { name: "", capacity: 0, price: 0 },
+      { name: "", price: 0 },
+      { name: "", price: 0 },
     ]);
   });
 
@@ -64,13 +64,12 @@ describe("useCreateEventForm", () => {
     act(() => {
       result.current.addZoneRow();
       result.current.updateZoneRow(1, "name", "VIP");
-      result.current.updateZoneRow(1, "capacity", "50");
       result.current.updateZoneRow(1, "price", "99.5");
     });
 
     expect(result.current.values.functionZones.zones).toEqual([
-      { name: "", capacity: 0, price: 0 },
-      { name: "VIP", capacity: 50, price: 99.5 },
+      { name: "", price: 0 },
+      { name: "VIP", price: 99.5 },
     ]);
   });
 
@@ -88,7 +87,7 @@ describe("useCreateEventForm", () => {
     });
 
     expect(result.current.values.functionZones.zones).toEqual([
-      { name: "VIP", capacity: 0, price: 0 },
+      { name: "VIP", price: 0 },
     ]);
   });
 
@@ -100,7 +99,7 @@ describe("useCreateEventForm", () => {
     });
 
     expect(result.current.values.functionZones.zones).toEqual([
-      { name: "", capacity: 0, price: 0 },
+      { name: "", price: 0 },
     ]);
   });
 
@@ -166,7 +165,7 @@ describe("useCreateEventForm", () => {
     });
 
     expect(isValid).toBe(false);
-    expect(result.current.errors["zones.0.capacity"]).toBeDefined();
+    expect(result.current.errors["zones.0.name"]).toBeDefined();
   });
 });
 
@@ -184,27 +183,10 @@ describe("useCreateEventForm with initial values", () => {
         admissionType: "General",
       },
       venue: { mode: "existing" as const, venueId: "v1" },
-      functionZones: { startsAt: "2099-01-01T20:00", zones: [{ name: "VIP", capacity: 5, price: 10 }] },
+      functionZones: { startsAt: "2099-01-01T20:00", zones: [{ name: "VIP", price: 10 }] },
     };
     const { result } = renderHook(() => useCreateEventForm(initial));
 
     expect(result.current.values).toEqual(initial);
-  });
-
-  it("updateZoneRow computes capacity from seat rows and columns, and clearing them makes the zone standing", () => {
-    const { result } = renderHook(() => useCreateEventForm());
-
-    act(() => {
-      result.current.updateZoneRow(0, "seatRows", "4");
-      result.current.updateZoneRow(0, "seatColumns", "5");
-    });
-    expect(result.current.values.functionZones.zones[0]).toMatchObject({ seatRows: 4, seatColumns: 5, capacity: 20 });
-
-    act(() => {
-      result.current.updateZoneRow(0, "seatRows", "");
-      result.current.updateZoneRow(0, "seatColumns", "");
-    });
-    expect(result.current.values.functionZones.zones[0].seatRows).toBeUndefined();
-    expect(result.current.values.functionZones.zones[0].seatColumns).toBeUndefined();
   });
 });

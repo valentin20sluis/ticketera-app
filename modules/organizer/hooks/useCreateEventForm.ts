@@ -31,7 +31,7 @@ function buildInitialDetails(): EventDetailsValues {
 }
 
 function buildInitialZoneRow(): ZoneRowValues {
-  return { name: "", capacity: 0, price: 0 };
+  return { name: "", price: 0 };
 }
 
 function buildInitialVenue(): VenueStepValues {
@@ -43,8 +43,6 @@ function buildInitialFunctionZones(): FunctionZonesValues {
 }
 
 const NUMERIC_VENUE_FIELDS = new Set<keyof NewVenueValues>(["lat", "lng"]);
-const SEAT_FIELDS = new Set<keyof ZoneRowValues>(["seatRows", "seatColumns"]);
-const NUMERIC_ZONE_FIELDS = new Set<keyof ZoneRowValues>(["capacity", "price", ...SEAT_FIELDS]);
 
 export interface UseCreateEventFormResult {
   step: CreateEventStep;
@@ -147,17 +145,7 @@ export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCr
             return zone;
           }
 
-          // Empty seat field = unset (a zone is numbered when seat fields exist).
-          const nextValue = NUMERIC_ZONE_FIELDS.has(field)
-            ? SEAT_FIELDS.has(field) && value === ""
-              ? undefined
-              : Number(value)
-            : value;
-          const next = { ...zone, [field]: nextValue } as ZoneRowValues;
-          // Numbered zones: capacity is always rows * columns.
-          return next.seatRows !== undefined && next.seatColumns !== undefined
-            ? { ...next, capacity: next.seatRows * next.seatColumns }
-            : next;
+          return { ...zone, [field]: field === "price" ? Number(value) : value };
         }),
       }));
     },

@@ -87,9 +87,6 @@ export function TicketSelectionView({
                 Volver al mapa
               </Button>
             </div>
-            <p className="text-center text-xs font-medium tracking-widest text-muted-foreground">
-              ESCENARIO
-            </p>
             <SeatPicker
               layout={seatedZone.seatLayout}
               takenSeats={seatedZone.takenSeats}

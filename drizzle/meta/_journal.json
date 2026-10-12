@@ -50,6 +50,13 @@
       "when": 1791816729177,
       "tag": "0006_seat_selection",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791822089459,
+      "tag": "0007_default_seat_layout",
+      "breakpoints": true
     }
   ]
 }
