@@ -159,6 +159,7 @@ function renderActions(actor: NonNullable<EventActor>, event: OrganizerEventSumm
       canCancel={next.includes("cancelled")}
       canDelete={canWriteEvent(actor, target, "delete")}
       publishBlockedReason={publishBlockedReason}
+      showSettingsLink={!isEventAdmin(actor)}
     />
   )
 }

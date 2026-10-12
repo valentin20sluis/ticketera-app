@@ -20,6 +20,8 @@ interface EventRowActionsProps {
   canDelete: boolean
   // When set, "Publicar" is disabled and this reason is shown next to it.
   publishBlockedReason?: string
+  // Owner organizer only: adds a link to the settings page next to the reason.
+  showSettingsLink?: boolean
 }
 
 type Pending = "cancel" | "delete" | null
@@ -32,6 +34,7 @@ export function EventRowActions({
   canCancel,
   canDelete,
   publishBlockedReason,
+  showSettingsLink,
 }: EventRowActionsProps) {
   const [confirming, setConfirming] = useState<Pending>(null)
   const [error, setError] = useState<string>()
@@ -90,6 +93,14 @@ export function EventRowActions({
       {canPublish && publishBlockedReason && (
         <p id={`publish-blocked-${eventId}`} className="max-w-48 text-right text-xs text-muted-foreground">
           {publishBlockedReason}
+          {showSettingsLink && (
+            <>
+              {" "}
+              <Link href="/organizador/configuracion" className="underline">
+                Ir a configuración
+              </Link>
+            </>
+          )}
         </p>
       )}
 
