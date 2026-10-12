@@ -94,6 +94,8 @@ async function insertFunction(tx: Tx, eventId: string, venueId: string, form: Cr
           shapeWidth: shape.width,
           shapeHeight: shape.height,
           capacity: zone.capacity,
+          seatRows: zone.seatRows ?? null,
+          seatColumns: zone.seatColumns ?? null,
         };
       }),
     )

@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm"
 import { describe, expect, it } from "vitest"
 import { seedEventCatalog } from "@/lib/db/seed/event-catalog"
 import { createTestDb } from "@/lib/db/test-helpers"
-import { eventFunctions, events, functionZones, orderItems, orders, users } from "@/lib/db/schema"
+import { eventFunctions, events, functionZones, orderItems, venueZones, orders, users } from "@/lib/db/schema"
 import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
 import { getEventForEdit, listCategories, listVenuesForOrganizer } from "./event-read.service"
 
@@ -41,6 +41,17 @@ describe("getEventForEdit", () => {
     expect(result?.values.venue).toEqual({ mode: "existing", venueId: event.venueId })
     expect(result?.values.functionZones.zones.length).toBeGreaterThan(0)
     expect(await getEventForEdit(db, admin, event.id)).not.toBeNull()
+  })
+
+  it("returns the seat layout of numbered zones and omits it for standing ones", async () => {
+    const { db, orgA, event } = await setup()
+    const [fn] = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, event.id)).limit(1)
+    const [numbered, standing] = await db.select().from(functionZones).where(eq(functionZones.functionId, fn.id))
+    await db.update(venueZones).set({ seatRows: 2, seatColumns: 5, capacity: 10 }).where(eq(venueZones.id, numbered.venueZoneId))
+
+    const zones = (await getEventForEdit(db, orgA, event.id))!.values.functionZones.zones
+    expect(zones.filter((z) => z.seatRows === 2 && z.seatColumns === 5)).toHaveLength(1)
+    if (standing) expect(zones.filter((z) => z.seatRows === undefined).length).toBe(zones.length - 1)
   })
 
   it("returns featured from the column", async () => {

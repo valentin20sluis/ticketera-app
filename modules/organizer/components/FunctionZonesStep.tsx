@@ -1,12 +1,21 @@
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/shared/DatePicker"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { VenueZoneMap, type VenueZoneMapZone } from "@/modules/events/components/VenueZoneMap"
 import type {
   FunctionZonesValues,
   ZoneRowValues,
 } from "@/modules/organizer/hooks/useCreateEventForm"
 import { buildStackedZoneShape } from "@/modules/organizer/utils/zone-shape"
+
+const SEAT_INPUTS = [
+  { field: "seatRows", label: "Filas (máx. 26)", max: 26 },
+  { field: "seatColumns", label: "Asientos por fila (máx. 40)", max: 40 },
+] as const
+
+const isNumbered = (zone: ZoneRowValues) =>
+  zone.seatRows !== undefined || zone.seatColumns !== undefined
 
 interface FunctionZonesStepProps {
   values: FunctionZonesValues
@@ -95,6 +104,7 @@ export function FunctionZonesStep({
                   id={`zone-capacity-${index}`}
                   type="number"
                   value={zone.capacity}
+                  readOnly={isNumbered(zone)}
                   onChange={(event) =>
                     onZoneFieldChange(index, "capacity", event.target.value)
                   }
@@ -123,6 +133,53 @@ export function FunctionZonesStep({
                   <p className="text-sm text-destructive">{errors[`zones.${index}.price`]}</p>
                 )}
               </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id={`zone-numbered-${index}`}
+                  checked={isNumbered(zone)}
+                  onCheckedChange={(checked) => {
+                    onZoneFieldChange(index, "seatRows", checked ? "1" : "")
+                    onZoneFieldChange(index, "seatColumns", checked ? "1" : "")
+                  }}
+                />
+                <label
+                  htmlFor={`zone-numbered-${index}`}
+                  className="text-sm font-medium text-foreground"
+                >
+                  Asientos numerados
+                </label>
+              </div>
+              {isNumbered(zone) && (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {SEAT_INPUTS.map(({ field, label, max }) => (
+                    <div key={field} className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor={`zone-${field}-${index}`}
+                        className="text-sm font-medium text-foreground"
+                      >
+                        {label}
+                      </label>
+                      <Input
+                        className="h-10"
+                        id={`zone-${field}-${index}`}
+                        type="number"
+                        min={1}
+                        max={max}
+                        value={zone[field] ?? ""}
+                        onChange={(event) => onZoneFieldChange(index, field, event.target.value)}
+                      />
+                      {errors[`zones.${index}.${field}`] && (
+                        <p className="text-sm text-destructive">
+                          {errors[`zones.${index}.${field}`]}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Button

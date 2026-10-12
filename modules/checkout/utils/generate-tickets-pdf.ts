@@ -59,6 +59,10 @@ function writeTicketStubPage(
   y += LINE_HEIGHT_MM
   pdf.text(stub.zoneName, PAGE_MARGIN_MM, y)
   y += LINE_HEIGHT_MM
+  if (stub.seat) {
+    pdf.text(stub.seat, PAGE_MARGIN_MM, y)
+    y += LINE_HEIGHT_MM
+  }
   pdf.text(formatPrice(stub.price), PAGE_MARGIN_MM, y)
   y += LINE_HEIGHT_MM
   pdf.text(`Entrada ${stub.ticketNumber} de ${stub.totalTickets}`, PAGE_MARGIN_MM, y)

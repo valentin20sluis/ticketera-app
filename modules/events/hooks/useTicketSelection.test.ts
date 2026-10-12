@@ -172,4 +172,66 @@ describe("useTicketSelection", () => {
     expect(result.current.totalQuantity).toBe(3)
     expect(result.current.totalAmount).toBe(550)
   })
+
+  describe("numbered zones", () => {
+    const seated = buildZone({
+      id: "seated",
+      name: "Seated",
+      price: 50,
+      capacity: 100,
+      available: 100,
+      seatLayout: { rows: 10, columns: 10 },
+      takenSeats: [{ row: 1, number: 1 }],
+    })
+
+    it("toggles seats and builds lines with seats and totals", () => {
+      const { result } = renderHook(() => useTicketSelection([seated]))
+      act(() => result.current.selectZone("seated"))
+      expect(result.current.quantities.seated).toBe(0)
+      act(() => result.current.toggleSeat("seated", { row: 2, number: 3 }))
+      act(() => result.current.toggleSeat("seated", { row: 2, number: 4 }))
+      expect(result.current.lines).toEqual([
+        expect.objectContaining({
+          quantity: 2,
+          subtotal: 100,
+          seats: [
+            { row: 2, number: 3 },
+            { row: 2, number: 4 },
+          ],
+        }),
+      ])
+      act(() => result.current.toggleSeat("seated", { row: 2, number: 3 }))
+      expect(result.current.totalQuantity).toBe(1)
+    })
+
+    it("ignores taken seats and enforces the max per zone", () => {
+      const { result } = renderHook(() => useTicketSelection([seated]))
+      act(() => result.current.toggleSeat("seated", { row: 1, number: 1 }))
+      expect(result.current.totalQuantity).toBe(0)
+      for (let n = 1; n <= 7; n++) {
+        act(() => result.current.toggleSeat("seated", { row: 3, number: n }))
+      }
+      expect(result.current.seatsByZone.seated).toHaveLength(6)
+    })
+
+    it("increment is a no-op and clearActiveZone keeps the selection", () => {
+      const { result } = renderHook(() => useTicketSelection([seated]))
+      act(() => result.current.toggleSeat("seated", { row: 5, number: 5 }))
+      act(() => result.current.increment("seated"))
+      act(() => result.current.clearActiveZone())
+      expect(result.current.activeZoneId).toBeNull()
+      expect(result.current.quantities.seated).toBe(1)
+    })
+
+    it("drops seats that became taken after a reload", () => {
+      const { result, rerender } = renderHook(
+        ({ zones }) => useTicketSelection(zones),
+        { initialProps: { zones: [seated] } },
+      )
+      act(() => result.current.toggleSeat("seated", { row: 5, number: 5 }))
+      act(() => result.current.toggleSeat("seated", { row: 5, number: 6 }))
+      rerender({ zones: [{ ...seated, takenSeats: [{ row: 5, number: 5 }] }] })
+      expect(result.current.seatsByZone.seated).toEqual([{ row: 5, number: 6 }])
+    })
+  })
 })

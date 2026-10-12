@@ -6,6 +6,7 @@ import {
   eventFunctions,
   events,
   functionZones,
+  orderItemSeats,
   orders,
   tickets,
   users,
@@ -16,6 +17,8 @@ import type { Db } from "@/lib/db/client";
 import { getZoneAvailability } from "./get-zone-availability.service";
 import {
   InsufficientStockError,
+  InvalidOrderError,
+  SeatTakenError,
   attachCheckoutSession,
   createPendingOrder,
   markOrderExpired,
@@ -23,7 +26,7 @@ import {
   setOrderInvoiceUrl,
 } from "./order.service";
 
-async function seed(capacity: number, price = "25.50") {
+async function seed(capacity: number, price = "25.50", layout?: { rows: number; columns: number }) {
   const db = await createTestDb();
   const [organizer] = await db
     .insert(users)
@@ -43,7 +46,7 @@ async function seed(capacity: number, price = "25.50") {
     .returning();
   const [vz] = await db
     .insert(venueZones)
-    .values({ venueId: venue.id, name: "Z", shapeX: 0, shapeY: 0, shapeWidth: 1, shapeHeight: 1, capacity })
+    .values({ venueId: venue.id, name: "Z", shapeX: 0, shapeY: 0, shapeWidth: 1, shapeHeight: 1, capacity, seatRows: layout?.rows ?? null, seatColumns: layout?.columns ?? null })
     .returning();
   const [event] = await db
     .insert(events)
@@ -132,5 +135,117 @@ describe("order.service", () => {
     const [saved] = await db.select().from(orders).where(eq(orders.id, order.id));
     expect(saved.stripeCheckoutSessionId).toBe("cs_1");
     expect(saved.invoiceUrl).toBe("https://invoice.example/1");
+  });
+
+  describe("numbered zones", () => {
+    const layout = { rows: 4, columns: 5 };
+    const seatsOf = async (db: Db) =>
+      (await db.select().from(orderItemSeats)).map((s) => `${s.seatRow}:${s.seatNumber}`).sort();
+
+    it("creates order and seat rows pricing per seat (AC3)", async () => {
+      const { db, customerId, zone } = await seed(20, "10.00", layout);
+      const { order, items } = await createPendingOrder(db, {
+        customerId,
+        items: [{ functionZoneId: zone.id, seats: [{ row: 1, number: 1 }, { row: 2, number: 3 }] }],
+      });
+      expect(items[0].quantity).toBe(2);
+      expect(order.totalAmount).toBe("20.00");
+      expect(await seatsOf(db)).toEqual(["1:1", "2:3"]);
+    });
+
+    it("concurrent same seat: exactly one wins and nothing is left behind (AC4)", async () => {
+      const { db, customerId, zone } = await seed(20, "10.00", layout);
+      const req = () =>
+        createPendingOrder(db, { customerId, items: [{ functionZoneId: zone.id, seats: [{ row: 1, number: 1 }] }] });
+      const results = await Promise.allSettled([req(), req()]);
+      expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+      const failed = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+      expect(failed.reason).toBeInstanceOf(SeatTakenError);
+      expect(await db.select().from(orders)).toHaveLength(1);
+      expect(await seatsOf(db)).toEqual(["1:1"]);
+    });
+
+    it("concurrent different seats both succeed (AC4)", async () => {
+      const { db, customerId, zone } = await seed(20, "10.00", layout);
+      const req = (n: number) =>
+        createPendingOrder(db, { customerId, items: [{ functionZoneId: zone.id, seats: [{ row: 1, number: n }] }] });
+      await Promise.all([req(1), req(2)]);
+      expect(await seatsOf(db)).toEqual(["1:1", "1:2"]);
+    });
+
+    it("frees seats of an expired pending order, rejects live pending and paid (AC5)", async () => {
+      const { db, customerId, zone } = await seed(20, "10.00", layout);
+      const take = (row: number) =>
+        createPendingOrder(db, { customerId, items: [{ functionZoneId: zone.id, seats: [{ row, number: 1 }] }] });
+      const stale = await take(1);
+      await db.update(orders).set({ expiresAt: new Date(Date.now() - 1000) }).where(eq(orders.id, stale.order.id));
+      await take(2);
+      const paid = await take(3);
+      await markOrderPaid(db, { orderId: paid.order.id, paymentIntentId: "pi_s" });
+
+      await expect(take(2)).rejects.toBeInstanceOf(SeatTakenError);
+      await expect(take(3)).rejects.toBeInstanceOf(SeatTakenError);
+      const again = await take(1);
+      expect(again.order.status).toBe("pending");
+      const [old] = await db.select().from(orders).where(eq(orders.id, stale.order.id));
+      expect(old.status).toBe("expired");
+    });
+
+    it("markOrderExpired deletes seats; markOrderPaid issues one ticket per seat; late pay is a no-op (AC6)", async () => {
+      const { db, customerId, zone } = await seed(20, "10.00", layout);
+      const a = await createPendingOrder(db, {
+        customerId,
+        items: [{ functionZoneId: zone.id, seats: [{ row: 1, number: 1 }] }],
+      });
+      await markOrderExpired(db, a.order.id);
+      expect(await seatsOf(db)).toEqual([]);
+      expect(await markOrderPaid(db, { orderId: a.order.id, paymentIntentId: "pi_late" })).toEqual({ updated: false });
+      expect(await db.select().from(tickets)).toHaveLength(0);
+
+      const b = await createPendingOrder(db, {
+        customerId,
+        items: [{ functionZoneId: zone.id, seats: [{ row: 2, number: 2 }, { row: 2, number: 3 }] }],
+      });
+      await markOrderPaid(db, { orderId: b.order.id, paymentIntentId: "pi_ok" });
+      const rows = await db.select().from(tickets);
+      expect(rows).toHaveLength(2);
+      expect(rows.every((t) => t.orderItemSeatId !== null)).toBe(true);
+    });
+
+    it("standing zones keep anonymous tickets without seat (AC6)", async () => {
+      const { db, customerId, zone } = await seed(10);
+      const { order } = await createPendingOrder(db, { customerId, items: [{ functionZoneId: zone.id, quantity: 2 }] });
+      await markOrderPaid(db, { orderId: order.id, paymentIntentId: "pi_std" });
+      const rows = await db.select().from(tickets);
+      expect(rows).toHaveLength(2);
+      expect(rows.every((t) => t.orderItemSeatId === null)).toBe(true);
+    });
+
+    it.each([
+      ["out of range row", { seats: [{ row: 5, number: 1 }] }],
+      ["out of range number", { seats: [{ row: 1, number: 6 }] }],
+      ["zero row", { seats: [{ row: 0, number: 1 }] }],
+      ["duplicates", { seats: [{ row: 1, number: 1 }, { row: 1, number: 1 }] }],
+      ["too many", { seats: Array.from({ length: 7 }, (_, i) => ({ row: 1, number: i + 1 })) }],
+      ["missing seats", { quantity: 2 }],
+    ])("rejects %s without writing (AC7)", async (_name, item) => {
+      const { db, customerId, zone } = await seed(20, "10.00", layout);
+      await expect(
+        createPendingOrder(db, { customerId, items: [{ functionZoneId: zone.id, ...item }] }),
+      ).rejects.toBeInstanceOf(InvalidOrderError);
+      expect(await db.select().from(orders)).toHaveLength(0);
+      expect(await seatsOf(db)).toEqual([]);
+    });
+
+    it("rejects seats in a standing zone and unknown zones (AC7)", async () => {
+      const { db, customerId, zone } = await seed(10);
+      await expect(
+        createPendingOrder(db, { customerId, items: [{ functionZoneId: zone.id, seats: [{ row: 1, number: 1 }] }] }),
+      ).rejects.toBeInstanceOf(InvalidOrderError);
+      await expect(
+        createPendingOrder(db, { customerId, items: [{ functionZoneId: crypto.randomUUID(), quantity: 1 }] }),
+      ).rejects.toBeInstanceOf(InvalidOrderError);
+      expect(await db.select().from(orders)).toHaveLength(0);
+    });
   });
 });

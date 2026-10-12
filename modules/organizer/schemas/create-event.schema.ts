@@ -40,11 +40,50 @@ export const venueStepSchema = z.discriminatedUnion("mode", [
   }),
 ]);
 
-export const zoneRowSchema = z.object({
-  name: z.string().trim().min(2, "Ingresa un nombre de al menos 2 caracteres"),
-  capacity: z.coerce.number().int().positive("La capacidad debe ser un número positivo"),
-  price: z.coerce.number().min(0, "El precio no puede ser negativo"),
-});
+export const MAX_SEAT_ROWS = 26;
+export const MAX_SEAT_COLUMNS = 40;
+
+// Numbered zone = both seatRows and seatColumns set; capacity is then rows * columns.
+export const zoneRowSchema = z
+  .object({
+    name: z.string().trim().min(2, "Ingresa un nombre de al menos 2 caracteres"),
+    capacity: z.coerce.number().int().min(0),
+    price: z.coerce.number().min(0, "El precio no puede ser negativo"),
+    seatRows: z
+      .number()
+      .int("Ingresa un número entero")
+      .min(1, "Ingresa al menos 1 fila")
+      .max(MAX_SEAT_ROWS, `Máximo ${MAX_SEAT_ROWS} filas`)
+      .optional(),
+    seatColumns: z
+      .number()
+      .int("Ingresa un número entero")
+      .min(1, "Ingresa al menos 1 asiento por fila")
+      .max(MAX_SEAT_COLUMNS, `Máximo ${MAX_SEAT_COLUMNS} asientos por fila`)
+      .optional(),
+  })
+  .superRefine((zone, ctx) => {
+    const hasRows = zone.seatRows !== undefined;
+    const hasColumns = zone.seatColumns !== undefined;
+    if (hasRows !== hasColumns) {
+      ctx.addIssue({
+        code: "custom",
+        path: [hasRows ? "seatColumns" : "seatRows"],
+        message: "Ingresa filas y asientos por fila",
+      });
+    } else if (!hasRows && zone.capacity < 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["capacity"],
+        message: "La capacidad debe ser un número positivo",
+      });
+    }
+  })
+  .transform((zone) =>
+    zone.seatRows !== undefined && zone.seatColumns !== undefined
+      ? { ...zone, capacity: zone.seatRows * zone.seatColumns }
+      : zone,
+  );
 
 export const functionZonesStepSchema = z.object({
   startsAt: z.string().min(1, "Ingresa la fecha y hora de la función"),

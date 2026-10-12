@@ -5,9 +5,13 @@ export interface TicketStub {
   price: number
   ticketNumber: number
   totalTickets: number
+  seat?: string
 }
 
-export function buildTicketStubs(lines: TicketSelectionLine[]): TicketStub[] {
+export function buildTicketStubs(
+  lines: TicketSelectionLine[],
+  seats: (string | null)[] = [],
+): TicketStub[] {
   const totalTickets = lines.reduce((sum, line) => sum + line.quantity, 0)
 
   const stubs: TicketStub[] = []
@@ -20,6 +24,7 @@ export function buildTicketStubs(lines: TicketSelectionLine[]): TicketStub[] {
         price: line.price,
         ticketNumber,
         totalTickets,
+        ...(seats[ticketNumber - 1] ? { seat: seats[ticketNumber - 1]! } : {}),
       })
       ticketNumber++
     }

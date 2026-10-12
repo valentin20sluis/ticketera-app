@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import { SeatPicker } from "@/modules/events/components/SeatPicker"
 import { getZoneMaxQuantity } from "@/modules/events/services/venue-zone.service"
 import type { UseTicketSelectionResult } from "@/modules/events/hooks/useTicketSelection"
 import { VenueZoneMapViewer } from "@/modules/events/components/VenueZoneMapViewer"
@@ -28,12 +30,15 @@ export function TicketSelectionView({
   const {
     activeZoneId,
     quantities,
+    seatsByZone,
     lines,
     totalQuantity,
     totalAmount,
     selectZone,
+    clearActiveZone,
     increment,
     decrement,
+    toggleSeat,
     getZoneStatus,
   } = selection
 
@@ -46,7 +51,12 @@ export function TicketSelectionView({
     ...zone,
     quantity: quantities[zone.id] ?? 0,
     maxQuantity: getZoneMaxQuantity(zone),
+    seats: seatsByZone[zone.id],
   }))
+
+  const seatedZone = zones.find(
+    (zone) => zone.id === activeZoneId && zone.seatLayout,
+  )
 
   return (
     <div className="grid grid-cols-1 gap-6 pb-28 lg:grid-cols-3 lg:pb-32">
@@ -63,20 +73,43 @@ export function TicketSelectionView({
             {event.title}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Selecciona tu zona y la cantidad de entradas.
+            Selecciona tu zona y la cantidad de entradas o tus asientos.
           </p>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <VenueZoneMapViewer zones={zonesWithStatus} onZoneSelect={selectZone} />
-          <VenueZoneMapLegend />
-        </div>
+        {seatedZone?.seatLayout ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-heading text-lg font-semibold text-foreground">
+                {seatedZone.name}
+              </h2>
+              <Button variant="outline" size="sm" onClick={clearActiveZone}>
+                Volver al mapa
+              </Button>
+            </div>
+            <p className="text-center text-xs font-medium tracking-widest text-muted-foreground">
+              ESCENARIO
+            </p>
+            <SeatPicker
+              layout={seatedZone.seatLayout}
+              takenSeats={seatedZone.takenSeats}
+              selectedSeats={seatsByZone[seatedZone.id] ?? []}
+              onToggle={(seat) => toggleSeat(seatedZone.id, seat)}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <VenueZoneMapViewer zones={zonesWithStatus} onZoneSelect={selectZone} />
+            <VenueZoneMapLegend />
+          </div>
+        )}
 
         <ZoneSelectorList
           zones={zonesWithQuantity}
           activeZoneId={activeZoneId}
           onIncrement={increment}
           onDecrement={decrement}
+          onSelectZone={selectZone}
         />
       </div>
 

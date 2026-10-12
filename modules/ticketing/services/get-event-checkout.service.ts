@@ -3,6 +3,7 @@ import type { Db } from "@/lib/db/client";
 import { eventFunctions, events, functionZones, venueZones, venues } from "@/lib/db/schema";
 import type { Event } from "@/modules/events/types/event.types";
 import type { VenueZone } from "@/modules/events/types/venue-zone.types";
+import { getTakenSeats } from "./get-taken-seats.service";
 import { getZoneAvailability } from "./get-zone-availability.service";
 
 export interface EventCheckout {
@@ -40,6 +41,8 @@ export async function getCheckoutEventBySlug(db: Db, slug: string): Promise<Even
       y: venueZones.shapeY,
       width: venueZones.shapeWidth,
       height: venueZones.shapeHeight,
+      seatRows: venueZones.seatRows,
+      seatColumns: venueZones.seatColumns,
     })
     .from(functionZones)
     .innerJoin(venueZones, eq(venueZones.id, functionZones.venueZoneId))
@@ -47,14 +50,22 @@ export async function getCheckoutEventBySlug(db: Db, slug: string): Promise<Even
     .orderBy(asc(functionZones.price));
 
   const zones = await Promise.all(
-    zoneRows.map(async (zone): Promise<VenueZone> => ({
-      id: zone.id,
-      name: zone.name,
-      price: Number(zone.price),
-      capacity: zone.capacity,
-      available: Math.max(0, await getZoneAvailability(db, zone.id)),
-      shape: { x: zone.x, y: zone.y, width: zone.width, height: zone.height },
-    })),
+    zoneRows.map(async (zone): Promise<VenueZone> => {
+      const base: VenueZone = {
+        id: zone.id,
+        name: zone.name,
+        price: Number(zone.price),
+        capacity: zone.capacity,
+        available: Math.max(0, await getZoneAvailability(db, zone.id)),
+        shape: { x: zone.x, y: zone.y, width: zone.width, height: zone.height },
+      };
+      if (zone.seatRows === null || zone.seatColumns === null) return base;
+      return {
+        ...base,
+        seatLayout: { rows: zone.seatRows, columns: zone.seatColumns },
+        takenSeats: await getTakenSeats(db, zone.id),
+      };
+    }),
   );
 
   return {

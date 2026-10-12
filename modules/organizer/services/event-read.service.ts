@@ -106,6 +106,8 @@ export async function getEventForEdit(
           name: venueZones.name,
           capacity: functionZones.capacity,
           price: functionZones.price,
+          seatRows: venueZones.seatRows,
+          seatColumns: venueZones.seatColumns,
         })
         .from(functionZones)
         .innerJoin(venueZones, eq(functionZones.venueZoneId, venueZones.id))
@@ -133,7 +135,12 @@ export async function getEventForEdit(
       venue: { mode: "existing", venueId: event.venueId },
       functionZones: {
         startsAt: fn ? formatLimaDateTime(fn.startsAt) : "",
-        zones: zones.map((zone) => ({ ...zone, price: Number(zone.price) })),
+        zones: zones.map(({ seatRows, seatColumns, ...zone }) => ({
+          ...zone,
+          price: Number(zone.price),
+          // Standing zones carry no seat fields (null in the DB).
+          ...(seatRows !== null && seatColumns !== null && { seatRows, seatColumns }),
+        })),
       },
     },
   };
