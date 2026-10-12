@@ -18,6 +18,8 @@ interface EventRowActionsProps {
   canPublish: boolean
   canCancel: boolean
   canDelete: boolean
+  // When set, "Publicar" is disabled and this reason is shown next to it.
+  publishBlockedReason?: string
 }
 
 type Pending = "cancel" | "delete" | null
@@ -29,6 +31,7 @@ export function EventRowActions({
   canPublish,
   canCancel,
   canDelete,
+  publishBlockedReason,
 }: EventRowActionsProps) {
   const [confirming, setConfirming] = useState<Pending>(null)
   const [error, setError] = useState<string>()
@@ -58,7 +61,12 @@ export function EventRowActions({
           </Button>
         )}
         {canPublish && (
-          <Button size="sm" onClick={publish} disabled={publishing}>
+          <Button
+            size="sm"
+            onClick={publish}
+            disabled={publishing || !!publishBlockedReason}
+            aria-describedby={publishBlockedReason ? `publish-blocked-${eventId}` : undefined}
+          >
             {publishing ? "Publicando…" : "Publicar"}
           </Button>
         )}
@@ -78,6 +86,12 @@ export function EventRowActions({
           </Button>
         )}
       </div>
+
+      {canPublish && publishBlockedReason && (
+        <p id={`publish-blocked-${eventId}`} className="max-w-48 text-right text-xs text-muted-foreground">
+          {publishBlockedReason}
+        </p>
+      )}
 
       <div aria-live="polite">{error && <p className="max-w-48 text-right text-xs text-destructive">{error}</p>}</div>
 

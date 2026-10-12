@@ -14,6 +14,8 @@ const base = {
   expiresAt: new Date(Date.now() + 60 * 60 * 1000),
   successUrl: "https://x/ok",
   cancelUrl: "https://x/no",
+  destinationAccountId: "acct_1",
+  feePercent: 10,
 };
 
 describe("createCheckoutSession", () => {
@@ -47,5 +49,24 @@ describe("createCheckoutSession", () => {
     const { create, stripe } = setup();
     await createCheckoutSession(stripe, base);
     expect(create.mock.calls[0][0].expires_at).toBe(Math.floor(base.expiresAt.getTime() / 1000));
+  });
+
+  it("envía destino y comisión sobre los line_items (10.1 x 2 -> 2020 * 10% = 202)", async () => {
+    const { create, stripe } = setup();
+    await createCheckoutSession(stripe, base);
+    const args = create.mock.calls[0][0];
+    expect(args.payment_intent_data).toEqual({
+      transfer_data: { destination: "acct_1" },
+      application_fee_amount: 202,
+    });
+    expect(args).not.toHaveProperty("on_behalf_of");
+  });
+
+  it("omite application_fee_amount cuando la comisión es 0", async () => {
+    const { create, stripe } = setup();
+    await createCheckoutSession(stripe, { ...base, feePercent: 0 });
+    expect(create.mock.calls[0][0].payment_intent_data).toEqual({
+      transfer_data: { destination: "acct_1" },
+    });
   });
 });
