@@ -137,6 +137,16 @@ describe("database schema", () => {
     expect(event.featured).toBe(false);
   });
 
+  it("stores users.ruc as nullable and non-unique", async () => {
+    const db = await createTestDb();
+    const { organizer } = await seedCore(db);
+    expect(organizer.ruc).toBeNull();
+
+    const base = { email: "a@example.com", fullName: "A", ruc: "20123456789" };
+    await db.insert(users).values({ ...base, clerkUserId: `c_${crypto.randomUUID()}` });
+    await db.insert(users).values({ ...base, clerkUserId: `c_${crypto.randomUUID()}` });
+  });
+
   it("stores orders.invoice_url as nullable", async () => {
     const db = await createTestDb();
     const [customer] = await db
