@@ -2,20 +2,12 @@ import { BadgeCheckIcon, PercentIcon, TicketIcon, WalletIcon } from "lucide-reac
 
 import { StatCard } from "@/components/shared/StatCard"
 import { formatPrice } from "@/lib/format-currency"
-import type { EventStatus } from "@/modules/organizer/utils/event-permissions"
+import type { EventStatus, PlatformSummary } from "@/modules/admin/services/get-platform-summary.service"
 import { ROLE_LABELS } from "@/modules/users/constants"
 import type { UserRole } from "@/modules/users/types/user.types"
 
-// ponytail: local type; swap for PlatformSummary from get-platform-summary.service once T1 lands.
 interface PlatformSummaryStatsProps {
-  summary: {
-    usersByRole: Record<UserRole, number>
-    activeOrganizers: number
-    eventsByStatus: Record<EventStatus, number>
-    ticketsSold: number
-    grossRevenue: number
-    platformFee: number | null
-  }
+  summary: PlatformSummary
 }
 
 const STATUS_LABELS: Record<EventStatus, string> = {
