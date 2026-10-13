@@ -25,11 +25,18 @@ export function PaymentsSettingsSection({ state }: { state: ConnectState }) {
         <CardTitle>2. Pagos</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      {button ? (
-        <CardContent>
+      <CardContent>
+        {button ? (
           <ConnectStripeButton label={button} />
-        </CardContent>
-      ) : null}
+        ) : (
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-blue-600">
+            <span className="flex size-6 items-center justify-center rounded-full bg-blue-600 text-white">
+              <CheckIcon className="size-4" aria-hidden="true" />
+            </span>
+            Pago configurado
+          </span>
+        )}
+      </CardContent>
     </Card>
   )
 }
