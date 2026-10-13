@@ -6,7 +6,6 @@ import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "lucide-r
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { formatPrice } from "@/lib/format-currency"
-import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
 import type { Event } from "@/modules/events/types/event.types"
 import { useHeroCarousel } from "@/modules/events/hooks/useHeroCarousel"
 
@@ -26,7 +25,6 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
   }
 
   const activeEvent = events[index]
-  const category = MOCK_CATEGORIES.find((item) => item.id === activeEvent.categoryId)
 
   return (
     <section className="relative h-[420px] w-full overflow-hidden sm:h-[480px] lg:h-[560px]">
@@ -42,9 +40,9 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
       <div className="relative flex h-full flex-col justify-end gap-3 px-4 pb-16 text-white sm:px-8 sm:pb-20 lg:px-16">
-        {category && (
+        {activeEvent.categoryName && (
           <span className="text-xs font-semibold tracking-wide text-cta uppercase">
-            {category.name}
+            {activeEvent.categoryName}
           </span>
         )}
         <h2 className="font-heading max-w-2xl text-3xl font-bold sm:text-4xl lg:text-5xl">
