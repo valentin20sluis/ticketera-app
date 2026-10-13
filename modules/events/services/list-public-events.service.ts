@@ -35,7 +35,8 @@ export async function listPublicEvents(db: Db, now: Date = new Date()): Promise<
       featured: events.featured,
       venueName: venues.name,
       city: venues.city,
-      categoryId: eventCategories.iconKey,
+      categoryId: eventCategories.id,
+      categoryName: eventCategories.name,
     })
     .from(events)
     .innerJoin(venues, eq(venues.id, events.venueId))

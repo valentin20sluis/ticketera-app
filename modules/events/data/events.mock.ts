@@ -1,23 +1,15 @@
-import {
-  Baby,
-  Music,
-  PartyPopper,
-  Presentation,
-  Theater,
-  Trophy,
-} from "lucide-react";
 import type { Event, EventCategory } from "@/modules/events/types/event.types";
 
-export const MOCK_CATEGORIES: EventCategory[] = [
-  { id: "music", name: "Música", icon: Music, colorKey: "pink" },
-  { id: "sports", name: "Deportes", icon: Trophy, colorKey: "blue" },
-  { id: "theater", name: "Teatro", icon: Theater, colorKey: "purple" },
-  { id: "festivals", name: "Festivales", icon: PartyPopper, colorKey: "orange" },
-  { id: "conferences", name: "Conferencias", icon: Presentation, colorKey: "green" },
-  { id: "family", name: "Familiar", icon: Baby, colorKey: "yellow" },
+export const MOCK_CATEGORIES: Omit<EventCategory, "iconKey">[] = [
+  { id: "music", name: "Música", colorKey: "pink" },
+  { id: "sports", name: "Deportes", colorKey: "blue" },
+  { id: "theater", name: "Teatro", colorKey: "purple" },
+  { id: "festivals", name: "Festivales", colorKey: "orange" },
+  { id: "conferences", name: "Conferencias", colorKey: "green" },
+  { id: "family", name: "Familiar", colorKey: "yellow" },
 ];
 
-export const MOCK_EVENTS: Event[] = [
+export const MOCK_EVENTS: Omit<Event, "categoryName">[] = [
   {
     id: "1",
     slug: "rock-en-el-parque",

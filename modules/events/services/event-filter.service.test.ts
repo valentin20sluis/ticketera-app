@@ -16,6 +16,7 @@ function buildEvent(overrides: Partial<Event>): Event {
     slug: "sample-event",
     title: "Sample Event",
     categoryId: "music",
+    categoryName: "Música",
     description: "Sample description",
     venueName: "Sample Venue",
     city: "Lima",
@@ -38,9 +39,9 @@ function buildFilters(overrides: Partial<EventFilters>): EventFilters {
 }
 
 const CATEGORIES: EventCategory[] = [
-  { id: "music", name: "Música", icon: {} as EventCategory["icon"], colorKey: "pink" },
-  { id: "sports", name: "Deportes", icon: {} as EventCategory["icon"], colorKey: "blue" },
-  { id: "theater", name: "Teatro", icon: {} as EventCategory["icon"], colorKey: "purple" },
+  { id: "music", name: "Música", iconKey: "x", colorKey: "pink" },
+  { id: "sports", name: "Deportes", iconKey: "x", colorKey: "blue" },
+  { id: "theater", name: "Teatro", iconKey: "x", colorKey: "purple" },
 ]
 
 describe("applyEventFilters", () => {

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { formatPrice } from "@/lib/format-currency"
-import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
 import type { Event, EventStatus } from "@/modules/events/types/event.types"
 import { formatEventDateBadge, formatFullEventDate } from "@/modules/events/utils/format-event-date"
 
@@ -21,7 +20,6 @@ const STATUS_LABELS: Partial<Record<EventStatus, string>> = {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const category = MOCK_CATEGORIES.find((item) => item.id === event.categoryId)
   const { month, day } = formatEventDateBadge(event.startDate)
   const statusLabel = STATUS_LABELS[event.status]
 
@@ -53,9 +51,9 @@ export function EventCard({ event }: EventCardProps) {
       </div>
 
       <CardContent className="flex flex-col gap-2">
-        {category && (
+        {event.categoryName && (
           <span className="text-xs font-semibold tracking-wide text-brand uppercase">
-            {category.name}
+            {event.categoryName}
           </span>
         )}
         <h3 className="font-heading text-base font-semibold text-foreground">

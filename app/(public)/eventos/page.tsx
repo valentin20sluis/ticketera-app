@@ -1,12 +1,16 @@
 import { EventsCatalog } from "@/modules/events/components/EventsCatalog"
 import { getDb } from "@/lib/db/client"
-import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
+import { listPublicCategories } from "@/modules/events/services/list-public-categories.service"
 import { listPublicEvents } from "@/modules/events/services/list-public-events.service"
 import { connection } from "next/server"
 
 export default async function EventosPage() {
   await connection()
-  const events = await listPublicEvents(await getDb())
+  const db = await getDb()
+  const [events, categories] = await Promise.all([
+    listPublicEvents(db),
+    listPublicCategories(db),
+  ])
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col gap-2">
@@ -18,10 +22,7 @@ export default async function EventosPage() {
         </p>
       </div>
 
-      <EventsCatalog
-        events={events}
-        categories={MOCK_CATEGORIES.map(({ id, name }) => ({ id, name }))}
-      />
+      <EventsCatalog events={events} categories={categories} />
     </section>
   )
 }

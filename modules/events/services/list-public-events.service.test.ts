@@ -100,7 +100,7 @@ async function setup() {
     await db.insert(orderItems).values({ orderId: order.id, functionZoneId: zoneId, quantity, unitPrice: "0" });
   }
 
-  return { db, addEvent, reserve };
+  return { db, addEvent, reserve, category };
 }
 
 describe("listPublicEvents", () => {
@@ -120,7 +120,7 @@ describe("listPublicEvents", () => {
   });
 
   it("maps the Event shape using the nearest future function and the minimum zone price", async () => {
-    const { db, addEvent } = await setup();
+    const { db, addEvent, category } = await setup();
     const { event } = await addEvent("show", {
       featured: true,
       functions: [
@@ -145,7 +145,8 @@ describe("listPublicEvents", () => {
       featured: true,
       venueName: "Estadio",
       city: "Lima",
-      categoryId: "music",
+      categoryId: category.id,
+      categoryName: "Música",
       currency: "PEN",
       startDate: day(7).toISOString(),
       priceFrom: 45.5,
