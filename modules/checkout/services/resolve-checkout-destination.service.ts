@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { eventFunctions, events, functionZones, users } from "@/lib/db/schema";
 import { canAcceptPayments } from "@/modules/payments/utils/can-accept-payments";
@@ -26,7 +26,7 @@ export async function resolveCheckoutDestination(
     .innerJoin(eventFunctions, eq(eventFunctions.id, functionZones.functionId))
     .innerJoin(events, eq(events.id, eventFunctions.eventId))
     .innerJoin(users, eq(users.id, events.organizerId))
-    .where(inArray(functionZones.id, ids));
+    .where(and(inArray(functionZones.id, ids), eq(events.status, "published")));
 
   if (rows.length !== ids.length) return { ok: false, error: "zone_not_found" };
 
