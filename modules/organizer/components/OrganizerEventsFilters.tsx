@@ -26,11 +26,23 @@ export function OrganizerEventsFilters({ events, ...tableProps }: TableProps) {
   const [status, setStatus] = useState(ALL)
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
+  const [organizer, setOrganizer] = useState(ALL)
+
+  // Only admin/super_admin see more than one organizer in the list.
+  const organizerOptions = [
+    { value: ALL, label: "Todos los organizadores" },
+    ...[...new Map(events.map((e) => [e.organizerId, e.organizerName])).entries()].map(([value, label]) => ({
+      value,
+      label: label || "Sin nombre",
+    })),
+  ]
+  const showOrganizer = organizerOptions.length > 2
 
   const query = name.trim().toLowerCase()
   const filtered = events.filter((event) => {
     if (query && !event.title.toLowerCase().includes(query)) return false
     if (status !== ALL && event.status !== status) return false
+    if (organizer !== ALL && event.organizerId !== organizer) return false
     if (from || to) {
       // Compare the Lima calendar day with the YYYY-MM-DD pickers.
       if (!event.startDate) return false
@@ -40,7 +52,7 @@ export function OrganizerEventsFilters({ events, ...tableProps }: TableProps) {
     return true
   })
 
-  const hasFilters = Boolean(query || status !== ALL || from || to)
+  const hasFilters = Boolean(query || status !== ALL || organizer !== ALL || from || to)
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,6 +77,20 @@ export function OrganizerEventsFilters({ events, ...tableProps }: TableProps) {
             ))}
           </SelectContent>
         </Select>
+        {showOrganizer && (
+          <Select items={organizerOptions} value={organizer} onValueChange={(v) => setOrganizer(v ?? ALL)}>
+            <SelectTrigger aria-label="Filtrar por organizador" className="h-10 w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false}>
+              {organizerOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <DatePicker aria-label="Desde" placeholder="Desde" value={from} max={to} onChange={setFrom} />
         <DatePicker aria-label="Hasta" placeholder="Hasta" value={to} min={from} onChange={setTo} />
       </div>
