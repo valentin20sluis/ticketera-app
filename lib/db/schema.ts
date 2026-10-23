@@ -194,6 +194,12 @@ export const orderItems = pgTable(
   }),
 );
 
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: varchar("email", { length: 254 }).notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const tickets = pgTable(
   "tickets",
   {
