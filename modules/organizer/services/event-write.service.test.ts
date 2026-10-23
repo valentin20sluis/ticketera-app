@@ -27,15 +27,27 @@ const FUTURE = "2099-05-10T19:00"
 
 async function setup() {
   const db = await createTestDb()
-  const insertUser = async (role: "organizer" | "admin" | "super_admin" | "customer", tag: string) => {
+  // Organizers get Stripe connected by default; pass withStripe=false for one that cannot publish.
+  const insertUser = async (
+    role: "organizer" | "admin" | "super_admin" | "customer",
+    tag: string,
+    withStripe = role === "organizer",
+  ) => {
     const [user] = await db
       .insert(users)
-      .values({ clerkUserId: `clerk_${tag}`, email: `${tag}@example.com`, fullName: tag, role })
+      .values({
+        clerkUserId: `clerk_${tag}`,
+        email: `${tag}@example.com`,
+        fullName: tag,
+        role,
+        ...(withStripe && { stripeAccountId: `acct_${tag}`, stripeChargesEnabled: true }),
+      })
       .returning()
     return user
   }
   const orgA = await insertUser("organizer", "orga")
   const orgB = await insertUser("organizer", "orgb")
+  const orgNoStripe = await insertUser("organizer", "orgnostripe", false)
   const admin = await insertUser("admin", "admin")
   const root = await insertUser("super_admin", "root")
   const customer = await insertUser("customer", "cust")
@@ -85,7 +97,7 @@ async function setup() {
     await db.insert(orderItems).values({ orderId: o.id, functionZoneId: zone.id, quantity: 1, unitPrice: "50.00" })
   }
 
-  return { db, orgA, orgB, admin, root, customer, category, venueA, form, counts, order }
+  return { db, orgA, orgB, orgNoStripe, admin, root, customer, category, venueA, form, counts, order }
 }
 
 const rejects = (promise: Promise<unknown>) => expect(promise).rejects.toBeInstanceOf(EventActionError)
@@ -347,6 +359,128 @@ describe("setEventStatus", () => {
     const { db, orgA, orgB, form } = await setup()
     const { id } = await createEvent(db, orgA, form())
     await rejects(setEventStatus(db, orgB, id, "published"))
+  })
+})
+
+describe("setEventStatus requires Stripe on the event owner", () => {
+  const OWN = "Conecta tu cuenta de Stripe para publicar eventos"
+  const OWNER = "El organizador de este evento aún no conectó su cuenta de Stripe"
+  const statusOf = async (db: Awaited<ReturnType<typeof setup>>["db"], id: string) =>
+    (await db.select().from(events).where(eq(events.id, id)))[0]
+  const rejectsWith = (promise: Promise<unknown>, message: string) =>
+    expect(promise).rejects.toThrow(new EventActionError(message))
+
+  it("blocks publishing without an account or with charges disabled (AC3, AC4)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    const before = await statusOf(db, id)
+    await rejectsWith(setEventStatus(db, orgNoStripe, id, "published"), OWN)
+
+    await db.update(users).set({ stripeAccountId: "acct_x", stripeChargesEnabled: false }).where(eq(users.id, orgNoStripe.id))
+    await rejectsWith(setEventStatus(db, orgNoStripe, id, "published"), OWN)
+
+    const after = await statusOf(db, id)
+    expect(after.status).toBe("draft")
+    expect(after.updatedAt).toEqual(before.updatedAt)
+  })
+
+  it("publishes once the owner can charge (AC5)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    await db.update(users).set({ stripeAccountId: "acct_x", stripeChargesEnabled: true }).where(eq(users.id, orgNoStripe.id))
+    await setEventStatus(db, orgNoStripe, id, "published")
+    expect((await statusOf(db, id)).status).toBe("published")
+  })
+
+  it("blocks admin reactivation for a not-ready owner and allows it for a ready one (AC6)", async () => {
+    const { db, orgNoStripe, orgA, admin, form } = await setup()
+    const ready = (await createEvent(db, orgA, form())).id
+    await setEventStatus(db, orgA, ready, "published")
+    await setEventStatus(db, admin, ready, "suspended")
+    await setEventStatus(db, admin, ready, "published")
+
+    const { id } = await createEvent(db, orgNoStripe, form())
+    await db.update(events).set({ status: "suspended" }).where(eq(events.id, id))
+    await rejectsWith(setEventStatus(db, admin, id, "published"), OWNER)
+    expect((await statusOf(db, id)).status).toBe("suspended")
+  })
+
+  it("validates the owner, not the actor (AC7)", async () => {
+    const { db, orgNoStripe, root, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    // Only suspended -> published is open to admins, so suspend the event first.
+    await db.update(events).set({ status: "suspended" }).where(eq(events.id, id))
+    await rejectsWith(setEventStatus(db, root, id, "published"), OWNER)
+    expect((await statusOf(db, id)).status).toBe("suspended")
+  })
+
+  it("reports permission before Stripe (AC8)", async () => {
+    const { db, orgNoStripe, orgA, customer, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    for (const actor of [orgA, customer, null]) {
+      await rejectsWith(setEventStatus(db, actor, id, "published"), "No puedes modificar este evento")
+    }
+  })
+
+  it("reports Stripe before the future-function rule (AC9)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form({
+      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+    }))
+    await rejectsWith(setEventStatus(db, orgNoStripe, id, "published"), OWN)
+  })
+
+  it("leaves already published events of a not-ready owner editable, cancellable, suspendable (AC10)", async () => {
+    const { db, orgNoStripe, admin, form } = await setup()
+    const ids = []
+    for (let i = 0; i < 2; i++) {
+      const { id } = await createEvent(db, orgNoStripe, form())
+      await db.update(events).set({ status: "published" }).where(eq(events.id, id))
+      ids.push(id)
+    }
+    const [a, b] = ids
+    const venueId = (await statusOf(db, a)).venueId
+    await updateEvent(db, orgNoStripe, a, form({ venue: { mode: "existing", venueId } }))
+    await setEventFeatured(db, admin, a, true)
+    await setEventStatus(db, admin, a, "suspended")
+    await setEventStatus(db, orgNoStripe, b, "cancelled")
+    expect((await statusOf(db, a)).status).toBe("suspended")
+    expect((await statusOf(db, b)).status).toBe("cancelled")
+  })
+
+  it("keeps drafts free: create and update work without Stripe (AC11)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    const venueId = (await statusOf(db, id)).venueId
+    await updateEvent(db, orgNoStripe, id, form({ details: { ...form().details, title: "Otro" }, venue: { mode: "existing", venueId } }))
+    expect((await statusOf(db, id)).title).toBe("Otro")
+  })
+
+  it("fails with the Stripe error, not STALE, when the flag drops between read and UPDATE (AC12)", async () => {
+    const { db, orgA, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    // Run the owner's downgrade right before the events UPDATE hits the database.
+    const racing = new Proxy(db, {
+      get(target, prop, receiver) {
+        if (prop !== "update") return Reflect.get(target, prop, receiver)
+        return (table: unknown) => {
+          const real = target.update(table as typeof events)
+          if (table !== events) return real
+          return {
+            set: (values: never) => ({
+              where: (cond: never) => ({
+                returning: async (fields: never) => {
+                  await target.update(users).set({ stripeChargesEnabled: false }).where(eq(users.id, orgA.id))
+                  return real.set(values).where(cond).returning(fields)
+                },
+              }),
+            }),
+          }
+        }
+      },
+    })
+    await rejectsWith(setEventStatus(racing, orgA, id, "published"), OWN)
+    expect((await statusOf(db, id)).status).toBe("draft")
   })
 })
 

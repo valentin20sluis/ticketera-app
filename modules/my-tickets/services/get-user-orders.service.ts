@@ -10,7 +10,7 @@ import {
   venues,
 } from "@/lib/db/schema"
 import type { Db } from "@/lib/db/client"
-import type { ConfirmedOrder } from "@/modules/checkout/types/checkout.types"
+import type { ConfirmedOrder, OrderTicket } from "@/modules/checkout/types/checkout.types"
 
 export async function getPaidOrdersForUser(db: Db, userId: string): Promise<ConfirmedOrder[]> {
   const rows = await db
@@ -42,14 +42,22 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
   if (rows.length === 0) return []
 
   const ticketRows = await db
-    .select({ orderItemId: tickets.orderItemId, qrCode: tickets.qrCode })
+    .select({
+      orderItemId: tickets.orderItemId,
+      qrCode: tickets.qrCode,
+      status: tickets.status,
+      checkedInAt: tickets.checkedInAt,
+    })
     .from(tickets)
     .where(inArray(tickets.orderItemId, rows.map((r) => r.itemId)))
     .orderBy(tickets.createdAt, tickets.qrCode)
 
-  const qrByItem = new Map<string, string[]>()
+  const ticketsByItem = new Map<string, OrderTicket[]>()
   for (const t of ticketRows) {
-    qrByItem.set(t.orderItemId, [...(qrByItem.get(t.orderItemId) ?? []), t.qrCode])
+    ticketsByItem.set(t.orderItemId, [
+      ...(ticketsByItem.get(t.orderItemId) ?? []),
+      { qrCode: t.qrCode, status: t.status, checkedInAt: t.checkedInAt?.toISOString() ?? null },
+    ])
   }
 
   // Una orden pertenece a un solo evento: el evento se toma del primer order_item.
@@ -69,7 +77,7 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
         totalQuantity: 0,
         totalAmount: Number(r.totalAmount),
         invoiceUrl: r.invoiceUrl ?? undefined,
-        ticketQrCodes: [],
+        tickets: [],
       }
       byOrder.set(r.orderId, order)
     }
@@ -81,7 +89,7 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
       subtotal: unitPrice * r.quantity,
     })
     order.totalQuantity += r.quantity
-    order.ticketQrCodes = [...(order.ticketQrCodes ?? []), ...(qrByItem.get(r.itemId) ?? [])]
+    order.tickets = [...(order.tickets ?? []), ...(ticketsByItem.get(r.itemId) ?? [])]
   }
 
   return [...byOrder.values()]

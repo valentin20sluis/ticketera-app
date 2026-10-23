@@ -4,6 +4,7 @@ import { MapPinIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ConfirmedOrder } from "@/modules/checkout/types/checkout.types"
 import { formatFullEventDate } from "@/modules/events/utils/format-event-date"
+import { summarizeTickets } from "@/modules/my-tickets/utils/ticket-status"
 
 interface TicketOrderListItemProps {
   order: ConfirmedOrder
@@ -17,6 +18,14 @@ export function TicketOrderListItem({
   onSelect,
 }: TicketOrderListItemProps) {
   const zoneLabel = order.lines.length === 1 ? order.lines[0].zoneName : "Varias zonas"
+
+  const { total, used } = summarizeTickets(order.tickets)
+  const usedLabel =
+    used === 0
+      ? null
+      : used === total && total > 1
+        ? "Todas usadas"
+        : `${used} de ${total} ${total === 1 ? "usada" : "usadas"}`
 
   return (
     <button
@@ -50,6 +59,7 @@ export function TicketOrderListItem({
         <span className="text-xs font-medium text-foreground">
           {order.totalQuantity} {order.totalQuantity !== 1 ? "entradas" : "entrada"} · {zoneLabel}
         </span>
+        {usedLabel && <span className="text-xs text-muted-foreground">{usedLabel}</span>}
       </div>
     </button>
   )
