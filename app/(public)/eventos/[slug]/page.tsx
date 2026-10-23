@@ -6,6 +6,7 @@ import { getDb } from "@/lib/db/client"
 import { EventAboutSection } from "@/modules/events/components/EventAboutSection"
 import { EventDetailHero } from "@/modules/events/components/EventDetailHero"
 import { EventImportantInfo } from "@/modules/events/components/EventImportantInfo"
+import { EventVenueMap } from "@/modules/events/components/EventVenueMap"
 import { EventTicketSidebar } from "@/modules/events/components/EventTicketSidebar"
 import { RelatedEventsSection } from "@/modules/events/components/RelatedEventsSection"
 import { getEventBySlug, getRelatedEvents } from "@/modules/events/services/event.service"
@@ -39,6 +40,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             showStartTime={event.showStartTime}
             minimumAge={event.minimumAge}
             admissionType={event.admissionType}
+          />
+          <EventVenueMap
+            venueName={event.venueName}
+            venueAddress={event.venueAddress}
+            city={event.city}
+            venueLat={event.venueLat}
+            venueLng={event.venueLng}
           />
         </div>
         <div className="lg:col-span-1">
