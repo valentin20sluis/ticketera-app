@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   type LucideIcon,
   ScanLine,
+  Settings,
   Users,
   Wallet,
 } from "lucide-react";
@@ -33,4 +34,5 @@ export const ORGANIZER_NAV_ITEMS: PanelNavItem[] = [
   { href: "/organizador", label: "Mis eventos", icon: Calendar },
   { href: "/organizador/check-in", label: "Check-in", icon: ScanLine },
   { href: "/organizador/pagos", label: "Pagos", icon: Wallet },
+  { href: "/organizador/configuracion", label: "Configuración", icon: Settings },
 ];
