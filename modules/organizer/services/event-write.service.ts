@@ -74,10 +74,12 @@ async function resolveVenue(tx: Tx, ownerId: string, venue: CreateEventFormValue
   return found.id;
 }
 
-async function insertFunction(tx: Tx, eventId: string, venueId: string, form: CreateEventFormValues) {
-  const startsAt = parseStartsAt(form.functionZones.startsAt);
-  const zones = form.functionZones.zones;
-  const [fn] = await tx
+type FunctionValues = CreateEventFormValues["functions"][number];
+
+async function insertFunction(tx: Tx, eventId: string, venueId: string, fn: FunctionValues) {
+  const startsAt = parseStartsAt(fn.startsAt);
+  const zones = fn.zones;
+  const [created] = await tx
     .insert(eventFunctions)
     .values({ eventId, startsAt })
     .returning({ id: eventFunctions.id });
@@ -100,7 +102,7 @@ async function insertFunction(tx: Tx, eventId: string, venueId: string, form: Cr
     .returning({ id: venueZones.id });
   await tx.insert(functionZones).values(
     zones.map((zone, index) => ({
-      functionId: fn.id,
+      functionId: created.id,
       venueZoneId: createdZones[index].id,
       price: zone.price.toFixed(2),
       currency: DEFAULT_CURRENCY,
@@ -180,7 +182,7 @@ export async function createEvent(
       );
     if (!found) throw new EventActionError("Organizador no válido");
   }
-  parseStartsAt(form.functionZones.startsAt);
+  form.functions.forEach((fn) => parseStartsAt(fn.startsAt));
   await assertCategory(db, form.details.categoryId);
 
   return db.transaction(async (transaction) => {
@@ -196,7 +198,7 @@ export async function createEvent(
         status: "draft",
       })
       .returning({ id: events.id });
-    await insertFunction(tx, created.id, venueId, form);
+    for (const fn of form.functions) await insertFunction(tx, created.id, venueId, fn);
     return created;
   });
 }
@@ -210,9 +212,9 @@ export async function updateEvent(db: Db, actor: EventActor, eventId: string, in
   await assertCategory(db, form.details.categoryId);
   const lock = await getStructureLock(db, event.id);
   if (!lock.locked) {
-    const startsAt = parseStartsAt(form.functionZones.startsAt);
+    const dates = form.functions.map((fn) => parseStartsAt(fn.startsAt));
     // A published event keeps the "future function" rule that publishing required.
-    if (event.status === "published" && startsAt <= new Date()) {
+    if (event.status === "published" && !dates.some((date) => date > new Date())) {
       throw new EventActionError("Un evento publicado necesita una fecha futura");
     }
   }
@@ -223,7 +225,7 @@ export async function updateEvent(db: Db, actor: EventActor, eventId: string, in
     if (!lock.locked) {
       venueId = await resolveVenue(tx, event.organizerId, form.venue);
       await deleteStructure(tx, event.id);
-      await insertFunction(tx, event.id, venueId, form);
+      for (const fn of form.functions) await insertFunction(tx, event.id, venueId, fn);
     }
     const updated = await tx
       .update(events)

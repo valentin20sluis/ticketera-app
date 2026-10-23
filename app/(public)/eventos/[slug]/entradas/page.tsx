@@ -7,13 +7,16 @@ import { getCheckoutEventBySlug } from "@/modules/ticketing/services/get-event-c
 
 interface TicketSelectionPageProps {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ funcion?: string | string[] }>
 }
 
-export default async function TicketSelectionPage({ params }: TicketSelectionPageProps) {
+export default async function TicketSelectionPage({ params, searchParams }: TicketSelectionPageProps) {
   const { slug } = await params
+  const { funcion } = await searchParams
   await connection()
 
-  const checkout = await getCheckoutEventBySlug(await getDb(), slug)
+  const functionId = typeof funcion === "string" ? funcion : undefined
+  const checkout = await getCheckoutEventBySlug(await getDb(), slug, functionId)
 
   if (!checkout) {
     notFound()
@@ -21,7 +24,13 @@ export default async function TicketSelectionPage({ params }: TicketSelectionPag
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <CheckoutFlow event={checkout.event} zones={checkout.zones} />
+      <CheckoutFlow
+        key={checkout.selectedFunctionId}
+        event={checkout.event}
+        zones={checkout.zones}
+        functions={checkout.functions}
+        selectedFunctionId={checkout.selectedFunctionId}
+      />
     </div>
   )
 }

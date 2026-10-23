@@ -55,13 +55,15 @@ async function setup() {
       admissionType: "General",
     },
     venue: { mode: "new", venue: { name: "Arena", address: "Av. Siempre Viva 123", city: "Lima", lat: -12, lng: -77 } },
-    functionZones: {
-      startsAt: FUTURE,
-      zones: [
-        { name: "General", capacity: 100, price: 50 },
-        { name: "VIP", capacity: 20, price: 150 },
-      ],
-    },
+    functions: [
+      {
+        startsAt: FUTURE,
+        zones: [
+          { name: "General", capacity: 100, price: 50 },
+          { name: "VIP", capacity: 20, price: 150 },
+        ],
+      },
+    ],
     ...over,
   })
 
@@ -141,7 +143,10 @@ describe("createEvent", () => {
     const before = await counts()
     // Zone price above numeric(10,2) fails at the last insert, after venue and event exist.
     const bad = form({
-      functionZones: { startsAt: FUTURE, zones: [{ name: "General", capacity: 10, price: 1e12 }] },
+      functions: [
+        { startsAt: FUTURE, zones: [{ name: "Ok", capacity: 10, price: 5 }] },
+        { startsAt: "2099-06-10T19:00", zones: [{ name: "General", capacity: 10, price: 1e12 }] },
+      ],
     })
     await expect(createEvent(db, orgA, bad)).rejects.toBeDefined()
     expect(await counts()).toEqual(before)
@@ -151,7 +156,7 @@ describe("createEvent", () => {
     const { db, orgA, form } = await setup()
     const base = form()
     await rejects(createEvent(db, orgA, { ...base, details: { ...base.details, imageUrl: "javascript:alert(1)" } }))
-    await rejects(createEvent(db, orgA, { ...base, functionZones: { ...base.functionZones, startsAt: "mañana" } }))
+    await rejects(createEvent(db, orgA, { ...base, functions: [{ ...base.functions[0], startsAt: "mañana" }] }))
     await rejects(
       createEvent(db, orgA, { ...base, details: { ...base.details, categoryId: crypto.randomUUID() } }),
     )
@@ -172,7 +177,7 @@ describe("updateEvent", () => {
       form({
         details: { ...form().details, title: "Nuevo título" },
         venue: { mode: "existing", venueId: created.venueId },
-        functionZones: { startsAt: "2099-06-01T20:00", zones: [{ name: "Único", capacity: 5, price: 10 }] },
+        functions: [{ startsAt: "2099-06-01T20:00", zones: [{ name: "Único", capacity: 5, price: 10 }] }],
       }),
     )
 
@@ -195,7 +200,7 @@ describe("updateEvent", () => {
         id,
         form({
           details: { ...form().details, title: "Solo detalle" },
-          functionZones: { startsAt: "2099-12-31T20:00", zones: [{ name: "Xx", capacity: 1, price: 1 }] },
+          functions: [{ startsAt: "2099-12-31T20:00", zones: [{ name: "Xx", capacity: 1, price: 1 }] }],
         }),
       )
       const [event] = await db.select().from(events).where(eq(events.id, id))
@@ -205,6 +210,82 @@ describe("updateEvent", () => {
       expect(fn.startsAt.toISOString()).toBe("2099-05-11T00:00:00.000Z")
       expect(zones).toHaveLength(2)
     }
+  })
+
+  const twoFunctions = (): CreateEventFormValues["functions"] => [
+    { startsAt: "2099-05-10T19:00", zones: [{ name: "General", capacity: 10, price: 5 }, { name: "VIP", capacity: 5, price: 9 }] },
+    { startsAt: "2099-05-11T19:00", zones: [{ name: "Platea", capacity: 8, price: 7 }] },
+  ]
+
+  it("creates every function with its own zones in one go", async () => {
+    const { db, orgA, form, counts } = await setup()
+    const before = await counts()
+    const { id } = await createEvent(db, orgA, form({ functions: twoFunctions() }))
+    const after = await counts()
+    expect(after.functions).toBe(before.functions + 2)
+    expect(after.functionZones).toBe(before.functionZones + 3)
+    expect(after.venueZones).toBe(before.venueZones + 3)
+    expect(await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, id))).toHaveLength(2)
+  })
+
+  it("replaces all functions of a multi-function event without orphans", async () => {
+    const { db, orgA, form, counts } = await setup()
+    const { id } = await createEvent(db, orgA, form({ functions: twoFunctions() }))
+    const venueId = (await db.select().from(events).where(eq(events.id, id)))[0].venueId
+    const before = await counts()
+    await updateEvent(
+      db,
+      orgA,
+      id,
+      form({
+        venue: { mode: "existing", venueId },
+        functions: [{ startsAt: "2099-07-01T20:00", zones: [{ name: "Único", capacity: 5, price: 10 }] }],
+      }),
+    )
+    const after = await counts()
+    expect(after.functions).toBe(before.functions - 1)
+    expect(after.functionZones).toBe(before.functionZones - 2)
+    expect(after.venueZones).toBe(before.venueZones - 2)
+  })
+
+  it("keeps a multi-function structure intact when orders exist", async () => {
+    const { db, orgA, form, order } = await setup()
+    const { id } = await createEvent(db, orgA, form({ functions: twoFunctions() }))
+    await order(id, "paid")
+    await updateEvent(
+      db,
+      orgA,
+      id,
+      form({
+        details: { ...form().details, title: "Solo detalle" },
+        functions: [{ startsAt: "2099-12-31T20:00", zones: [{ name: "Xx", capacity: 1, price: 1 }] }],
+      }),
+    )
+    expect(await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, id))).toHaveLength(2)
+    expect((await db.select().from(events).where(eq(events.id, id)))[0].title).toBe("Solo detalle")
+  })
+
+  it("lets a published event keep a past function if another is future, and refuses all-past", async () => {
+    const { db, orgA, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    await setEventStatus(db, orgA, id, "published")
+    const venueId = (await db.select().from(events).where(eq(events.id, id)))[0].venueId
+    const venue = { mode: "existing" as const, venueId }
+    const zones = [{ name: "Gg", capacity: 1, price: 1 }]
+    await updateEvent(
+      db,
+      orgA,
+      id,
+      form({ venue, functions: [{ startsAt: "2000-01-01T10:00", zones }, { startsAt: FUTURE, zones }] }),
+    )
+    await rejects(
+      updateEvent(
+        db,
+        orgA,
+        id,
+        form({ venue, functions: [{ startsAt: "2000-01-01T10:00", zones }, { startsAt: "2001-01-01T10:00", zones }] }),
+      ),
+    )
   })
 
   it("denies other organizers, cancelled events and organizers on suspended events", async () => {
@@ -257,7 +338,7 @@ describe("setEventStatus", () => {
   it("refuses to publish without a future function", async () => {
     const { db, orgA, form } = await setup()
     const { id } = await createEvent(db, orgA, form({
-      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+      functions: [{ startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] }],
     }))
     await rejects(setEventStatus(db, orgA, id, "published"))
   })
@@ -353,7 +434,7 @@ describe("review findings", () => {
   it("refuses a past date when editing a published event but allows it on a draft", async () => {
     const { db, orgA, form } = await setup()
     const past = form({
-      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+      functions: [{ startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] }],
     })
     const { id } = await createEvent(db, orgA, form())
     const venueId = (await db.select().from(events).where(eq(events.id, id)))[0].venueId
