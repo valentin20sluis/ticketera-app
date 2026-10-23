@@ -52,7 +52,12 @@ async function seedOrganizer(org: Org = { stripeAccountId: "acct_1", stripeCharg
 type Seeded = Awaited<ReturnType<typeof seedOrganizer>>;
 
 /** Creates an event with `functions` functions, each with `zonesPerFunction` zones. Returns zone ids. */
-async function seedEvent(o: Seeded, functions = 1, zonesPerFunction = 1) {
+async function seedEvent(
+  o: Seeded,
+  functions = 1,
+  zonesPerFunction = 1,
+  status: "draft" | "published" | "suspended" | "cancelled" = "published",
+) {
   const slug = `e-${crypto.randomUUID()}`;
   const [event] = await db
     .insert(events)
@@ -61,6 +66,7 @@ async function seedEvent(o: Seeded, functions = 1, zonesPerFunction = 1) {
       categoryId,
       venueId: o.venueId,
       slug,
+      status,
       title: "E",
       description: "d",
       imageUrl: "https://picsum.photos/seed/e/800",
@@ -142,6 +148,11 @@ describe("resolveCheckoutDestination", () => {
       ok: false,
       error: "organizer_payments_unavailable",
     });
+  });
+
+  it.each(["draft", "suspended", "cancelled"] as const)("returns zone_not_found for a %s event", async (status) => {
+    const { zoneIds } = await seedEvent(await seedOrganizer(), 1, 1, status);
+    expect(await resolveCheckoutDestination(db, zoneIds)).toEqual({ ok: false, error: "zone_not_found" });
   });
 
   it("returns zone_not_found for an unknown zone, even next to a valid one", async () => {
