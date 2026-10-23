@@ -35,6 +35,9 @@ export async function listPublicEvents(db: Db, now: Date = new Date()): Promise<
       featured: events.featured,
       venueName: venues.name,
       city: venues.city,
+      venueAddress: venues.address,
+      venueLat: venues.lat,
+      venueLng: venues.lng,
       categoryId: eventCategories.iconKey,
     })
     .from(events)
