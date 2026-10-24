@@ -425,7 +425,7 @@ describe("setEventStatus requires Stripe on the event owner", () => {
   it("reports Stripe before the future-function rule (AC9)", async () => {
     const { db, orgNoStripe, form } = await setup()
     const { id } = await createEvent(db, orgNoStripe, form({
-      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+      functions: [{ startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] }],
     }))
     await rejectsWith(setEventStatus(db, orgNoStripe, id, "published"), OWN)
   })
