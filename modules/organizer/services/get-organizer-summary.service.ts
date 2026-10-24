@@ -7,11 +7,14 @@ import {
   type EventViewer,
   type ViewerEvent,
 } from "@/modules/events/services/list-events-for-viewer.service"
+import { canAcceptPayments } from "@/modules/payments/utils/can-accept-payments"
 
 export interface OrganizerEventSummary extends ViewerEvent {
   ticketsSold: number
   revenue: number
+  organizerId: string
   organizerName: string
+  organizerPaymentsReady: boolean
 }
 
 export interface OrganizerSummary {
@@ -86,17 +89,28 @@ export async function getOrganizerSummary(db: Db, viewer: EventViewer): Promise<
   }
 
   const ownerRows = await db
-    .select({ eventId: events.id, name: users.fullName })
+    .select({
+      eventId: events.id,
+      organizerId: users.id,
+      name: users.fullName,
+      stripeAccountId: users.stripeAccountId,
+      stripeChargesEnabled: users.stripeChargesEnabled,
+    })
     .from(events)
     .innerJoin(users, eq(users.id, events.organizerId))
     .where(inArray(events.id, ownEvents.map((event) => event.id)))
-  const ownerByEvent = new Map(ownerRows.map((row) => [row.eventId, row.name]))
+  const ownerByEvent = new Map(ownerRows.map((row) => [row.eventId, row]))
 
-  const allEvents: OrganizerEventSummary[] = ownEvents.map((event) => ({
-    ...event,
-    organizerName: ownerByEvent.get(event.id) ?? "",
-    ...(salesByEvent.get(event.id) ?? { ticketsSold: 0, revenue: 0 }),
-  }))
+  const allEvents: OrganizerEventSummary[] = ownEvents.map((event) => {
+    const owner = ownerByEvent.get(event.id)
+    return {
+      ...event,
+      organizerId: owner?.organizerId ?? "",
+      organizerName: owner?.name ?? "",
+      organizerPaymentsReady: owner ? canAcceptPayments(owner) : false,
+      ...(salesByEvent.get(event.id) ?? { ticketsSold: 0, revenue: 0 }),
+    }
+  })
 
   const publishedEvents = allEvents
     .filter((event) => event.status === "published")

@@ -2,6 +2,12 @@ import type { TicketSelectionLine } from "@/modules/events/hooks/useTicketSelect
 
 export type CheckoutStep = "tickets" | "payment"
 
+export interface OrderTicket {
+  qrCode: string
+  status: "valid" | "used"
+  checkedInAt: string | null // ISO UTC; null si status = "valid"
+}
+
 export interface ConfirmedOrder {
   orderNumber: string
   eventTitle: string
@@ -13,7 +19,7 @@ export interface ConfirmedOrder {
   totalQuantity: number
   totalAmount: number
   invoiceUrl?: string
-  ticketQrCodes?: string[]
-  /** Parallel to ticketQrCodes: formatSeat() text or null for standing tickets. */
+  tickets?: OrderTicket[] // tickets[n-1] <-> stub n de buildTicketStubs
+  /** Parallel to tickets: formatSeat() text or null for standing tickets. */
   ticketSeats?: (string | null)[]
 }

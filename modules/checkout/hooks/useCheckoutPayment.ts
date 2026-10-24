@@ -9,6 +9,8 @@ import type { TicketSelectionLine } from "@/modules/events/hooks/useTicketSelect
 const ERROR_MESSAGES = {
   insufficient_stock:
     "No hay cupo suficiente para tu selección. Ajusta las cantidades e inténtalo de nuevo.",
+  multiple_events: "Solo puedes comprar entradas de un evento a la vez.",
+  organizer_payments_unavailable: "La venta de este evento no está disponible por ahora.",
   seat_taken: "Alguien tomó uno de tus asientos. Elige otros.",
   unknown: "No pudimos iniciar el pago. Inténtalo nuevamente.",
 }

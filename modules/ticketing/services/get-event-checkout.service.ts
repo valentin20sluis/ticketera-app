@@ -6,13 +6,24 @@ import type { VenueZone } from "@/modules/events/types/venue-zone.types";
 import { getTakenSeats } from "./get-taken-seats.service";
 import { getZoneAvailability } from "./get-zone-availability.service";
 
+export interface CheckoutFunction {
+  id: string;
+  startsAt: string;
+}
+
 export interface EventCheckout {
   event: Pick<Event, "title" | "slug" | "imageUrl" | "venueName" | "city" | "startDate">;
   zones: VenueZone[];
+  functions: CheckoutFunction[];
+  selectedFunctionId: string;
 }
 
-export async function getCheckoutEventBySlug(db: Db, slug: string): Promise<EventCheckout | null> {
-  const [row] = await db
+export async function getCheckoutEventBySlug(
+  db: Db,
+  slug: string,
+  functionId?: string,
+): Promise<EventCheckout | null> {
+  const rows = await db
     .select({
       title: events.title,
       slug: events.slug,
@@ -26,9 +37,10 @@ export async function getCheckoutEventBySlug(db: Db, slug: string): Promise<Even
     .innerJoin(venues, eq(venues.id, events.venueId))
     .innerJoin(eventFunctions, eq(eventFunctions.eventId, events.id))
     .where(and(eq(events.slug, slug), eq(events.status, "published"), gte(eventFunctions.startsAt, new Date())))
-    .orderBy(asc(eventFunctions.startsAt))
-    .limit(1);
+    .orderBy(asc(eventFunctions.startsAt));
 
+  // F5: an unknown, past or foreign id is not in the upcoming list, so it falls back to the nearest.
+  const row = rows.find((r) => r.functionId === functionId) ?? rows[0];
   if (!row) return null;
 
   const zoneRows = await db
@@ -78,5 +90,7 @@ export async function getCheckoutEventBySlug(db: Db, slug: string): Promise<Even
       startDate: row.startsAt.toISOString(),
     },
     zones,
+    functions: rows.map((r) => ({ id: r.functionId, startsAt: r.startsAt.toISOString() })),
+    selectedFunctionId: row.functionId,
   };
 }

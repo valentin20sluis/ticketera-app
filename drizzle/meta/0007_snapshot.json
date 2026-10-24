@@ -1,6 +1,6 @@
 {
-  "id": "ac9b0533-aa12-4007-b534-4483c7feaae4",
-  "prevId": "9d8a60e9-29e2-4e09-b97d-fce7f30d8d37",
+  "id": "5dcb4569-458f-4918-a2c5-dfd3d0d3b0c4",
+  "prevId": "cad06114-78a4-452b-8fe9-22629b3c4be6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -85,24 +85,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "event_functions_event_id_events_id_fk": {
           "name": "event_functions_event_id_events_id_fk",
           "tableFrom": "event_functions",
+          "tableTo": "events",
           "columnsFrom": [
             "event_id"
           ],
-          "tableTo": "events",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -230,9 +230,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "events_category_idx": {
           "name": "events_category_idx",
@@ -245,9 +245,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "events_venue_idx": {
           "name": "events_venue_idx",
@@ -260,60 +260,60 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "events_organizer_id_users_id_fk": {
           "name": "events_organizer_id_users_id_fk",
           "tableFrom": "events",
+          "tableTo": "users",
           "columnsFrom": [
             "organizer_id"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "events_category_id_event_categories_id_fk": {
           "name": "events_category_id_event_categories_id_fk",
           "tableFrom": "events",
+          "tableTo": "event_categories",
           "columnsFrom": [
             "category_id"
           ],
-          "tableTo": "event_categories",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "events_venue_id_venues_id_fk": {
           "name": "events_venue_id_venues_id_fk",
           "tableFrom": "events",
+          "tableTo": "venues",
           "columnsFrom": [
             "venue_id"
           ],
-          "tableTo": "venues",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "events_slug_unique": {
           "name": "events_slug_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -382,9 +382,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "function_zones_venue_zone_idx": {
           "name": "function_zones_venue_zone_idx",
@@ -397,37 +397,37 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "function_zones_function_id_event_functions_id_fk": {
           "name": "function_zones_function_id_event_functions_id_fk",
           "tableFrom": "function_zones",
+          "tableTo": "event_functions",
           "columnsFrom": [
             "function_id"
           ],
-          "tableTo": "event_functions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "function_zones_venue_zone_id_venue_zones_id_fk": {
           "name": "function_zones_venue_zone_id_venue_zones_id_fk",
           "tableFrom": "function_zones",
+          "tableTo": "venue_zones",
           "columnsFrom": [
             "venue_zone_id"
           ],
-          "tableTo": "venue_zones",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -445,8 +445,8 @@
       },
       "isRLSEnabled": false
     },
-    "public.order_item_seats": {
-      "name": "order_item_seats",
+    "public.newsletter_subscribers": {
+      "name": "newsletter_subscribers",
       "schema": "",
       "columns": {
         "id": {
@@ -456,27 +456,9 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "order_item_id": {
-          "name": "order_item_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "function_zone_id": {
-          "name": "function_zone_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "seat_row": {
-          "name": "seat_row",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "seat_number": {
-          "name": "seat_number",
-          "type": "integer",
+        "email": {
+          "name": "email",
+          "type": "varchar(254)",
           "primaryKey": false,
           "notNull": true
         },
@@ -488,70 +470,20 @@
           "default": "now()"
         }
       },
-      "indexes": {
-        "order_item_seats_order_item_idx": {
-          "name": "order_item_seats_order_item_idx",
-          "columns": [
-            {
-              "expression": "order_item_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "with": {},
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {
-        "order_item_seats_order_item_id_order_items_id_fk": {
-          "name": "order_item_seats_order_item_id_order_items_id_fk",
-          "tableFrom": "order_item_seats",
-          "columnsFrom": [
-            "order_item_id"
-          ],
-          "tableTo": "order_items",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        },
-        "order_item_seats_function_zone_id_function_zones_id_fk": {
-          "name": "order_item_seats_function_zone_id_function_zones_id_fk",
-          "tableFrom": "order_item_seats",
-          "columnsFrom": [
-            "function_zone_id"
-          ],
-          "tableTo": "function_zones",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        }
-      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "order_item_seats_zone_seat_unique": {
-          "name": "order_item_seats_zone_seat_unique",
+        "newsletter_subscribers_email_unique": {
+          "name": "newsletter_subscribers_email_unique",
+          "nullsNotDistinct": false,
           "columns": [
-            "function_zone_id",
-            "seat_row",
-            "seat_number"
-          ],
-          "nullsNotDistinct": false
+            "email"
+          ]
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "order_item_seats_positive": {
-          "name": "order_item_seats_positive",
-          "value": "\"order_item_seats\".\"seat_row\" > 0 and \"order_item_seats\".\"seat_number\" > 0"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.order_items": {
@@ -602,9 +534,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "order_items_function_zone_idx": {
           "name": "order_items_function_zone_idx",
@@ -617,37 +549,37 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "order_items_order_id_orders_id_fk": {
           "name": "order_items_order_id_orders_id_fk",
           "tableFrom": "order_items",
+          "tableTo": "orders",
           "columnsFrom": [
             "order_id"
           ],
-          "tableTo": "orders",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "order_items_function_zone_id_function_zones_id_fk": {
           "name": "order_items_function_zone_id_function_zones_id_fk",
           "tableFrom": "order_items",
+          "tableTo": "function_zones",
           "columnsFrom": [
             "function_zone_id"
           ],
-          "tableTo": "function_zones",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -754,9 +686,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "orders_status_expires_idx": {
           "name": "orders_status_expires_idx",
@@ -775,24 +707,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "orders_customer_id_users_id_fk": {
           "name": "orders_customer_id_users_id_fk",
           "tableFrom": "orders",
+          "tableTo": "users",
           "columnsFrom": [
             "customer_id"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -822,12 +754,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "order_item_seat_id": {
-          "name": "order_item_seat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "qr_code": {
           "name": "qr_code",
@@ -869,54 +795,34 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "tickets_order_item_id_order_items_id_fk": {
           "name": "tickets_order_item_id_order_items_id_fk",
           "tableFrom": "tickets",
+          "tableTo": "order_items",
           "columnsFrom": [
             "order_item_id"
           ],
-          "tableTo": "order_items",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        },
-        "tickets_order_item_seat_id_order_item_seats_id_fk": {
-          "name": "tickets_order_item_seat_id_order_item_seats_id_fk",
-          "tableFrom": "tickets",
-          "columnsFrom": [
-            "order_item_seat_id"
-          ],
-          "tableTo": "order_item_seats",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "tickets_order_item_seat_id_unique": {
-          "name": "tickets_order_item_seat_id_unique",
-          "columns": [
-            "order_item_seat_id"
-          ],
-          "nullsNotDistinct": false
-        },
         "tickets_qr_code_unique": {
           "name": "tickets_qr_code_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "qr_code"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -980,6 +886,12 @@
           "notNull": true,
           "default": false
         },
+        "ruc": {
+          "name": "ruc",
+          "type": "varchar(11)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "is_suspended": {
           "name": "is_suspended",
           "type": "boolean",
@@ -1014,10 +926,10 @@
       "uniqueConstraints": {
         "users_clerk_user_id_unique": {
           "name": "users_clerk_user_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "clerk_user_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -1077,18 +989,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "seat_rows": {
-          "name": "seat_rows",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "seat_columns": {
-          "name": "seat_columns",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1109,24 +1009,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "venue_zones_venue_id_venues_id_fk": {
           "name": "venue_zones_venue_id_venues_id_fk",
           "tableFrom": "venue_zones",
+          "tableTo": "venues",
           "columnsFrom": [
             "venue_id"
           ],
-          "tableTo": "venues",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1136,10 +1036,6 @@
         "venue_zones_capacity_non_negative": {
           "name": "venue_zones_capacity_non_negative",
           "value": "\"venue_zones\".\"capacity\" >= 0"
-        },
-        "venue_zones_seat_layout_valid": {
-          "name": "venue_zones_seat_layout_valid",
-          "value": "(\"venue_zones\".\"seat_rows\" is null and \"venue_zones\".\"seat_columns\" is null) or (\"venue_zones\".\"seat_rows\" is not null and \"venue_zones\".\"seat_columns\" is not null and \"venue_zones\".\"seat_rows\" > 0 and \"venue_zones\".\"seat_columns\" > 0 and \"venue_zones\".\"capacity\" = \"venue_zones\".\"seat_rows\" * \"venue_zones\".\"seat_columns\")"
         }
       },
       "isRLSEnabled": false
@@ -1218,24 +1114,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "venues_organizer_id_users_id_fk": {
           "name": "venues_organizer_id_users_id_fk",
           "tableFrom": "venues",
+          "tableTo": "users",
           "columnsFrom": [
             "organizer_id"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1286,10 +1182,10 @@
     }
   },
   "schemas": {},
-  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
+  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

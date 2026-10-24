@@ -38,12 +38,14 @@ export function useHeroCarousel(
       return
     }
 
-    const id = setInterval(() => {
+    // One timeout per shown item (not an interval): next()/prev() restart the
+    // countdown, so the progress bar and the autoplay never drift apart.
+    const id = setTimeout(() => {
       setIndex((current) => (current + 1) % itemCount)
     }, intervalMs)
 
-    return () => clearInterval(id)
-  }, [isPaused, itemCount, intervalMs])
+    return () => clearTimeout(id)
+  }, [index, isPaused, itemCount, intervalMs])
 
   return { index, isPaused, next, prev, togglePause }
 }

@@ -180,7 +180,7 @@ describe("getPaidOrdersForUser", () => {
     expect(result.lines.map((l) => l.zoneId)).toEqual(expected)
   })
 
-  it("fills ticketSeats with the formatted seat or null, aligned with ticketQrCodes", async () => {
+  it("fills ticketSeats with the formatted seat or null, aligned with tickets", async () => {
     const db = await createTestDb()
     const { zones } = await seedCatalog(db)
     const me = await newUser(db)
@@ -201,11 +201,11 @@ describe("getPaidOrdersForUser", () => {
     expect(order.ticketSeats).toHaveLength(3)
     expect(order.ticketSeats!.filter((s) => s === "Fila B · Asiento 7")).toHaveLength(1)
     expect(order.ticketSeats!.filter((s) => s === null)).toHaveLength(2)
-    const idx = order.ticketQrCodes!.indexOf(qrs[0][0])
+    const idx = order.tickets!.findIndex((t) => t.qrCode === qrs[0][0])
     expect(order.ticketSeats![idx]).toBe("Fila B · Asiento 7")
   })
 
-  it("aligns ticketQrCodes with buildTicketStubs numbering across lines", async () => {
+  it("aligns tickets with buildTicketStubs numbering across lines", async () => {
     const db = await createTestDb()
     const { zones } = await seedCatalog(db)
     const me = await newUser(db)
@@ -221,14 +221,65 @@ describe("getPaidOrdersForUser", () => {
     const [order] = await getPaidOrdersForUser(db, me.id)
     const stubs = buildTicketStubs(order.lines)
 
-    expect(order.ticketQrCodes).toHaveLength(5)
+    expect(order.tickets).toHaveLength(5)
     let n = 0
     for (const line of order.lines) {
       const expected = [...qrByZone.get(line.zoneId)!].sort()
-      const got = order.ticketQrCodes!.slice(n, n + line.quantity)
+      const got = order.tickets!.slice(n, n + line.quantity).map((t) => t.qrCode)
       expect([...got].sort()).toEqual(expected)
       stubs.slice(n, n + line.quantity).forEach((s) => expect(s.zoneName).toBe(line.zoneName))
       n += line.quantity
     }
+  })
+
+  it("returns real status and checkedInAt per ticket, keeping qrCode position", async () => {
+    const db = await createTestDb()
+    const { zones } = await seedCatalog(db)
+    const me = await newUser(db)
+    const { qrs } = await placeOrder(db, me.id, "paid", [
+      { functionZoneId: zones[0].id, quantity: 2, unitPrice: "100.00" },
+      { functionZoneId: zones[1].id, quantity: 2, unitPrice: "50.00" },
+    ])
+    const [before] = await getPaidOrdersForUser(db, me.id)
+    const usedQr = before.tickets![3].qrCode // segunda línea
+    const checkedInAt = new Date("2026-12-01T20:05:00.000Z")
+    await db.update(tickets).set({ status: "used", checkedInAt }).where(eq(tickets.qrCode, usedQr))
+
+    const [order] = await getPaidOrdersForUser(db, me.id)
+
+    expect(order.tickets!.map((t) => t.qrCode)).toEqual(before.tickets!.map((t) => t.qrCode))
+    expect(order.tickets![3]).toEqual({ qrCode: usedQr, status: "used", checkedInAt: checkedInAt.toISOString() })
+    expect(order.tickets!.filter((t) => t.status === "valid")).toHaveLength(3)
+    order.tickets!.forEach((t, i) => {
+      if (i !== 3) expect(t).toMatchObject({ status: "valid", checkedInAt: null })
+    })
+    expect(qrs.flat()).toContain(usedQr)
+  })
+
+  it("returns used ticket without checked_in_at as null", async () => {
+    const db = await createTestDb()
+    const { zones } = await seedCatalog(db)
+    const me = await newUser(db)
+    const { qrs } = await placeOrder(db, me.id, "paid", [{ functionZoneId: zones[0].id, quantity: 1, unitPrice: "100.00" }])
+    await db.update(tickets).set({ status: "used" }).where(eq(tickets.qrCode, qrs[0][0]))
+
+    const [order] = await getPaidOrdersForUser(db, me.id)
+
+    expect(order.tickets).toEqual([{ qrCode: qrs[0][0], status: "used", checkedInAt: null }])
+  })
+
+  it("returns tickets: [] for a paid order without tickets", async () => {
+    const db = await createTestDb()
+    const { zones } = await seedCatalog(db)
+    const me = await newUser(db)
+    const [o] = await db
+      .insert(orders)
+      .values({ customerId: me.id, status: "paid", totalAmount: "100.00", expiresAt: new Date() })
+      .returning()
+    await db.insert(orderItems).values({ orderId: o.id, functionZoneId: zones[0].id, quantity: 1, unitPrice: "100.00" })
+
+    const [order] = await getPaidOrdersForUser(db, me.id)
+
+    expect(order.tickets).toEqual([])
   })
 })

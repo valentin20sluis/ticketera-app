@@ -18,9 +18,16 @@ interface EventRowActionsProps {
   canPublish: boolean
   canCancel: boolean
   canDelete: boolean
+  canSuspend?: boolean
+  // A suspended event's "publish" button is shown as "Reactivar".
+  reactivate?: boolean
+  // When set, "Publicar" is disabled and this reason is shown next to it.
+  publishBlockedReason?: string
+  // Owner organizer only: adds a link to the settings page next to the reason.
+  showSettingsLink?: boolean
 }
 
-type Pending = "cancel" | "delete" | null
+type Pending = "cancel" | "delete" | "suspend" | null
 
 export function EventRowActions({
   eventId,
@@ -29,12 +36,16 @@ export function EventRowActions({
   canPublish,
   canCancel,
   canDelete,
+  canSuspend = false,
+  reactivate = false,
+  publishBlockedReason,
+  showSettingsLink,
 }: EventRowActionsProps) {
   const [confirming, setConfirming] = useState<Pending>(null)
   const [error, setError] = useState<string>()
   const [publishing, startPublish] = useTransition()
 
-  if (!canEdit && !canPublish && !canCancel && !canDelete) return null
+  if (!canEdit && !canPublish && !canCancel && !canDelete && !canSuspend) return null
 
   function publish() {
     setError(undefined)
@@ -58,8 +69,18 @@ export function EventRowActions({
           </Button>
         )}
         {canPublish && (
-          <Button size="sm" onClick={publish} disabled={publishing}>
-            {publishing ? "Publicando…" : "Publicar"}
+          <Button
+            size="sm"
+            onClick={publish}
+            disabled={publishing || !!publishBlockedReason}
+            aria-describedby={publishBlockedReason ? `publish-blocked-${eventId}` : undefined}
+          >
+            {reactivate ? (publishing ? "Reactivando…" : "Reactivar") : publishing ? "Publicando…" : "Publicar"}
+          </Button>
+        )}
+        {canSuspend && (
+          <Button variant="outline" size="sm" onClick={() => setConfirming("suspend")}>
+            Suspender
           </Button>
         )}
         {canCancel && (
@@ -79,6 +100,20 @@ export function EventRowActions({
         )}
       </div>
 
+      {canPublish && publishBlockedReason && (
+        <p id={`publish-blocked-${eventId}`} className="max-w-48 text-right text-xs text-muted-foreground">
+          {publishBlockedReason}
+          {showSettingsLink && (
+            <>
+              {" "}
+              <Link href="/organizador/configuracion" className="underline">
+                Ir a configuración
+              </Link>
+            </>
+          )}
+        </p>
+      )}
+
       <div aria-live="polite">{error && <p className="max-w-48 text-right text-xs text-destructive">{error}</p>}</div>
 
       {confirming === "cancel" && (
@@ -87,6 +122,15 @@ export function EventRowActions({
           description="El evento dejará de estar a la venta y no podrá reactivarse. Si ya tiene entradas vendidas, este cambio no genera reembolsos automáticos."
           confirmLabel="Cancelar evento"
           onConfirm={() => setEventStatusAction({ eventId, status: "cancelled" })}
+          onClose={() => setConfirming(null)}
+        />
+      )}
+      {confirming === "suspend" && (
+        <ConfirmEventActionDialog
+          title={`Suspender "${title}"`}
+          description="El evento dejará de estar a la venta y de mostrarse en el catálogo hasta que se reactive. Las entradas ya vendidas no se anulan."
+          confirmLabel="Suspender evento"
+          onConfirm={() => setEventStatusAction({ eventId, status: "suspended" })}
           onClose={() => setConfirming(null)}
         />
       )}

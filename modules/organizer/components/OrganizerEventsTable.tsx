@@ -144,6 +144,11 @@ export function OrganizerEventsTable({ events, emptyState, actor }: OrganizerEve
 function renderActions(actor: NonNullable<EventActor>, event: OrganizerEventSummary) {
   const target = { organizerId: actor.id, status: event.status }
   const next = nextStatuses(actor, target)
+  const publishBlockedReason = event.organizerPaymentsReady
+    ? undefined
+    : isEventAdmin(actor)
+      ? "El organizador aún no conectó Stripe"
+      : "Conecta tu cuenta de Stripe para publicar"
 
   return (
     <EventRowActions
@@ -153,6 +158,10 @@ function renderActions(actor: NonNullable<EventActor>, event: OrganizerEventSumm
       canPublish={next.includes("published")}
       canCancel={next.includes("cancelled")}
       canDelete={canWriteEvent(actor, target, "delete")}
+      canSuspend={next.includes("suspended")}
+      reactivate={event.status === "suspended"}
+      publishBlockedReason={publishBlockedReason}
+      showSettingsLink={!isEventAdmin(actor)}
     />
   )
 }

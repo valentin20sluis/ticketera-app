@@ -1,5 +1,5 @@
 {
-  "id": "9d8a60e9-29e2-4e09-b97d-fce7f30d8d37",
+  "id": "cad06114-78a4-452b-8fe9-22629b3c4be6",
   "prevId": "973ee88f-c8aa-4004-8636-7b41e6530a59",
   "version": "7",
   "dialect": "postgresql",
@@ -445,8 +445,8 @@
       },
       "isRLSEnabled": false
     },
-    "public.order_item_seats": {
-      "name": "order_item_seats",
+    "public.newsletter_subscribers": {
+      "name": "newsletter_subscribers",
       "schema": "",
       "columns": {
         "id": {
@@ -456,27 +456,9 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "order_item_id": {
-          "name": "order_item_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "function_zone_id": {
-          "name": "function_zone_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "seat_row": {
-          "name": "seat_row",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "seat_number": {
-          "name": "seat_number",
-          "type": "integer",
+        "email": {
+          "name": "email",
+          "type": "varchar(254)",
           "primaryKey": false,
           "notNull": true
         },
@@ -488,70 +470,20 @@
           "default": "now()"
         }
       },
-      "indexes": {
-        "order_item_seats_order_item_idx": {
-          "name": "order_item_seats_order_item_idx",
-          "columns": [
-            {
-              "expression": "order_item_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "order_item_seats_order_item_id_order_items_id_fk": {
-          "name": "order_item_seats_order_item_id_order_items_id_fk",
-          "tableFrom": "order_item_seats",
-          "tableTo": "order_items",
-          "columnsFrom": [
-            "order_item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "order_item_seats_function_zone_id_function_zones_id_fk": {
-          "name": "order_item_seats_function_zone_id_function_zones_id_fk",
-          "tableFrom": "order_item_seats",
-          "tableTo": "function_zones",
-          "columnsFrom": [
-            "function_zone_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "order_item_seats_zone_seat_unique": {
-          "name": "order_item_seats_zone_seat_unique",
+        "newsletter_subscribers_email_unique": {
+          "name": "newsletter_subscribers_email_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "function_zone_id",
-            "seat_row",
-            "seat_number"
+            "email"
           ]
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "order_item_seats_positive": {
-          "name": "order_item_seats_positive",
-          "value": "\"order_item_seats\".\"seat_row\" > 0 and \"order_item_seats\".\"seat_number\" > 0"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.order_items": {
@@ -823,12 +755,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "order_item_seat_id": {
-          "name": "order_item_seat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "qr_code": {
           "name": "qr_code",
           "type": "varchar(255)",
@@ -887,30 +813,10 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
-        },
-        "tickets_order_item_seat_id_order_item_seats_id_fk": {
-          "name": "tickets_order_item_seat_id_order_item_seats_id_fk",
-          "tableFrom": "tickets",
-          "tableTo": "order_item_seats",
-          "columnsFrom": [
-            "order_item_seat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "tickets_order_item_seat_id_unique": {
-          "name": "tickets_order_item_seat_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "order_item_seat_id"
-          ]
-        },
         "tickets_qr_code_unique": {
           "name": "tickets_qr_code_unique",
           "nullsNotDistinct": false,
@@ -1077,18 +983,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "seat_rows": {
-          "name": "seat_rows",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "seat_columns": {
-          "name": "seat_columns",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1136,10 +1030,6 @@
         "venue_zones_capacity_non_negative": {
           "name": "venue_zones_capacity_non_negative",
           "value": "\"venue_zones\".\"capacity\" >= 0"
-        },
-        "venue_zones_seat_layout_valid": {
-          "name": "venue_zones_seat_layout_valid",
-          "value": "(\"venue_zones\".\"seat_rows\" is null and \"venue_zones\".\"seat_columns\" is null) or (\"venue_zones\".\"seat_rows\" is not null and \"venue_zones\".\"seat_columns\" is not null and \"venue_zones\".\"seat_rows\" > 0 and \"venue_zones\".\"seat_columns\" > 0 and \"venue_zones\".\"capacity\" = \"venue_zones\".\"seat_rows\" * \"venue_zones\".\"seat_columns\")"
         }
       },
       "isRLSEnabled": false

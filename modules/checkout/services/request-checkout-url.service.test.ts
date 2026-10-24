@@ -17,12 +17,17 @@ describe("requestCheckoutUrl", () => {
   })
 
   it.each([
-    [401, "unauthorized"],
-    [409, "insufficient_stock"],
-    [400, "unknown"],
-    [500, "unknown"],
-  ])("mapea %i a %s", async (status, error) => {
-    mockFetch(status)
+    [401, {}, "unauthorized"],
+    [409, {}, "insufficient_stock"],
+    [409, { error: "insufficient_stock" }, "insufficient_stock"],
+    [409, { error: "organizer_payments_unavailable" }, "organizer_payments_unavailable"],
+    [422, { error: "multiple_events" }, "multiple_events"],
+    [400, { error: "invalid_payload" }, "unknown"],
+    [500, {}, "unknown"],
+    [502, { error: "checkout_unavailable" }, "unknown"],
+    [503, { error: "payments_misconfigured" }, "unknown"],
+  ])("mapea %i %j a %s", async (status, body, error) => {
+    mockFetch(status, body)
     expect(await requestCheckoutUrl(input)).toEqual({ ok: false, error })
   })
 

@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, isNull } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db/client";
 import {
@@ -15,6 +15,7 @@ import {
   type CreateEventFormValues,
 } from "@/modules/organizer/schemas/create-event.schema";
 import { getStructureLock, type Tx } from "@/modules/organizer/services/event-read.service";
+import { canAcceptPayments } from "@/modules/payments/utils/can-accept-payments";
 import {
   canWriteEvent,
   isEventAdmin,
@@ -34,6 +35,8 @@ const INVALID = "Datos no válidos";
 const NOT_FOUND = "Evento no encontrado";
 const STALE = "El evento cambió mientras lo editabas. Recarga e inténtalo de nuevo";
 const NOT_ALLOWED = "No puedes modificar este evento";
+const STRIPE_REQUIRED_OWN = "Conecta tu cuenta de Stripe para publicar eventos";
+const STRIPE_REQUIRED_OWNER = "El organizador de este evento aún no conectó su cuenta de Stripe";
 const DEFAULT_CURRENCY = "PEN";
 
 
@@ -75,10 +78,12 @@ async function resolveVenue(tx: Tx, ownerId: string, venue: CreateEventFormValue
   return found.id;
 }
 
-async function insertFunction(tx: Tx, eventId: string, venueId: string, form: CreateEventFormValues) {
-  const startsAt = parseStartsAt(form.functionZones.startsAt);
-  const zones = form.functionZones.zones;
-  const [fn] = await tx
+type FunctionValues = CreateEventFormValues["functions"][number];
+
+async function insertFunction(tx: Tx, eventId: string, venueId: string, fn: FunctionValues) {
+  const startsAt = parseStartsAt(fn.startsAt);
+  const zones = fn.zones;
+  const [created] = await tx
     .insert(eventFunctions)
     .values({ eventId, startsAt })
     .returning({ id: eventFunctions.id });
@@ -103,7 +108,7 @@ async function insertFunction(tx: Tx, eventId: string, venueId: string, form: Cr
     .returning({ id: venueZones.id });
   await tx.insert(functionZones).values(
     zones.map((zone, index) => ({
-      functionId: fn.id,
+      functionId: created.id,
       venueZoneId: createdZones[index].id,
       price: zone.price.toFixed(2),
       currency: DEFAULT_CURRENCY,
@@ -183,7 +188,7 @@ export async function createEvent(
       );
     if (!found) throw new EventActionError("Organizador no válido");
   }
-  parseStartsAt(form.functionZones.startsAt);
+  form.functions.forEach((fn) => parseStartsAt(fn.startsAt));
   await assertCategory(db, form.details.categoryId);
 
   return db.transaction(async (transaction) => {
@@ -199,7 +204,7 @@ export async function createEvent(
         status: "draft",
       })
       .returning({ id: events.id });
-    await insertFunction(tx, created.id, venueId, form);
+    for (const fn of form.functions) await insertFunction(tx, created.id, venueId, fn);
     return created;
   });
 }
@@ -213,9 +218,9 @@ export async function updateEvent(db: Db, actor: EventActor, eventId: string, in
   await assertCategory(db, form.details.categoryId);
   const lock = await getStructureLock(db, event.id);
   if (!lock.locked) {
-    const startsAt = parseStartsAt(form.functionZones.startsAt);
+    const dates = form.functions.map((fn) => parseStartsAt(fn.startsAt));
     // A published event keeps the "future function" rule that publishing required.
-    if (event.status === "published" && startsAt <= new Date()) {
+    if (event.status === "published" && !dates.some((date) => date > new Date())) {
       throw new EventActionError("Un evento publicado necesita una fecha futura");
     }
   }
@@ -226,7 +231,7 @@ export async function updateEvent(db: Db, actor: EventActor, eventId: string, in
     if (!lock.locked) {
       venueId = await resolveVenue(tx, event.organizerId, form.venue);
       await deleteStructure(tx, event.id);
-      await insertFunction(tx, event.id, venueId, form);
+      for (const fn of form.functions) await insertFunction(tx, event.id, venueId, fn);
     }
     const updated = await tx
       .update(events)
@@ -237,11 +242,26 @@ export async function updateEvent(db: Db, actor: EventActor, eventId: string, in
   });
 }
 
+// Publishing needs the event's owner (not the actor) able to charge; same rule as checkout.
+function ownerReadySql() {
+  return sql`exists (select 1 from ${users} where ${users.id} = ${events.organizerId} and ${users.stripeAccountId} is not null and ${users.stripeAccountId} <> '' and ${users.stripeChargesEnabled} = true)`;
+}
+
+async function assertOwnerCanAcceptPayments(db: Db | Tx, ownerId: string, actor: EventActor) {
+  const [owner] = await db
+    .select({ stripeAccountId: users.stripeAccountId, stripeChargesEnabled: users.stripeChargesEnabled })
+    .from(users)
+    .where(eq(users.id, ownerId));
+  if (owner && canAcceptPayments(owner)) return;
+  throw new EventActionError(actor?.id === ownerId ? STRIPE_REQUIRED_OWN : STRIPE_REQUIRED_OWNER);
+}
+
 export async function setEventStatus(db: Db, actor: EventActor, eventId: string, to: EventStatus) {
   const event = await loadEvent(db, eventId);
   if (!nextStatuses(actor, event).includes(to)) throw new EventActionError(NOT_ALLOWED);
 
   if (to === "published") {
+    await assertOwnerCanAcceptPayments(db, event.organizerId, actor);
     const upcoming = await db
       .select({ id: eventFunctions.id })
       .from(eventFunctions)
@@ -258,9 +278,19 @@ export async function setEventStatus(db: Db, actor: EventActor, eventId: string,
     .update(events)
     // Leaving "published" drops the highlight; coming back does not restore it.
     .set({ status: to, updatedAt: new Date(), ...(to !== "published" && { featured: false }) })
-    .where(and(eq(events.id, event.id), eq(events.status, event.status)))
+    .where(
+      and(
+        eq(events.id, event.id),
+        eq(events.status, event.status),
+        // Same statement as the write, so the owner losing Stripe in between cannot slip through.
+        to === "published" ? ownerReadySql() : undefined,
+      ),
+    )
     .returning({ id: events.id });
-  if (updated.length === 0) throw new EventActionError(STALE);
+  if (updated.length === 0) {
+    if (to === "published") await assertOwnerCanAcceptPayments(db, event.organizerId, actor);
+    throw new EventActionError(STALE);
+  }
 }
 
 // Admin-only. Only published events can be highlighted.

@@ -1,12 +1,12 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { formatPrice } from "@/lib/format-currency"
-import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
 import type { Event } from "@/modules/events/types/event.types"
 import { useHeroCarousel } from "@/modules/events/hooks/useHeroCarousel"
 
@@ -26,7 +26,6 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
   }
 
   const activeEvent = events[index]
-  const category = MOCK_CATEGORIES.find((item) => item.id === activeEvent.categoryId)
 
   return (
     <section className="relative h-[420px] w-full overflow-hidden sm:h-[480px] lg:h-[560px]">
@@ -42,9 +41,9 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
       <div className="relative flex h-full flex-col justify-end gap-3 px-4 pb-16 text-white sm:px-8 sm:pb-20 lg:px-16">
-        {category && (
+        {activeEvent.categoryName && (
           <span className="text-xs font-semibold tracking-wide text-cta uppercase">
-            {category.name}
+            {activeEvent.categoryName}
           </span>
         )}
         <h2 className="font-heading max-w-2xl text-3xl font-bold sm:text-4xl lg:text-5xl">
@@ -57,7 +56,12 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
           <span className="text-lg font-semibold">
             Desde {formatPrice(activeEvent.priceFrom)}
           </span>
-          <Button size="lg" className="bg-cta text-cta-foreground hover:bg-cta/90">
+          <Button
+            size="lg"
+            className="bg-cta text-cta-foreground hover:bg-cta/90"
+            nativeButton={false}
+            render={<Link href={`/eventos/${activeEvent.slug}`} />}
+          >
             Ver detalles
           </Button>
         </div>
@@ -106,6 +110,24 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
               )}
             >
               <Image src={event.imageUrl} alt="" fill unoptimized className="object-cover" />
+              {events.length > 1 && (
+                // Fills over AUTOPLAY_INTERVAL_MS while this item is on screen. Inactive items
+                // sit at scale-x-0 with no transition, so the bar restarts on every change.
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-white",
+                    thumbnailIndex === index &&
+                      !isPaused &&
+                      "scale-x-100 transition-transform ease-linear"
+                  )}
+                  style={
+                    thumbnailIndex === index && !isPaused
+                      ? { transitionDuration: `${AUTOPLAY_INTERVAL_MS}ms` }
+                      : undefined
+                  }
+                />
+              )}
             </div>
           ))}
         </div>

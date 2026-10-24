@@ -14,6 +14,7 @@ function buildEvent(overrides: Partial<Event>): Event {
     slug: "sample-event",
     title: "Sample Event",
     categoryId: "music",
+    categoryName: "Música",
     description: "Sample description",
     venueName: "Sample Venue",
     city: "Lima",

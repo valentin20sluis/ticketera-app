@@ -54,11 +54,16 @@ describe("useCheckoutPayment", () => {
     expect(push).toHaveBeenCalledWith("/ingresar")
   })
 
-  it("409 muestra error de cupo y libera el botón", async () => {
-    requestCheckoutUrl.mockResolvedValue({ ok: false, error: "insufficient_stock" })
+  it.each([
+    ["insufficient_stock", /cupo/],
+    ["multiple_events", /un evento a la vez/],
+    ["organizer_payments_unavailable", /no está disponible/],
+    ["unknown", /No pudimos iniciar el pago/],
+  ])("%s muestra su mensaje y libera el botón", async (error, message) => {
+    requestCheckoutUrl.mockResolvedValue({ ok: false, error })
     const { result } = renderHook(() => useCheckoutPayment(lines))
     await act(() => result.current.pay())
-    expect(result.current.error).toMatch(/cupo/)
+    expect(result.current.error).toMatch(message)
     expect(result.current.isLoading).toBe(false)
     expect(assign).not.toHaveBeenCalled()
   })

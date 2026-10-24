@@ -1,5 +1,3 @@
-import type { LucideIcon } from "lucide-react";
-
 export type EventStatus = "available" | "last-tickets" | "sold-out";
 
 export type EventCategoryColorKey =
@@ -13,7 +11,7 @@ export type EventCategoryColorKey =
 export interface EventCategory {
   id: string;
   name: string;
-  icon: LucideIcon;
+  iconKey: string;
   colorKey: EventCategoryColorKey;
 }
 
@@ -22,9 +20,13 @@ export interface Event {
   slug: string;
   title: string;
   categoryId: string;
+  categoryName: string;
   description: string;
   venueName: string;
   city: string;
+  venueAddress?: string;
+  venueLat?: number;
+  venueLng?: number;
   startDate: string;
   imageUrl: string;
   priceFrom: number;

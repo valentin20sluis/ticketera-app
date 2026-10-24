@@ -10,6 +10,9 @@ const EVENTS = [
   "invoice.paid",
 ].join(",");
 const FORWARD_TO = "localhost:3000/api/webhooks/stripe";
+// Thin events (Accounts v2) go to their own endpoint with their own secret.
+const CONNECT_EVENTS = "v2.core.account[configuration.recipient].capability_status_updated";
+const CONNECT_FORWARD_TO = "localhost:3000/api/webhooks/stripe-connect";
 
 const apiKey = process.env.STRIPE_SECRET_KEY;
 if (!apiKey) {
@@ -29,15 +32,33 @@ const printed = spawnSync("stripe listen --print-secret", {
   encoding: "utf8",
 }).stdout?.trim();
 
-if (printed && printed !== process.env.STRIPE_WEBHOOK_SECRET) {
-  console.warn(
-    `\n⚠ STRIPE_WEBHOOK_SECRET en .env no coincide con el de esta cuenta.\n` +
-      `  Pon STRIPE_WEBHOOK_SECRET=${printed} y reinicia 'npm run dev', o el webhook responderá 400.\n`,
-  );
-}
+const warnIfMismatch = (name: string) => {
+  if (printed && printed !== process.env[name]) {
+    console.warn(
+      `\n⚠ ${name} en .env no coincide con el de esta cuenta.\n` +
+        `  Pon ${name}=${printed} y reinicia 'npm run dev', o el webhook responderá 400.\n`,
+    );
+  }
+};
+warnIfMismatch("STRIPE_WEBHOOK_SECRET");
+warnIfMismatch("STRIPE_CONNECT_WEBHOOK_SECRET");
 
-const child = spawn(`stripe listen --events ${EVENTS} --forward-to ${FORWARD_TO}`, {
-  ...options,
-  stdio: "inherit",
-});
-child.on("exit", (code) => process.exit(code ?? 0));
+// ponytail: assumes the whsec_ is identical for both listeners (CLI secret is per account/device).
+const children = [
+  spawn(`stripe listen --events ${EVENTS} --forward-to ${FORWARD_TO}`, {
+    ...options,
+    stdio: "inherit",
+  }),
+  // Double quotes: cmd.exe ignores single quotes and the [] must not be globbed by sh.
+  spawn(`stripe listen --events "${CONNECT_EVENTS}" --forward-to ${CONNECT_FORWARD_TO}`, {
+    ...options,
+    stdio: "inherit",
+  }),
+];
+// If either listener dies, stop both so a half-working setup is not silent.
+for (const child of children) {
+  child.on("exit", (code) => {
+    for (const other of children) other.kill();
+    process.exit(code ?? 0);
+  });
+}

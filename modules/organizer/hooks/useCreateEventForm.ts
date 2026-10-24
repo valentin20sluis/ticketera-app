@@ -4,7 +4,8 @@ import { useCallback, useState } from "react";
 
 import {
   eventDetailsSchema,
-  functionZonesStepSchema,
+  functionsStepSchema,
+  MAX_EVENT_FUNCTIONS,
   venueStepSchema,
 } from "@/modules/organizer/schemas/create-event.schema";
 import type { CreateEventFormValues } from "@/modules/organizer/schemas/create-event.schema";
@@ -14,8 +15,8 @@ export type CreateEventStep = "details" | "venue" | "zones";
 export type EventDetailsValues = CreateEventFormValues["details"];
 export type VenueStepValues = CreateEventFormValues["venue"];
 export type NewVenueValues = Extract<VenueStepValues, { mode: "new" }>["venue"];
-export type FunctionZonesValues = CreateEventFormValues["functionZones"];
-export type ZoneRowValues = FunctionZonesValues["zones"][number];
+export type FunctionValues = CreateEventFormValues["functions"][number];
+export type ZoneRowValues = FunctionValues["zones"][number];
 
 function buildInitialDetails(): EventDetailsValues {
   return {
@@ -38,7 +39,7 @@ function buildInitialVenue(): VenueStepValues {
   return { mode: "existing", venueId: "" };
 }
 
-function buildInitialFunctionZones(): FunctionZonesValues {
+function buildInitialFunction(): FunctionValues {
   return { startsAt: "", zones: [buildInitialZoneRow()] };
 }
 
@@ -52,10 +53,17 @@ export interface UseCreateEventFormResult {
   setVenueMode: (mode: VenueStepValues["mode"]) => void;
   setExistingVenueId: (venueId: string) => void;
   updateNewVenueField: (field: keyof NewVenueValues, value: string) => void;
-  updateFunctionStartsAt: (value: string) => void;
-  addZoneRow: () => void;
-  removeZoneRow: (index: number) => void;
-  updateZoneRow: (index: number, field: keyof ZoneRowValues, value: string) => void;
+  addFunction: () => void;
+  removeFunction: (fnIndex: number) => void;
+  updateFunctionStartsAt: (fnIndex: number, value: string) => void;
+  addZoneRow: (fnIndex: number) => void;
+  removeZoneRow: (fnIndex: number, zoneIndex: number) => void;
+  updateZoneRow: (
+    fnIndex: number,
+    zoneIndex: number,
+    field: keyof ZoneRowValues,
+    value: string
+  ) => void;
   goToStep: (step: CreateEventStep) => void;
   validateStep: (step: CreateEventStep) => boolean;
 }
@@ -64,8 +72,8 @@ export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCr
   const [step, setStep] = useState<CreateEventStep>("details");
   const [details, setDetails] = useState<EventDetailsValues>(() => initialValues?.details ?? buildInitialDetails());
   const [venue, setVenue] = useState<VenueStepValues>(() => initialValues?.venue ?? buildInitialVenue());
-  const [functionZones, setFunctionZones] = useState<FunctionZonesValues>(
-    () => initialValues?.functionZones ?? buildInitialFunctionZones()
+  const [functions, setFunctions] = useState<FunctionValues[]>(
+    () => initialValues?.functions ?? [buildInitialFunction()]
   );
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
@@ -112,36 +120,56 @@ export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCr
     []
   );
 
-  const updateFunctionStartsAt = useCallback((value: string) => {
-    setFunctionZones((current) => ({ ...current, startsAt: value }));
+  const updateFunction = useCallback(
+    (fnIndex: number, update: (fn: FunctionValues) => FunctionValues) => {
+      setFunctions((current) => current.map((fn, i) => (i === fnIndex ? update(fn) : fn)));
+    },
+    []
+  );
+
+  const addFunction = useCallback(() => {
+    setFunctions((current) =>
+      current.length >= MAX_EVENT_FUNCTIONS ? current : [...current, buildInitialFunction()]
+    );
   }, []);
 
-  const addZoneRow = useCallback(() => {
-    setFunctionZones((current) => ({
-      ...current,
-      zones: [...current.zones, buildInitialZoneRow()],
-    }));
+  const removeFunction = useCallback((fnIndex: number) => {
+    setFunctions((current) =>
+      current.length === 1 ? current : current.filter((_, i) => i !== fnIndex)
+    );
   }, []);
 
-  const removeZoneRow = useCallback((index: number) => {
-    setFunctionZones((current) => {
-      if (current.zones.length === 1) {
-        return current;
-      }
+  const updateFunctionStartsAt = useCallback(
+    (fnIndex: number, value: string) => {
+      updateFunction(fnIndex, (fn) => ({ ...fn, startsAt: value }));
+    },
+    [updateFunction]
+  );
 
-      return {
-        ...current,
-        zones: current.zones.filter((_, zoneIndex) => zoneIndex !== index),
-      };
-    });
-  }, []);
+  const addZoneRow = useCallback(
+    (fnIndex: number) => {
+      updateFunction(fnIndex, (fn) => ({ ...fn, zones: [...fn.zones, buildInitialZoneRow()] }));
+    },
+    [updateFunction]
+  );
+
+  const removeZoneRow = useCallback(
+    (fnIndex: number, zoneIndex: number) => {
+      updateFunction(fnIndex, (fn) =>
+        fn.zones.length === 1
+          ? fn
+          : { ...fn, zones: fn.zones.filter((_, i) => i !== zoneIndex) }
+      );
+    },
+    [updateFunction]
+  );
 
   const updateZoneRow = useCallback(
-    (index: number, field: keyof ZoneRowValues, value: string) => {
-      setFunctionZones((current) => ({
-        ...current,
-        zones: current.zones.map((zone, zoneIndex) => {
-          if (zoneIndex !== index) {
+    (fnIndex: number, zoneIndex: number, field: keyof ZoneRowValues, value: string) => {
+      updateFunction(fnIndex, (fn) => ({
+        ...fn,
+        zones: fn.zones.map((zone, i) => {
+          if (i !== zoneIndex) {
             return zone;
           }
 
@@ -149,7 +177,7 @@ export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCr
         }),
       }));
     },
-    []
+    [updateFunction]
   );
 
   const goToStep = useCallback((nextStep: CreateEventStep) => {
@@ -163,7 +191,7 @@ export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCr
           ? eventDetailsSchema.safeParse(details)
           : targetStep === "venue"
             ? venueStepSchema.safeParse(venue)
-            : functionZonesStepSchema.safeParse(functionZones);
+            : functionsStepSchema.safeParse(functions);
 
       if (result.success) {
         setErrors({});
@@ -172,22 +200,25 @@ export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCr
 
       const nextErrors: Partial<Record<string, string>> = {};
       for (const issue of result.error.issues) {
-        nextErrors[issue.path.join(".")] = issue.message;
+        const path = targetStep === "zones" ? ["functions", ...issue.path] : issue.path;
+        nextErrors[path.join(".")] = issue.message;
       }
       setErrors(nextErrors);
       return false;
     },
-    [details, venue, functionZones]
+    [details, venue, functions]
   );
 
   return {
     step,
-    values: { details, venue, functionZones },
+    values: { details, venue, functions },
     errors,
     updateDetailsField,
     setVenueMode,
     setExistingVenueId,
     updateNewVenueField,
+    addFunction,
+    removeFunction,
     updateFunctionStartsAt,
     addZoneRow,
     removeZoneRow,

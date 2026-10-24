@@ -2,9 +2,11 @@ import {
   BadgeCheck,
   BarChart3,
   Calendar,
+  CalendarDays,
   LayoutDashboard,
   type LucideIcon,
   ScanLine,
+  Settings,
   Users,
   Wallet,
 } from "lucide-react";
@@ -26,6 +28,7 @@ export const ADMIN_NAV_ITEMS: PanelNavItem[] = [
   { href: "/super-admin", label: "Dashboard", icon: BarChart3 },
   { href: "/super-admin/usuarios", label: "Usuarios", icon: Users },
   { href: "/super-admin/organizadores", label: "Organizadores", icon: BadgeCheck },
+  { href: "/super-admin/eventos", label: "Eventos", icon: CalendarDays },
 ];
 
 export const ORGANIZER_NAV_ITEMS: PanelNavItem[] = [
@@ -33,4 +36,5 @@ export const ORGANIZER_NAV_ITEMS: PanelNavItem[] = [
   { href: "/organizador", label: "Mis eventos", icon: Calendar },
   { href: "/organizador/check-in", label: "Check-in", icon: ScanLine },
   { href: "/organizador/pagos", label: "Pagos", icon: Wallet },
+  { href: "/organizador/configuracion", label: "Configuración", icon: Settings },
 ];

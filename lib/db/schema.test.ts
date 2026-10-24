@@ -7,6 +7,7 @@ import {
   events,
   functionZones,
   orderItemSeats,
+  newsletterSubscribers,
   orderItems,
   orders,
   tickets,
@@ -138,6 +139,16 @@ describe("database schema", () => {
     expect(event.featured).toBe(false);
   });
 
+  it("stores users.ruc as nullable and non-unique", async () => {
+    const db = await createTestDb();
+    const { organizer } = await seedCore(db);
+    expect(organizer.ruc).toBeNull();
+
+    const base = { email: "a@example.com", fullName: "A", ruc: "20123456789" };
+    await db.insert(users).values({ ...base, clerkUserId: `c_${crypto.randomUUID()}` });
+    await db.insert(users).values({ ...base, clerkUserId: `c_${crypto.randomUUID()}` });
+  });
+
   it("stores orders.invoice_url as nullable", async () => {
     const db = await createTestDb();
     const [customer] = await db
@@ -227,6 +238,13 @@ describe("database schema", () => {
       .returning();
     await db.insert(tickets).values({ orderItemId: orderItem.id, qrCode: "DUP-QR" });
     await expect(db.insert(tickets).values({ orderItemId: orderItem.id, qrCode: "DUP-QR" })).rejects.toThrow();
+  });
+
+  it("inserts a newsletter subscriber and enforces unique email", async () => {
+    const db = await createTestDb();
+    const [sub] = await db.insert(newsletterSubscribers).values({ email: "n@example.com" }).returning();
+    expect(sub.createdAt).toBeInstanceOf(Date);
+    await expect(db.insert(newsletterSubscribers).values({ email: "n@example.com" })).rejects.toThrow();
   });
 
   it("round-trips a decimal price exactly, without float drift", async () => {

@@ -39,13 +39,17 @@ describe("getEventForEdit", () => {
     const result = await getEventForEdit(db, orgA, event.id)
     expect(result?.values.details.title).toBe(event.title)
     expect(result?.values.venue).toEqual({ mode: "existing", venueId: event.venueId })
-    expect(result?.values.functionZones.zones.length).toBeGreaterThan(0)
+    const functions = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, event.id))
+    expect(result?.values.functions).toHaveLength(functions.length)
+    expect(result?.values.functions.every((fn) => fn.zones.length > 0)).toBe(true)
+    const dates = result?.values.functions.map((fn) => fn.startsAt) ?? []
+    expect(dates).toEqual([...dates].sort())
     expect(await getEventForEdit(db, admin, event.id)).not.toBeNull()
   })
 
   it("returns only name and price per zone (layout and capacity are fixed server-side)", async () => {
     const { db, orgA, event } = await setup()
-    const zones = (await getEventForEdit(db, orgA, event.id))!.values.functionZones.zones
+    const zones = (await getEventForEdit(db, orgA, event.id))!.values.functions[0].zones
     for (const zone of zones) expect(Object.keys(zone).sort()).toEqual(["name", "price"])
   })
 
@@ -64,13 +68,38 @@ describe("getEventForEdit", () => {
     expect(await getEventForEdit(db, orgB, crypto.randomUUID())).toBeNull()
   })
 
-  it("flags the structure as locked with orders or several functions", async () => {
+  it("loads every function of a multi-function seed event, unlocked until an order exists", async () => {
     const { db, orgA, customer, event } = await setup()
-    const functions = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, event.id))
-    const lockedByFunctions = functions.length > 1
-    expect((await getEventForEdit(db, orgA, event.id))?.structureLocked).toBe(lockedByFunctions)
+    const multiId = event.id
+    const [first] = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, multiId))
+    // Add a second function with its own zone so the event has two.
+    const [second] = await db
+      .insert(eventFunctions)
+      .values({ eventId: multiId, startsAt: new Date(first.startsAt.getTime() + 86_400_000) })
+      .returning()
+    const [base] = await db.select().from(functionZones).where(eq(functionZones.functionId, first.id)).limit(1)
+    await db.insert(functionZones).values({ ...base, id: undefined, functionId: second.id })
+    const all = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, multiId))
+    const result = await getEventForEdit(db, orgA, multiId)
+    expect(result?.values.functions).toHaveLength(all.length)
+    expect(all.length).toBeGreaterThan(1)
+    expect(result?.structureLocked).toBe(false)
 
-    const [fn] = functions
+    const fn = first
+    const [zone] = await db.select().from(functionZones).where(eq(functionZones.functionId, fn.id)).limit(1)
+    const [order] = await db
+      .insert(orders)
+      .values({ customerId: customer.id, status: "pending", totalAmount: "1.00", expiresAt: new Date(Date.now() + 60_000) })
+      .returning()
+    await db.insert(orderItems).values({ orderId: order.id, functionZoneId: zone.id, quantity: 1, unitPrice: "1.00" })
+    expect((await getEventForEdit(db, orgA, multiId))?.structureLocked).toBe(true)
+  })
+
+  it("flags the structure as locked only with orders", async () => {
+    const { db, orgA, customer, event } = await setup()
+    expect((await getEventForEdit(db, orgA, event.id))?.structureLocked).toBe(false)
+
+    const [fn] = await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, event.id))
     const [zone] = await db.select().from(functionZones).where(eq(functionZones.functionId, fn.id)).limit(1)
     const [order] = await db
       .insert(orders)

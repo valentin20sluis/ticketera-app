@@ -51,10 +51,33 @@ export const functionZonesStepSchema = z.object({
   zones: z.array(zoneRowSchema).min(1, "Agrega al menos una zona"),
 });
 
+export const MAX_EVENT_FUNCTIONS = 10;
+
+export const functionsStepSchema = z
+  .array(functionZonesStepSchema)
+  .min(1, "Agrega al menos una función")
+  .max(MAX_EVENT_FUNCTIONS, `Máximo ${MAX_EVENT_FUNCTIONS} funciones por evento`)
+  .superRefine((functions, ctx) => {
+    const seen = new Set<string>();
+    functions.forEach((fn, index) => {
+      if (!fn.startsAt) {
+        return;
+      }
+      if (seen.has(fn.startsAt)) {
+        ctx.addIssue({
+          code: "custom",
+          path: [index, "startsAt"],
+          message: "Dos funciones no pueden tener la misma fecha y hora",
+        });
+      }
+      seen.add(fn.startsAt);
+    });
+  });
+
 export const createEventFormSchema = z.object({
   details: eventDetailsSchema,
   venue: venueStepSchema,
-  functionZones: functionZonesStepSchema,
+  functions: functionsStepSchema,
 });
 
 export type CreateEventFormValues = z.infer<typeof createEventFormSchema>;

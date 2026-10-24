@@ -47,6 +47,7 @@ export const users = pgTable("users", {
   stripeAccountId: varchar("stripe_account_id", { length: 255 }),
   stripeChargesEnabled: boolean("stripe_charges_enabled").notNull().default(false),
   stripePayoutsEnabled: boolean("stripe_payouts_enabled").notNull().default(false),
+  ruc: varchar("ruc", { length: 11 }),
   isSuspended: boolean("is_suspended").notNull().default(false),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -218,6 +219,12 @@ export const orderItemSeats = pgTable(
     seatPositive: check("order_item_seats_positive", sql`${table.seatRow} > 0 and ${table.seatNumber} > 0`),
   }),
 );
+
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: varchar("email", { length: 254 }).notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const tickets = pgTable(
   "tickets",

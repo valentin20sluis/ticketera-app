@@ -219,6 +219,52 @@ describe("getOrganizerSummary", () => {
     })
   })
 
+  describe("organizerPaymentsReady", () => {
+    it.each([
+      ["owner with Stripe ready", { stripeAccountId: "acct_1", stripeChargesEnabled: true }, true],
+      ["owner without account", { stripeAccountId: null, stripeChargesEnabled: false }, false],
+      ["owner with charges disabled", { stripeAccountId: "acct_1", stripeChargesEnabled: false }, false],
+    ])("%s", async (_label, stripe, expected) => {
+      const { db, organizer } = await setup()
+      await db.update(users).set(stripe).where(eq(users.id, organizer.id))
+
+      const result = await getOrganizerSummary(db, organizer)
+      expect(result.events.length).toBeGreaterThan(0)
+      expect(result.events.every((e) => e.organizerPaymentsReady === expected)).toBe(true)
+    })
+
+    it("admin sees each event's owner flag, not their own", async () => {
+      const { db, organizer, eventA, eventB } = await setup()
+      await db.update(users).set({ stripeAccountId: "acct_1", stripeChargesEnabled: true }).where(eq(users.id, organizer.id))
+      const [other] = await db
+        .insert(users)
+        .values({ clerkUserId: "clerk_noacct", email: "na@example.com", fullName: "N", role: "organizer" })
+        .returning()
+      await db.update(events).set({ organizerId: other.id }).where(eq(events.id, eventB.id))
+      const [admin] = await db
+        .insert(users)
+        .values({
+          clerkUserId: "clerk_admin_ready",
+          email: "ar@example.com",
+          fullName: "A",
+          role: "admin",
+          stripeAccountId: "acct_admin",
+          stripeChargesEnabled: true,
+        })
+        .returning()
+
+      const { events: list } = await getOrganizerSummary(db, admin)
+      expect(list.find((e) => e.id === eventA.id)?.organizerPaymentsReady).toBe(true)
+      expect(list.find((e) => e.id === eventB.id)?.organizerPaymentsReady).toBe(false)
+    })
+  })
+
+  it("exposes organizerId on every event", async () => {
+    const { db, organizer } = await setup()
+    const { events: list } = await getOrganizerSummary(db, organizer)
+    expect(list.every((e) => e.organizerId === organizer.id)).toBe(true)
+  })
+
   describe("scope", () => {
     const EMPTY = { totalTicketsSold: 0, totalRevenue: 0, publishedEventsCount: 0, publishedEvents: [], events: [] }
 
