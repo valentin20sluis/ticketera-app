@@ -25,6 +25,7 @@ import {
 } from "@/modules/organizer/utils/event-permissions";
 import { buildUniqueSlug } from "@/modules/organizer/utils/event-slug";
 import { parseLimaDateTime } from "@/modules/organizer/utils/lima-time";
+import { DEFAULT_SEAT_CAPACITY, DEFAULT_SEAT_LAYOUT } from "@/modules/ticketing/types/seat.types";
 import { buildStackedZoneShape } from "@/modules/organizer/utils/zone-shape";
 
 // Only these messages are safe to show to the user; any other error stays generic.
@@ -98,7 +99,9 @@ async function insertFunction(tx: Tx, eventId: string, venueId: string, fn: Func
           shapeY: shape.y,
           shapeWidth: shape.width,
           shapeHeight: shape.height,
-          capacity: zone.capacity,
+          capacity: DEFAULT_SEAT_CAPACITY,
+          seatRows: DEFAULT_SEAT_LAYOUT.rows,
+          seatColumns: DEFAULT_SEAT_LAYOUT.columns,
         };
       }),
     )
@@ -109,7 +112,7 @@ async function insertFunction(tx: Tx, eventId: string, venueId: string, fn: Func
       venueZoneId: createdZones[index].id,
       price: zone.price.toFixed(2),
       currency: DEFAULT_CURRENCY,
-      capacity: zone.capacity,
+      capacity: DEFAULT_SEAT_CAPACITY,
     })),
   );
 }

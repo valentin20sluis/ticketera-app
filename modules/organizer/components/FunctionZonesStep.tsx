@@ -6,6 +6,7 @@ import type {
   FunctionValues,
   ZoneRowValues,
 } from "@/modules/organizer/hooks/useCreateEventForm"
+import { DEFAULT_SEAT_CAPACITY } from "@/modules/ticketing/types/seat.types"
 import { MAX_EVENT_FUNCTIONS } from "@/modules/organizer/schemas/create-event.schema"
 import { buildStackedZoneShape } from "@/modules/organizer/utils/zone-shape"
 
@@ -44,8 +45,8 @@ export function FunctionZonesStep({
           id: String(index),
           name: zone.name,
           price: zone.price,
-          capacity: zone.capacity,
-          available: zone.capacity,
+          capacity: DEFAULT_SEAT_CAPACITY,
+          available: DEFAULT_SEAT_CAPACITY,
           shape: buildStackedZoneShape(index, fn.zones.length),
           status: "available",
         }))
@@ -105,7 +106,7 @@ export function FunctionZonesStep({
                 const id = `${fnIndex}-${index}`
                 return (
                   <div key={index} className="flex flex-col gap-3 rounded-lg border border-border p-3">
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div className="flex flex-col gap-1.5">
                         <label htmlFor={`zone-name-${id}`} className="text-sm font-medium text-foreground">
                           Nombre
@@ -124,26 +125,6 @@ export function FunctionZonesStep({
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-1.5">
-                        <label
-                          htmlFor={`zone-capacity-${id}`}
-                          className="text-sm font-medium text-foreground"
-                        >
-                          Capacidad
-                        </label>
-                        <Input
-                          className="h-10"
-                          id={`zone-capacity-${id}`}
-                          type="number"
-                          value={zone.capacity}
-                          onChange={(event) =>
-                            onZoneFieldChange(fnIndex, index, "capacity", event.target.value)
-                          }
-                        />
-                        {errors[`${zonePrefix}.capacity`] && (
-                          <p className="text-sm text-destructive">{errors[`${zonePrefix}.capacity`]}</p>
-                        )}
-                      </div>
 
                       <div className="flex flex-col gap-1.5">
                         <label

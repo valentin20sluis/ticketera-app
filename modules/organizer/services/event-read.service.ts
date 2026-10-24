@@ -103,7 +103,6 @@ export async function getEventForEdit(
         .select({
           functionId: functionZones.functionId,
           name: venueZones.name,
-          capacity: functionZones.capacity,
           price: functionZones.price,
         })
         .from(functionZones)
@@ -134,7 +133,7 @@ export async function getEventForEdit(
         startsAt: formatLimaDateTime(fn.startsAt),
         zones: zoneRows
           .filter((zone) => zone.functionId === fn.id)
-          .map(({ name, capacity, price }) => ({ name, capacity, price: Number(price) })),
+          .map(({ name, price }) => ({ name, price: Number(price) })),
       })),
     },
   };

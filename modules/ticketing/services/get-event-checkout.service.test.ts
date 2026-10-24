@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { seedEventCatalog } from "@/lib/db/seed/event-catalog";
 import { createTestDb } from "@/lib/db/test-helpers";
-import { eventFunctions, events, functionZones, orderItems, orders, users } from "@/lib/db/schema";
+import { eventFunctions, events, functionZones, orderItemSeats, orderItems, orders, users, venueZones } from "@/lib/db/schema";
 import { MOCK_EVENTS } from "@/modules/events/data/events.mock";
 import { getCheckoutEventBySlug } from "./get-event-checkout.service";
 import { createPendingOrder } from "./order.service";
@@ -97,6 +97,42 @@ describe("getCheckoutEventBySlug", () => {
 
     const result = await getCheckoutEventBySlug(db, SLUG);
     expect(result?.zones.find((z) => z.id === fz.id)?.available).toBe(fz.capacity - 5);
+  });
+
+  it("attaches seatLayout and takenSeats only to numbered zones (AC9)", async () => {
+    const { db, fn } = await setup();
+    const [fz, standing] = await db.select().from(functionZones).where(eq(functionZones.functionId, fn.id));
+    await db
+      .update(venueZones)
+      .set({ seatRows: 2, seatColumns: 5, capacity: 10 })
+      .where(eq(venueZones.id, fz.venueZoneId));
+    const [customer] = await db
+      .insert(users)
+      .values({ clerkUserId: "clerk_seat", email: "s@example.com", fullName: "S", role: "customer" })
+      .returning();
+    const [order] = await db
+      .insert(orders)
+      .values({
+        customerId: customer.id,
+        status: "pending",
+        totalAmount: "10.00",
+        currency: "PEN",
+        expiresAt: new Date(Date.now() + 600_000),
+      })
+      .returning();
+    const [item] = await db
+      .insert(orderItems)
+      .values({ orderId: order.id, functionZoneId: fz.id, quantity: 1, unitPrice: "10.00" })
+      .returning();
+    await db.insert(orderItemSeats).values({ orderItemId: item.id, functionZoneId: fz.id, seatRow: 2, seatNumber: 4 });
+
+    const result = await getCheckoutEventBySlug(db, SLUG);
+    const numbered = result?.zones.find((z) => z.id === fz.id);
+    expect(numbered?.seatLayout).toEqual({ rows: 2, columns: 5 });
+    expect(numbered?.takenSeats).toEqual([{ row: 2, number: 4 }]);
+    const plain = result?.zones.find((z) => z.id === standing.id);
+    expect(plain?.seatLayout).toBeUndefined();
+    expect(plain?.takenSeats).toBeUndefined();
   });
 
   it("picks the nearest upcoming function", async () => {

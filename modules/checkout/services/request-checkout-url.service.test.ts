@@ -31,6 +31,11 @@ describe("requestCheckoutUrl", () => {
     expect(await requestCheckoutUrl(input)).toEqual({ ok: false, error })
   })
 
+  it("409 con seat_taken se mapea a seat_taken", async () => {
+    mockFetch(409, { error: "seat_taken" })
+    expect(await requestCheckoutUrl(input)).toEqual({ ok: false, error: "seat_taken" })
+  })
+
   it("error de red es unknown", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("net")))
     expect(await requestCheckoutUrl(input)).toEqual({ ok: false, error: "unknown" })

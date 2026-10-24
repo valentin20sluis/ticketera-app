@@ -11,6 +11,7 @@ import {
   doublePrecision,
   index,
   check,
+  unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -89,11 +90,18 @@ export const venueZones = pgTable(
     shapeWidth: doublePrecision("shape_width").notNull(),
     shapeHeight: doublePrecision("shape_height").notNull(),
     capacity: integer("capacity").notNull(),
+    // Both null = standing zone; both set = numbered zone (rows x columns grid).
+    seatRows: integer("seat_rows"),
+    seatColumns: integer("seat_columns"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     venueIdx: index("venue_zones_venue_idx").on(table.venueId),
     capacityNonNegative: check("venue_zones_capacity_non_negative", sql`${table.capacity} >= 0`),
+    seatLayoutValid: check(
+      "venue_zones_seat_layout_valid",
+      sql`(${table.seatRows} is null and ${table.seatColumns} is null) or (${table.seatRows} is not null and ${table.seatColumns} is not null and ${table.seatRows} > 0 and ${table.seatColumns} > 0 and ${table.capacity} = ${table.seatRows} * ${table.seatColumns})`,
+    ),
   }),
 );
 
@@ -195,6 +203,23 @@ export const orderItems = pgTable(
   }),
 );
 
+export const orderItemSeats = pgTable(
+  "order_item_seats",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderItemId: uuid("order_item_id").notNull().references(() => orderItems.id),
+    functionZoneId: uuid("function_zone_id").notNull().references(() => functionZones.id),
+    seatRow: integer("seat_row").notNull(),
+    seatNumber: integer("seat_number").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    orderItemIdx: index("order_item_seats_order_item_idx").on(table.orderItemId),
+    seatUnique: unique("order_item_seats_zone_seat_unique").on(table.functionZoneId, table.seatRow, table.seatNumber),
+    seatPositive: check("order_item_seats_positive", sql`${table.seatRow} > 0 and ${table.seatNumber} > 0`),
+  }),
+);
+
 export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email", { length: 254 }).notNull().unique(),
@@ -206,6 +231,7 @@ export const tickets = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orderItemId: uuid("order_item_id").notNull().references(() => orderItems.id),
+    orderItemSeatId: uuid("order_item_seat_id").unique().references(() => orderItemSeats.id),
     qrCode: varchar("qr_code", { length: 255 }).notNull().unique(),
     status: ticketStatusEnum("status").notNull().default("valid"),
     checkedInAt: timestamp("checked_in_at", { withTimezone: true }),

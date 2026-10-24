@@ -11,6 +11,7 @@ const ERROR_MESSAGES = {
     "No hay cupo suficiente para tu selección. Ajusta las cantidades e inténtalo de nuevo.",
   multiple_events: "Solo puedes comprar entradas de un evento a la vez.",
   organizer_payments_unavailable: "La venta de este evento no está disponible por ahora.",
+  seat_taken: "Alguien tomó uno de tus asientos. Elige otros.",
   unknown: "No pudimos iniciar el pago. Inténtalo nuevamente.",
 }
 
@@ -24,7 +25,11 @@ export function useCheckoutPayment(lines: TicketSelectionLine[]) {
     setIsLoading(true)
     setError(null)
     const result = await requestCheckoutUrl({
-      items: lines.map((line) => ({ functionZoneId: line.zoneId, quantity: line.quantity })),
+      items: lines.map((line) =>
+        line.seats
+          ? { functionZoneId: line.zoneId, seats: line.seats }
+          : { functionZoneId: line.zoneId, quantity: line.quantity },
+      ),
     })
 
     if (result.ok) {
@@ -35,6 +40,8 @@ export function useCheckoutPayment(lines: TicketSelectionLine[]) {
       router.push("/ingresar")
       return
     }
+    // Reload server data so takenSeats reflect the conflict; selection is kept client-side.
+    if (result.error === "seat_taken") router.refresh()
     setError(ERROR_MESSAGES[result.error])
     setIsLoading(false)
   }

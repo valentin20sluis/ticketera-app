@@ -3,6 +3,7 @@ import {
   eventFunctions,
   events,
   functionZones,
+  orderItemSeats,
   orderItems,
   orders,
   tickets,
@@ -10,6 +11,7 @@ import {
   venues,
 } from "@/lib/db/schema"
 import type { Db } from "@/lib/db/client"
+import { formatSeat } from "@/modules/ticketing/utils/seat-label"
 import type { ConfirmedOrder, OrderTicket } from "@/modules/checkout/types/checkout.types"
 
 export async function getPaidOrdersForUser(db: Db, userId: string): Promise<ConfirmedOrder[]> {
@@ -47,17 +49,26 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
       qrCode: tickets.qrCode,
       status: tickets.status,
       checkedInAt: tickets.checkedInAt,
+      seatRow: orderItemSeats.seatRow,
+      seatNumber: orderItemSeats.seatNumber,
     })
     .from(tickets)
+    .leftJoin(orderItemSeats, eq(orderItemSeats.id, tickets.orderItemSeatId))
     .where(inArray(tickets.orderItemId, rows.map((r) => r.itemId)))
     .orderBy(tickets.createdAt, tickets.qrCode)
 
   const ticketsByItem = new Map<string, OrderTicket[]>()
+  const seatByItem = new Map<string, (string | null)[]>()
   for (const t of ticketRows) {
     ticketsByItem.set(t.orderItemId, [
       ...(ticketsByItem.get(t.orderItemId) ?? []),
       { qrCode: t.qrCode, status: t.status, checkedInAt: t.checkedInAt?.toISOString() ?? null },
     ])
+    const seat =
+      t.seatRow != null && t.seatNumber != null
+        ? formatSeat({ row: t.seatRow, number: t.seatNumber })
+        : null
+    seatByItem.set(t.orderItemId, [...(seatByItem.get(t.orderItemId) ?? []), seat])
   }
 
   // Una orden pertenece a un solo evento: el evento se toma del primer order_item.
@@ -78,6 +89,7 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
         totalAmount: Number(r.totalAmount),
         invoiceUrl: r.invoiceUrl ?? undefined,
         tickets: [],
+        ticketSeats: [],
       }
       byOrder.set(r.orderId, order)
     }
@@ -90,6 +102,7 @@ export async function getPaidOrdersForUser(db: Db, userId: string): Promise<Conf
     })
     order.totalQuantity += r.quantity
     order.tickets = [...(order.tickets ?? []), ...(ticketsByItem.get(r.itemId) ?? [])]
+    order.ticketSeats = [...(order.ticketSeats ?? []), ...(seatByItem.get(r.itemId) ?? [])]
   }
 
   return [...byOrder.values()]

@@ -32,7 +32,7 @@ function buildInitialDetails(): EventDetailsValues {
 }
 
 function buildInitialZoneRow(): ZoneRowValues {
-  return { name: "", capacity: 0, price: 0 };
+  return { name: "", price: 0 };
 }
 
 function buildInitialVenue(): VenueStepValues {
@@ -44,7 +44,6 @@ function buildInitialFunction(): FunctionValues {
 }
 
 const NUMERIC_VENUE_FIELDS = new Set<keyof NewVenueValues>(["lat", "lng"]);
-const NUMERIC_ZONE_FIELDS = new Set<keyof ZoneRowValues>(["capacity", "price"]);
 
 export interface UseCreateEventFormResult {
   step: CreateEventStep;
@@ -174,8 +173,7 @@ export function useCreateEventForm(initialValues?: CreateEventFormValues): UseCr
             return zone;
           }
 
-          const nextValue = NUMERIC_ZONE_FIELDS.has(field) ? Number(value) : value;
-          return { ...zone, [field]: nextValue } as ZoneRowValues;
+          return { ...zone, [field]: field === "price" ? Number(value) : value };
         }),
       }));
     },

@@ -40,9 +40,9 @@ export const venueStepSchema = z.discriminatedUnion("mode", [
   }),
 ]);
 
+// Layout and capacity are not form fields: the server forces DEFAULT_SEAT_LAYOUT on every zone.
 export const zoneRowSchema = z.object({
   name: z.string().trim().min(2, "Ingresa un nombre de al menos 2 caracteres"),
-  capacity: z.coerce.number().int().positive("La capacidad debe ser un número positivo"),
   price: z.coerce.number().min(0, "El precio no puede ser negativo"),
 });
 

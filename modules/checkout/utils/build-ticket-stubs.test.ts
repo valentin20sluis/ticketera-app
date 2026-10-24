@@ -16,6 +16,17 @@ describe("buildTicketStubs", () => {
     ])
   })
 
+  it("adds the seat only to stubs that have one", () => {
+    const stubs = buildTicketStubs(
+      [{ zoneId: "vip", zoneName: "VIP", price: 150, quantity: 3, subtotal: 450 }],
+      ["Fila B · Asiento 7", null],
+    )
+
+    expect(stubs[0].seat).toBe("Fila B · Asiento 7")
+    expect(stubs[1]).not.toHaveProperty("seat")
+    expect(stubs[2]).not.toHaveProperty("seat")
+  })
+
   it("returns an empty array when there are no lines", () => {
     expect(buildTicketStubs([])).toEqual([])
   })

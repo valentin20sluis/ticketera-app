@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { useCreateEventForm } from "./useCreateEventForm";
 
-const blankZone = { name: "", capacity: 0, price: 0 };
+const blankZone = { name: "", price: 0 };
 
 function fillValidDetails(result: { current: ReturnType<typeof useCreateEventForm> }, imageUrl: string) {
   result.current.updateDetailsField("title", "Concierto de rock");
@@ -74,13 +74,12 @@ describe("useCreateEventForm", () => {
       result.current.addFunction();
       result.current.addZoneRow(1);
       result.current.updateZoneRow(1, 1, "name", "VIP");
-      result.current.updateZoneRow(1, 1, "capacity", "50");
       result.current.updateZoneRow(1, 1, "price", "99.5");
     });
 
     expect(result.current.values.functions[1].zones).toEqual([
       blankZone,
-      { name: "VIP", capacity: 50, price: 99.5 },
+      { name: "VIP", price: 99.5 },
     ]);
     expect(result.current.values.functions[0].zones).toEqual([blankZone]);
   });
@@ -99,7 +98,7 @@ describe("useCreateEventForm", () => {
     });
 
     expect(result.current.values.functions[0].zones).toEqual([
-      { name: "VIP", capacity: 0, price: 0 },
+      { name: "VIP", price: 0 },
     ]);
   });
 
@@ -185,7 +184,7 @@ describe("useCreateEventForm", () => {
     });
 
     expect(isValid).toBe(false);
-    expect(result.current.errors["functions.0.zones.0.capacity"]).toBeDefined();
+    expect(result.current.errors["functions.0.zones.0.name"]).toBeDefined();
     expect(result.current.errors["functions.1.startsAt"]).toBeDefined();
   });
 });
@@ -205,8 +204,8 @@ describe("useCreateEventForm with initial values", () => {
       },
       venue: { mode: "existing" as const, venueId: "v1" },
       functions: [
-        { startsAt: "2099-01-01T20:00", zones: [{ name: "VIP", capacity: 5, price: 10 }] },
-        { startsAt: "2099-01-02T20:00", zones: [{ name: "General", capacity: 50, price: 5 }] },
+        { startsAt: "2099-01-01T20:00", zones: [{ name: "VIP", price: 10 }] },
+        { startsAt: "2099-01-02T20:00", zones: [{ name: "General", price: 5 }] },
       ],
     };
     const { result } = renderHook(() => useCreateEventForm(initial));

@@ -47,6 +47,12 @@ describe("getEventForEdit", () => {
     expect(await getEventForEdit(db, admin, event.id)).not.toBeNull()
   })
 
+  it("returns only name and price per zone (layout and capacity are fixed server-side)", async () => {
+    const { db, orgA, event } = await setup()
+    const zones = (await getEventForEdit(db, orgA, event.id))!.values.functions[0].zones
+    for (const zone of zones) expect(Object.keys(zone).sort()).toEqual(["name", "price"])
+  })
+
   it("returns featured from the column", async () => {
     const { db, orgA, event } = await setup()
     expect((await getEventForEdit(db, orgA, event.id))?.featured).toBe(false)

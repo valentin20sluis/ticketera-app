@@ -11,7 +11,9 @@ import {
   attachCheckoutSession,
   createPendingOrder,
   InsufficientStockError,
+  InvalidOrderError,
   markOrderExpired,
+  SeatTakenError,
 } from "@/modules/ticketing/services/order.service";
 import { getCurrentUser } from "@/modules/users/services/current-user.service";
 
@@ -56,6 +58,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof InsufficientStockError) {
       return NextResponse.json({ error: "insufficient_stock" }, { status: 409 });
+    }
+    if (error instanceof SeatTakenError) {
+      return NextResponse.json({ error: "seat_taken" }, { status: 409 });
+    }
+    if (error instanceof InvalidOrderError) {
+      return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
     }
     throw error;
   }

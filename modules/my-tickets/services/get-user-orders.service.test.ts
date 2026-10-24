@@ -6,6 +6,7 @@ import {
   eventFunctions,
   events,
   functionZones,
+  orderItemSeats,
   orderItems,
   orders,
   tickets,
@@ -177,6 +178,31 @@ describe("getPaidOrdersForUser", () => {
     const [result] = await getPaidOrdersForUser(db, me.id)
 
     expect(result.lines.map((l) => l.zoneId)).toEqual(expected)
+  })
+
+  it("fills ticketSeats with the formatted seat or null, aligned with tickets", async () => {
+    const db = await createTestDb()
+    const { zones } = await seedCatalog(db)
+    const me = await newUser(db)
+    const { order: o, qrs } = await placeOrder(db, me.id, "paid", [
+      { functionZoneId: zones[0].id, quantity: 2, unitPrice: "100.00" },
+      { functionZoneId: zones[1].id, quantity: 1, unitPrice: "50.00" },
+    ])
+    const [item] = await db.select().from(orderItems).where(eq(orderItems.functionZoneId, zones[0].id))
+    const [seat] = await db
+      .insert(orderItemSeats)
+      .values({ orderItemId: item.id, functionZoneId: zones[0].id, seatRow: 2, seatNumber: 7 })
+      .returning()
+    await db.update(tickets).set({ orderItemSeatId: seat.id }).where(eq(tickets.qrCode, qrs[0][0]))
+
+    const [order] = await getPaidOrdersForUser(db, me.id)
+
+    expect(o.id).toBeDefined()
+    expect(order.ticketSeats).toHaveLength(3)
+    expect(order.ticketSeats!.filter((s) => s === "Fila B · Asiento 7")).toHaveLength(1)
+    expect(order.ticketSeats!.filter((s) => s === null)).toHaveLength(2)
+    const idx = order.tickets!.findIndex((t) => t.qrCode === qrs[0][0])
+    expect(order.ticketSeats![idx]).toBe("Fila B · Asiento 7")
   })
 
   it("aligns tickets with buildTicketStubs numbering across lines", async () => {

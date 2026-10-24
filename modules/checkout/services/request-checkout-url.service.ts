@@ -4,6 +4,7 @@ export type CheckoutRequestError =
   | "unauthorized"
   | "insufficient_stock"
   | "multiple_events"
+  | "seat_taken"
   | "organizer_payments_unavailable"
   | "unknown"
 
@@ -42,7 +43,10 @@ export async function requestCheckoutUrl(
       // 409 sin código reconocido sigue siendo falta de cupo (compatibilidad)
       return {
         ok: false,
-        error: code === "organizer_payments_unavailable" ? code : "insufficient_stock",
+        error:
+          code === "organizer_payments_unavailable" || code === "seat_taken"
+            ? code
+            : "insufficient_stock",
       }
     }
     return { ok: false, error: "unknown" }

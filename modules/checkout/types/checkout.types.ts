@@ -20,4 +20,6 @@ export interface ConfirmedOrder {
   totalAmount: number
   invoiceUrl?: string
   tickets?: OrderTicket[] // tickets[n-1] <-> stub n de buildTicketStubs
+  /** Parallel to tickets: formatSeat() text or null for standing tickets. */
+  ticketSeats?: (string | null)[]
 }

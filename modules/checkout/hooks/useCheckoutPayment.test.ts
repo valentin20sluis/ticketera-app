@@ -4,8 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { useCheckoutPayment } from "./useCheckoutPayment"
 
 const push = vi.fn()
+const refresh = vi.fn()
 const requestCheckoutUrl = vi.fn()
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }))
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }))
 vi.mock("@/modules/checkout/services/request-checkout-url.service", () => ({
   requestCheckoutUrl: (...args: unknown[]) => requestCheckoutUrl(...args),
 }))
@@ -27,6 +28,23 @@ describe("useCheckoutPayment", () => {
       items: [{ functionZoneId: "z1", quantity: 2 }],
     })
     expect(assign).toHaveBeenCalledWith("https://stripe.test/s")
+  })
+
+  it("envía asientos para zonas numeradas", async () => {
+    requestCheckoutUrl.mockResolvedValue({ ok: true, url: "https://stripe.test/s" })
+    const seats = [{ row: 2, number: 7 }]
+    const { result } = renderHook(() => useCheckoutPayment([{ ...lines[0], seats }]))
+    await act(() => result.current.pay())
+    expect(requestCheckoutUrl).toHaveBeenCalledWith({ items: [{ functionZoneId: "z1", seats }] })
+  })
+
+  it("seat_taken muestra mensaje y recarga los ocupados", async () => {
+    requestCheckoutUrl.mockResolvedValue({ ok: false, error: "seat_taken" })
+    const { result } = renderHook(() => useCheckoutPayment(lines))
+    await act(() => result.current.pay())
+    expect(result.current.error).toMatch(/asientos/)
+    expect(refresh).toHaveBeenCalled()
+    expect(result.current.isLoading).toBe(false)
   })
 
   it("401 va a /ingresar", async () => {

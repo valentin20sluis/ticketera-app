@@ -60,16 +60,14 @@ describe("venueStepSchema", () => {
 });
 
 describe("zoneRowSchema", () => {
-  it("rechaza capacity 0", () => {
-    const result = zoneRowSchema.safeParse({ name: "General", capacity: 0, price: 10 });
-
-    expect(result.success).toBe(false);
+  it("rechaza price negativo", () => {
+    expect(zoneRowSchema.safeParse({ name: "General", price: -1 }).success).toBe(false);
   });
 
-  it("rechaza price negativo", () => {
-    const result = zoneRowSchema.safeParse({ name: "General", capacity: 10, price: -1 });
+  it("no pide ni conserva capacity ni layout", () => {
+    const result = zoneRowSchema.safeParse({ name: "General", price: 10, capacity: 5, seatRows: 4, seatColumns: 5 });
 
-    expect(result.success).toBe(false);
+    expect(result.success && result.data).toEqual({ name: "General", price: 10 });
   });
 });
 
@@ -129,7 +127,7 @@ describe("functionZonesStepSchema", () => {
   it("acepta una zona válida", () => {
     const result = functionZonesStepSchema.safeParse({
       startsAt: "2026-05-10T19:00",
-      zones: [{ name: "General", capacity: 100, price: 50 }],
+      zones: [{ name: "General", price: 50 }],
     });
 
     expect(result.success).toBe(true);

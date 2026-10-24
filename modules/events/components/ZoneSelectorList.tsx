@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatPrice } from "@/lib/format-currency"
 import { cn } from "@/lib/utils"
+import type { SeatRef } from "@/modules/ticketing/types/seat.types"
+import { seatLabel } from "@/modules/ticketing/utils/seat-label"
 import type {
   VenueZone,
   ZoneSelectionStatus,
@@ -14,6 +16,7 @@ interface ZoneSelectorListZone extends VenueZone {
   status: ZoneSelectionStatus
   quantity: number
   maxQuantity: number
+  seats?: SeatRef[]
 }
 
 interface ZoneSelectorListProps {
@@ -21,6 +24,7 @@ interface ZoneSelectorListProps {
   activeZoneId: string | null
   onIncrement: (zoneId: string) => void
   onDecrement: (zoneId: string) => void
+  onSelectZone: (zoneId: string) => void
 }
 
 export function ZoneSelectorList({
@@ -28,6 +32,7 @@ export function ZoneSelectorList({
   activeZoneId,
   onIncrement,
   onDecrement,
+  onSelectZone,
 }: ZoneSelectorListProps) {
   return (
     <Card>
@@ -52,8 +57,27 @@ export function ZoneSelectorList({
                 <span className="text-sm text-muted-foreground">
                   {formatPrice(zone.price)}
                 </span>
+                {zone.seats && zone.seats.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {zone.seats.map((seat) => (
+                      <Badge key={seatLabel(seat)} variant="secondary">
+                        {seatLabel(seat)}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
 
+              {zone.seatLayout ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isSoldOut}
+                  onClick={() => onSelectZone(zone.id)}
+                >
+                  Elegir asientos
+                </Button>
+              ) : (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -77,6 +101,7 @@ export function ZoneSelectorList({
                   <PlusIcon />
                 </Button>
               </div>
+              )}
             </div>
           )
         })}
