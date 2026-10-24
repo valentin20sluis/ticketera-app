@@ -1,6 +1,6 @@
 # Mapa del venue en el detalle del evento
 
-Estado: aprobada
+Estado: done
 
 ## Objetivo
 

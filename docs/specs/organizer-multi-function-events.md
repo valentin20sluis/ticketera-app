@@ -1,6 +1,6 @@
 # Eventos con varias funciones en el asistente de organizador
 
-Estado: aprobada
+Estado: done
 
 ## Objetivo
 

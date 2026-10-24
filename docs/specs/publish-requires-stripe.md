@@ -1,6 +1,6 @@
 # Bloquear la publicación de eventos sin Stripe conectado
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # Organizer Events CRUD
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # Stripe Connect: onboarding del organizador
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

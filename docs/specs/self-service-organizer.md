@@ -1,6 +1,6 @@
 # Autoservicio: de customer a organizer
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

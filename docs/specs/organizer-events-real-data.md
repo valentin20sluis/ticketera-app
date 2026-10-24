@@ -1,6 +1,6 @@
 # Organizer Events Real Data
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

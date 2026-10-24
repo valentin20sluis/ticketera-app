@@ -1,6 +1,6 @@
 # Stripe Real Data
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

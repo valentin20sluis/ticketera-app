@@ -1,6 +1,6 @@
 # Stripe Connect: comisión de plataforma y pago al organizador (destination charge)
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # Newsletter Subscribers
 
-Estado: aprobada
+Estado: done
 
 ## Objetivo
 
