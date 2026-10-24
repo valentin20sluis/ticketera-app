@@ -1,6 +1,6 @@
 # Featured Events and Public Catalog with Real Data
 
-Estado: aprobada
+Estado: done
 
 ## Objetivo
 

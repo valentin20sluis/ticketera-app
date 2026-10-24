@@ -1,6 +1,6 @@
 # Event Detail with Real Data
 
-Estado: aprobada
+Estado: done
 
 ## Objetivo
 

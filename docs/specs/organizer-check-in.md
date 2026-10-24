@@ -1,6 +1,6 @@
 # Organizer check-in (QR)
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

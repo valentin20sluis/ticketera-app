@@ -1,8 +1,18 @@
-# next-js-template
+# Ticketera App
 
-Template base de Next.js para arrancar proyectos con una estructura modular por dominio, buenas prácticas definidas y un flujo de desarrollo asistido por agentes de Claude Code basado en **Spec Driven Development (SDD)**.
+Plataforma de venta de entradas para eventos. Los **clientes** descubren eventos, eligen zona, pagan con Stripe y reciben sus entradas con código QR; los **organizadores** publican eventos, cobran con Stripe Connect y controlan el acceso con un escáner QR; los **administradores** gestionan usuarios y organizadores.
 
-No está orientado a ningún sector de negocio: trae la base técnica, las reglas y el flujo de trabajo, y cada proyecto agrega sus propios módulos de dominio.
+Es un proyecto demo, desarrollado con un flujo asistido por agentes de Claude Code basado en **Spec Driven Development (SDD)** (ver más abajo).
+
+## Qué incluye
+
+| Área | Qué hay |
+|---|---|
+| Público | Landing con hero, catálogo con filtros por categoría, detalle del evento con mapa y "Cómo llegar", newsletter |
+| Compra | Elección de zona y cantidad, checkout con Stripe (Checkout Sessions + destination charges con comisión de plataforma), entradas con QR y PDF |
+| Cliente | `/mis-entradas` con el estado real de cada entrada; botón "Quiero vender entradas" para pasar a organizador |
+| Organizador | Panel con resumen, asistente de eventos (varias funciones por evento), onboarding de Stripe Connect y check-in con cámara |
+| Administración | Gestión de usuarios y organizadores, con suspensión de cuentas |
 
 ## Stack
 
@@ -10,24 +20,36 @@ No está orientado a ningún sector de negocio: trae la base técnica, las regla
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) + React 19 |
 | Lenguaje | TypeScript |
-| Estilos | Tailwind CSS v4 (sin `tailwind.config`, se configura en `app/globals.css`) |
-| UI | shadcn/ui estilo `base-nova` sobre **Base UI** (`@base-ui/react`, no Radix) |
-| Datos | `axios`, `@tanstack/react-query` v5, `@tanstack/react-table` v9 |
-| Validación / estado | `zod` v4, `zustand` v5 |
-| Testing | Vitest + Testing Library (jsdom) |
+| Estilos / UI | Tailwind CSS v4 (se configura en `app/globals.css`) y shadcn/ui estilo `base-nova` sobre **Base UI** (`@base-ui/react`, no Radix) |
+| Base de datos | PostgreSQL con **Drizzle ORM** (Neon en local; conexión Postgres/Cloud SQL configurable con `DATABASE_DRIVER`) |
+| Autenticación | **Clerk**; el rol (`customer`, `organizer`, `admin`, `super_admin`) vive en la tabla `users` |
+| Pagos | **Stripe**: Checkout, Connect (cuentas v2) y webhooks |
+| Validación | `zod` v4 |
+| Testing | Vitest + Testing Library (jsdom); las pruebas de base de datos usan PGlite |
+
+`axios`, `@tanstack/react-query`, `@tanstack/react-table` y `zustand` están instaladas pero todavía no se usan en el código.
 
 > Next.js 16 trae cambios incompatibles con versiones anteriores. La documentación correcta para esta versión está en `node_modules/next/dist/docs/`.
 
 ## Primeros pasos
 
-Requisitos: Node.js 22 o superior (recomendado 24).
+Requisitos: Node.js 22 o superior (recomendado 24), una base Postgres y cuentas de prueba de Clerk y Stripe.
 
 ```bash
 npm install
+cp .env.example .env     # completa las claves; cada variable está comentada
+npm run db:migrate       # aplica las migraciones de drizzle/
+npm run db:seed          # (opcional) carga un catálogo de ejemplo
 npm run dev
 ```
 
 Abre http://localhost:3000.
+
+Para recibir los webhooks de Stripe en local, deja corriendo `npm run stripe:listen` en otra terminal.
+
+### Variables de entorno
+
+Están descritas en `.env.example`: base de datos (`DATABASE_*`), Clerk (`*_CLERK_*`), Stripe (`STRIPE_*`, incluido `STRIPE_CONNECT_ACCOUNT_COUNTRY`), y la comisión de plataforma (`PLATFORM_FEE_PERCENT`).
 
 ## Scripts
 
@@ -39,6 +61,11 @@ Abre http://localhost:3000.
 | `npm run lint` | ESLint |
 | `npm run test` | Vitest en modo watch |
 | `npx vitest run <archivo>` | Corre un archivo de test una sola vez |
+| `npm run db:generate` | Genera una migración de Drizzle a partir de `lib/db/schema.ts` |
+| `npm run db:migrate` | Aplica las migraciones pendientes |
+| `npm run db:seed` | Carga el catálogo de ejemplo |
+| `npm run db:assign-events` | Asigna los eventos del seed a organizadores |
+| `npm run stripe:listen` | Reenvía los webhooks de Stripe a tu servidor local |
 
 ## Estructura del proyecto
 
@@ -47,11 +74,13 @@ app/                 # solo rutas del App Router (páginas, layouts, route handl
 components/
   ui/                # componentes shadcn/ui (generados por el CLI)
   shared/            # componentes reutilizables entre dominios
-modules/<domain>/    # un módulo por dominio: components, hooks, services, schemas, store, types
-lib/                 # utilidades transversales (cn, cliente http, query client)
+modules/<domain>/    # un módulo por dominio: components, hooks, services, schemas, actions, types
+lib/                 # utilidades transversales (cliente de base de datos, schema, Stripe)
+drizzle/             # migraciones generadas por drizzle-kit
+scripts/             # scripts de apoyo (seed, Stripe listen)
 docs/
   SETUP.md           # reglas del proyecto (fuente de verdad)
-  specs/             # specs generadas en el flujo SDD
+  specs/             # specs generadas en el flujo SDD (Estado: draft | approved | done)
 .claude/agents/      # agentes de Claude Code del flujo SDD
 ```
 

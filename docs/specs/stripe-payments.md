@@ -1,6 +1,6 @@
 # Stripe Payments
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

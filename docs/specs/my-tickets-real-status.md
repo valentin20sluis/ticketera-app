@@ -1,6 +1,6 @@
 # Estado real de las entradas en /mis-entradas
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 

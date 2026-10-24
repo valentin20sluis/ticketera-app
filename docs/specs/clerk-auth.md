@@ -1,6 +1,6 @@
 # Clerk Auth
 
-Estado: approved
+Estado: done
 
 ## Objetivo
 
