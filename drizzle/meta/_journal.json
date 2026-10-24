@@ -50,6 +50,13 @@
       "when": 1792773154931,
       "tag": "0006_newsletter_subscribers",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792800981658,
+      "tag": "0007_organizer_ruc",
+      "breakpoints": true
     }
   ]
 }
