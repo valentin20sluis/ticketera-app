@@ -24,6 +24,9 @@ export interface Event {
   description: string;
   venueName: string;
   city: string;
+  venueAddress?: string;
+  venueLat?: number;
+  venueLng?: number;
   startDate: string;
   imageUrl: string;
   priceFrom: number;

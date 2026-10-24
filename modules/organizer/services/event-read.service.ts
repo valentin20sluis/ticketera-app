@@ -19,11 +19,10 @@ import { formatLimaDateTime } from "@/modules/organizer/utils/lima-time";
 // A pool-backed db or a transaction of it.
 export type Tx = PgDatabase<PgQueryResultHKT, typeof schema>;
 
-export type StructureLock = { hasOrders: boolean; functionCount: number; locked: boolean };
+export type StructureLock = { hasOrders: boolean; locked: boolean };
 
 // Structure (venue, function, zones, prices, capacity) is frozen once any order
-// references the event's zones, or when the event has several functions (the
-// wizard only edits one).
+// references the event's zones.
 export async function getStructureLock(db: Db | Tx, eventId: string): Promise<StructureLock> {
   const functions = await db
     .select({ id: eventFunctions.id })
@@ -41,7 +40,7 @@ export async function getStructureLock(db: Db | Tx, eventId: string): Promise<St
       .limit(1);
     hasOrders = Boolean(row);
   }
-  return { hasOrders, functionCount: functions.length, locked: hasOrders || functions.length > 1 };
+  return { hasOrders, locked: hasOrders };
 }
 
 export function listCategories(db: Db) {
@@ -94,22 +93,22 @@ export async function getEventForEdit(
   if (!event || !canWriteEvent(actor, event, "edit")) return null;
 
   const lock = await getStructureLock(db, event.id);
-  const [fn] = await db
+  const fns = await db
     .select()
     .from(eventFunctions)
     .where(eq(eventFunctions.eventId, event.id))
-    .orderBy(asc(eventFunctions.startsAt))
-    .limit(1);
-  const zones = fn
+    .orderBy(asc(eventFunctions.startsAt));
+  const zoneRows = fns.length
     ? await db
         .select({
+          functionId: functionZones.functionId,
           name: venueZones.name,
           capacity: functionZones.capacity,
           price: functionZones.price,
         })
         .from(functionZones)
         .innerJoin(venueZones, eq(functionZones.venueZoneId, venueZones.id))
-        .where(eq(functionZones.functionId, fn.id))
+        .where(inArray(functionZones.functionId, fns.map((fn) => fn.id)))
         .orderBy(asc(venueZones.name))
     : [];
 
@@ -131,10 +130,12 @@ export async function getEventForEdit(
         admissionType: event.admissionType,
       },
       venue: { mode: "existing", venueId: event.venueId },
-      functionZones: {
-        startsAt: fn ? formatLimaDateTime(fn.startsAt) : "",
-        zones: zones.map((zone) => ({ ...zone, price: Number(zone.price) })),
-      },
+      functions: fns.map((fn) => ({
+        startsAt: formatLimaDateTime(fn.startsAt),
+        zones: zoneRows
+          .filter((zone) => zone.functionId === fn.id)
+          .map(({ name, capacity, price }) => ({ name, capacity, price: Number(price) })),
+      })),
     },
   };
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { cn } from "cn"
 
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthSession } from "@/modules/auth/hooks/useAuthSession"
+import { BecomeOrganizerDialog } from "@/modules/users/components/BecomeOrganizerDialog"
 import { ROLE_LABELS } from "@/modules/users/constants"
 import type { UserRole } from "@/modules/users/types/user.types"
 
@@ -40,6 +42,7 @@ function AccountIdentity({ name, email }: { name: string; email: string }) {
 
 export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
   const { session, logout } = useAuthSession()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const fullWidthClassName = variant === "mobile" ? "w-full" : undefined
 
   if (!session) {
@@ -68,9 +71,14 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
   const initials = getInitials(session.fullName, session.email)
   const isSuperAdmin = role === "super_admin"
   const roleLabel = role ? ROLE_LABELS[role] : null
+  const isCustomer = role === "customer"
+  const becomeOrganizerDialog = confirmOpen && (
+    <BecomeOrganizerDialog onClose={() => setConfirmOpen(false)} />
+  )
 
   if (variant === "mobile") {
     return (
+      <>
       <div className="flex w-full flex-col gap-3">
         <div className="flex items-center gap-2 px-1">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground">
@@ -87,14 +95,24 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
         >
           Mis entradas
         </Button>
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          nativeButton={false}
-          render={<Link href="/organizador" />}
-        >
-          Vender entradas
-        </Button>
+        {isCustomer ? (
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => setConfirmOpen(true)}
+          >
+            Quiero vender entradas
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            nativeButton={false}
+            render={<Link href="/organizador" />}
+          >
+            Vender entradas
+          </Button>
+        )}
         {isSuperAdmin && (
           <Button
             variant="outline"
@@ -109,10 +127,13 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
           Cerrar sesión
         </Button>
       </div>
+      {becomeOrganizerDialog}
+      </>
     )
   }
 
   return (
+    <>
     <div className="flex items-center gap-2">
       {roleLabel && <Badge variant="outline">{roleLabel}</Badge>}
       <DropdownMenu>
@@ -127,7 +148,13 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
             <AccountIdentity name={displayName} email={session.email} />
           </div>
           <DropdownMenuItem render={<Link href="/mis-entradas" />}>Mis entradas</DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
+          {isCustomer ? (
+            <DropdownMenuItem onClick={() => setConfirmOpen(true)}>
+              Quiero vender entradas
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem render={<Link href="/organizador" />}>Vender entradas</DropdownMenuItem>
+          )}
           {isSuperAdmin && (
             <DropdownMenuItem render={<Link href="/super-admin" />}>Administrar</DropdownMenuItem>
           )}
@@ -135,5 +162,7 @@ export function AuthNavSection({ variant, role }: AuthNavSectionProps) {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+    {becomeOrganizerDialog}
+    </>
   )
 }

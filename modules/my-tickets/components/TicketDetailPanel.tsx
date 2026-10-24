@@ -7,13 +7,14 @@ import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, MapPinIcon } from "luc
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import { useAuthSession } from "@/modules/auth/hooks/useAuthSession"
 import type { ConfirmedOrder } from "@/modules/checkout/types/checkout.types"
 import { buildTicketStubs } from "@/modules/checkout/utils/build-ticket-stubs"
 import { downloadCalendarFile } from "@/modules/checkout/utils/generate-calendar-file"
 import { generateTicketsPdf } from "@/modules/checkout/utils/generate-tickets-pdf"
-import { getOrderStatus } from "@/modules/my-tickets/utils/get-order-status"
 import { getTicketCode } from "@/modules/my-tickets/utils/get-ticket-code"
+import { formatCheckedInAt } from "@/modules/my-tickets/utils/ticket-status"
 import {
   formatEventDateBadge,
   formatEventTime,
@@ -39,7 +40,9 @@ export function TicketDetailPanel({
   const stub = stubs[ticketNumber - 1]
   const { month, day } = formatEventDateBadge(order.startDate)
   const holderName = session?.fullName ?? session?.email ?? "Invitado"
-  const statusLabel = getOrderStatus(order.startDate) === "upcoming" ? "Válida" : "Usada"
+  const ticket = order.tickets?.[ticketNumber - 1]
+  const isUsed = ticket?.status === "used"
+  const statusLabel = isUsed ? "Usada" : "Válida"
 
   const handleDownloadPdf = async () => {
     const qrElement = panelRef.current?.querySelector<SVGSVGElement>("[data-qr-code] svg")
@@ -57,9 +60,8 @@ export function TicketDetailPanel({
     }
   }
 
-  const realQrCode = order.ticketQrCodes?.[ticketNumber - 1]
-  const fullCode = realQrCode ?? getTicketCode(order.orderNumber, ticketNumber)
-  const shownCode = realQrCode ? realQrCode.slice(0, 8).toUpperCase() : fullCode
+  const fullCode = ticket?.qrCode ?? getTicketCode(order.orderNumber, ticketNumber)
+  const shownCode = ticket ? ticket.qrCode.slice(0, 8).toUpperCase() : fullCode
 
   return (
     <div ref={panelRef}>
@@ -124,13 +126,15 @@ export function TicketDetailPanel({
           </div>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-            <div data-qr-code>
-              <QRCodeSVG
-                value={
-                  order.ticketQrCodes?.[ticketNumber - 1] ??
-                  `TICKETERA-${order.orderNumber}-${ticketNumber}`
-                }
-              />
+            <div className="flex flex-col items-center gap-2">
+              <div data-qr-code className={cn(isUsed && "opacity-40")}>
+                <QRCodeSVG
+                  value={ticket?.qrCode ?? `TICKETERA-${order.orderNumber}-${ticketNumber}`}
+                />
+              </div>
+              {isUsed && (
+                <span className="text-sm font-semibold text-muted-foreground">Usada</span>
+              )}
             </div>
 
             <dl className="grid grid-cols-2 gap-3 text-sm">
@@ -155,6 +159,11 @@ export function TicketDetailPanel({
               <div className="flex flex-col gap-0.5">
                 <dt className="text-muted-foreground">Estado</dt>
                 <dd className="font-medium text-foreground">{statusLabel}</dd>
+                {isUsed && ticket?.checkedInAt && (
+                  <dd className="text-muted-foreground">
+                    Ingresó: {formatCheckedInAt(ticket.checkedInAt)} (hora de Lima)
+                  </dd>
+                )}
               </div>
             </dl>
           </div>
@@ -163,7 +172,8 @@ export function TicketDetailPanel({
             <Button
               variant="outline"
               className="flex-1"
-              disabled={isGeneratingPdf}
+              disabled={isGeneratingPdf || isUsed}
+              title={isUsed ? "Entrada ya utilizada" : undefined}
               onClick={handleDownloadPdf}
             >
               {isGeneratingPdf ? "Generando..." : "Descargar PDF"}

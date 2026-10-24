@@ -6,6 +6,7 @@ import {
   eventFunctions,
   events,
   functionZones,
+  newsletterSubscribers,
   orderItems,
   orders,
   tickets,
@@ -226,6 +227,13 @@ describe("database schema", () => {
       .returning();
     await db.insert(tickets).values({ orderItemId: orderItem.id, qrCode: "DUP-QR" });
     await expect(db.insert(tickets).values({ orderItemId: orderItem.id, qrCode: "DUP-QR" })).rejects.toThrow();
+  });
+
+  it("inserts a newsletter subscriber and enforces unique email", async () => {
+    const db = await createTestDb();
+    const [sub] = await db.insert(newsletterSubscribers).values({ email: "n@example.com" }).returning();
+    expect(sub.createdAt).toBeInstanceOf(Date);
+    await expect(db.insert(newsletterSubscribers).values({ email: "n@example.com" })).rejects.toThrow();
   });
 
   it("round-trips a decimal price exactly, without float drift", async () => {

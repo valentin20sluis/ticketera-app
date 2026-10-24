@@ -27,15 +27,27 @@ const FUTURE = "2099-05-10T19:00"
 
 async function setup() {
   const db = await createTestDb()
-  const insertUser = async (role: "organizer" | "admin" | "super_admin" | "customer", tag: string) => {
+  // Organizers get Stripe connected by default; pass withStripe=false for one that cannot publish.
+  const insertUser = async (
+    role: "organizer" | "admin" | "super_admin" | "customer",
+    tag: string,
+    withStripe = role === "organizer",
+  ) => {
     const [user] = await db
       .insert(users)
-      .values({ clerkUserId: `clerk_${tag}`, email: `${tag}@example.com`, fullName: tag, role })
+      .values({
+        clerkUserId: `clerk_${tag}`,
+        email: `${tag}@example.com`,
+        fullName: tag,
+        role,
+        ...(withStripe && { stripeAccountId: `acct_${tag}`, stripeChargesEnabled: true }),
+      })
       .returning()
     return user
   }
   const orgA = await insertUser("organizer", "orga")
   const orgB = await insertUser("organizer", "orgb")
+  const orgNoStripe = await insertUser("organizer", "orgnostripe", false)
   const admin = await insertUser("admin", "admin")
   const root = await insertUser("super_admin", "root")
   const customer = await insertUser("customer", "cust")
@@ -55,13 +67,15 @@ async function setup() {
       admissionType: "General",
     },
     venue: { mode: "new", venue: { name: "Arena", address: "Av. Siempre Viva 123", city: "Lima", lat: -12, lng: -77 } },
-    functionZones: {
-      startsAt: FUTURE,
-      zones: [
-        { name: "General", capacity: 100, price: 50 },
-        { name: "VIP", capacity: 20, price: 150 },
-      ],
-    },
+    functions: [
+      {
+        startsAt: FUTURE,
+        zones: [
+          { name: "General", capacity: 100, price: 50 },
+          { name: "VIP", capacity: 20, price: 150 },
+        ],
+      },
+    ],
     ...over,
   })
 
@@ -83,7 +97,7 @@ async function setup() {
     await db.insert(orderItems).values({ orderId: o.id, functionZoneId: zone.id, quantity: 1, unitPrice: "50.00" })
   }
 
-  return { db, orgA, orgB, admin, root, customer, category, venueA, form, counts, order }
+  return { db, orgA, orgB, orgNoStripe, admin, root, customer, category, venueA, form, counts, order }
 }
 
 const rejects = (promise: Promise<unknown>) => expect(promise).rejects.toBeInstanceOf(EventActionError)
@@ -141,7 +155,10 @@ describe("createEvent", () => {
     const before = await counts()
     // Zone price above numeric(10,2) fails at the last insert, after venue and event exist.
     const bad = form({
-      functionZones: { startsAt: FUTURE, zones: [{ name: "General", capacity: 10, price: 1e12 }] },
+      functions: [
+        { startsAt: FUTURE, zones: [{ name: "Ok", capacity: 10, price: 5 }] },
+        { startsAt: "2099-06-10T19:00", zones: [{ name: "General", capacity: 10, price: 1e12 }] },
+      ],
     })
     await expect(createEvent(db, orgA, bad)).rejects.toBeDefined()
     expect(await counts()).toEqual(before)
@@ -151,7 +168,7 @@ describe("createEvent", () => {
     const { db, orgA, form } = await setup()
     const base = form()
     await rejects(createEvent(db, orgA, { ...base, details: { ...base.details, imageUrl: "javascript:alert(1)" } }))
-    await rejects(createEvent(db, orgA, { ...base, functionZones: { ...base.functionZones, startsAt: "mañana" } }))
+    await rejects(createEvent(db, orgA, { ...base, functions: [{ ...base.functions[0], startsAt: "mañana" }] }))
     await rejects(
       createEvent(db, orgA, { ...base, details: { ...base.details, categoryId: crypto.randomUUID() } }),
     )
@@ -172,7 +189,7 @@ describe("updateEvent", () => {
       form({
         details: { ...form().details, title: "Nuevo título" },
         venue: { mode: "existing", venueId: created.venueId },
-        functionZones: { startsAt: "2099-06-01T20:00", zones: [{ name: "Único", capacity: 5, price: 10 }] },
+        functions: [{ startsAt: "2099-06-01T20:00", zones: [{ name: "Único", capacity: 5, price: 10 }] }],
       }),
     )
 
@@ -195,7 +212,7 @@ describe("updateEvent", () => {
         id,
         form({
           details: { ...form().details, title: "Solo detalle" },
-          functionZones: { startsAt: "2099-12-31T20:00", zones: [{ name: "Xx", capacity: 1, price: 1 }] },
+          functions: [{ startsAt: "2099-12-31T20:00", zones: [{ name: "Xx", capacity: 1, price: 1 }] }],
         }),
       )
       const [event] = await db.select().from(events).where(eq(events.id, id))
@@ -205,6 +222,82 @@ describe("updateEvent", () => {
       expect(fn.startsAt.toISOString()).toBe("2099-05-11T00:00:00.000Z")
       expect(zones).toHaveLength(2)
     }
+  })
+
+  const twoFunctions = (): CreateEventFormValues["functions"] => [
+    { startsAt: "2099-05-10T19:00", zones: [{ name: "General", capacity: 10, price: 5 }, { name: "VIP", capacity: 5, price: 9 }] },
+    { startsAt: "2099-05-11T19:00", zones: [{ name: "Platea", capacity: 8, price: 7 }] },
+  ]
+
+  it("creates every function with its own zones in one go", async () => {
+    const { db, orgA, form, counts } = await setup()
+    const before = await counts()
+    const { id } = await createEvent(db, orgA, form({ functions: twoFunctions() }))
+    const after = await counts()
+    expect(after.functions).toBe(before.functions + 2)
+    expect(after.functionZones).toBe(before.functionZones + 3)
+    expect(after.venueZones).toBe(before.venueZones + 3)
+    expect(await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, id))).toHaveLength(2)
+  })
+
+  it("replaces all functions of a multi-function event without orphans", async () => {
+    const { db, orgA, form, counts } = await setup()
+    const { id } = await createEvent(db, orgA, form({ functions: twoFunctions() }))
+    const venueId = (await db.select().from(events).where(eq(events.id, id)))[0].venueId
+    const before = await counts()
+    await updateEvent(
+      db,
+      orgA,
+      id,
+      form({
+        venue: { mode: "existing", venueId },
+        functions: [{ startsAt: "2099-07-01T20:00", zones: [{ name: "Único", capacity: 5, price: 10 }] }],
+      }),
+    )
+    const after = await counts()
+    expect(after.functions).toBe(before.functions - 1)
+    expect(after.functionZones).toBe(before.functionZones - 2)
+    expect(after.venueZones).toBe(before.venueZones - 2)
+  })
+
+  it("keeps a multi-function structure intact when orders exist", async () => {
+    const { db, orgA, form, order } = await setup()
+    const { id } = await createEvent(db, orgA, form({ functions: twoFunctions() }))
+    await order(id, "paid")
+    await updateEvent(
+      db,
+      orgA,
+      id,
+      form({
+        details: { ...form().details, title: "Solo detalle" },
+        functions: [{ startsAt: "2099-12-31T20:00", zones: [{ name: "Xx", capacity: 1, price: 1 }] }],
+      }),
+    )
+    expect(await db.select().from(eventFunctions).where(eq(eventFunctions.eventId, id))).toHaveLength(2)
+    expect((await db.select().from(events).where(eq(events.id, id)))[0].title).toBe("Solo detalle")
+  })
+
+  it("lets a published event keep a past function if another is future, and refuses all-past", async () => {
+    const { db, orgA, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    await setEventStatus(db, orgA, id, "published")
+    const venueId = (await db.select().from(events).where(eq(events.id, id)))[0].venueId
+    const venue = { mode: "existing" as const, venueId }
+    const zones = [{ name: "Gg", capacity: 1, price: 1 }]
+    await updateEvent(
+      db,
+      orgA,
+      id,
+      form({ venue, functions: [{ startsAt: "2000-01-01T10:00", zones }, { startsAt: FUTURE, zones }] }),
+    )
+    await rejects(
+      updateEvent(
+        db,
+        orgA,
+        id,
+        form({ venue, functions: [{ startsAt: "2000-01-01T10:00", zones }, { startsAt: "2001-01-01T10:00", zones }] }),
+      ),
+    )
   })
 
   it("denies other organizers, cancelled events and organizers on suspended events", async () => {
@@ -257,7 +350,7 @@ describe("setEventStatus", () => {
   it("refuses to publish without a future function", async () => {
     const { db, orgA, form } = await setup()
     const { id } = await createEvent(db, orgA, form({
-      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+      functions: [{ startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] }],
     }))
     await rejects(setEventStatus(db, orgA, id, "published"))
   })
@@ -266,6 +359,128 @@ describe("setEventStatus", () => {
     const { db, orgA, orgB, form } = await setup()
     const { id } = await createEvent(db, orgA, form())
     await rejects(setEventStatus(db, orgB, id, "published"))
+  })
+})
+
+describe("setEventStatus requires Stripe on the event owner", () => {
+  const OWN = "Conecta tu cuenta de Stripe para publicar eventos"
+  const OWNER = "El organizador de este evento aún no conectó su cuenta de Stripe"
+  const statusOf = async (db: Awaited<ReturnType<typeof setup>>["db"], id: string) =>
+    (await db.select().from(events).where(eq(events.id, id)))[0]
+  const rejectsWith = (promise: Promise<unknown>, message: string) =>
+    expect(promise).rejects.toThrow(new EventActionError(message))
+
+  it("blocks publishing without an account or with charges disabled (AC3, AC4)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    const before = await statusOf(db, id)
+    await rejectsWith(setEventStatus(db, orgNoStripe, id, "published"), OWN)
+
+    await db.update(users).set({ stripeAccountId: "acct_x", stripeChargesEnabled: false }).where(eq(users.id, orgNoStripe.id))
+    await rejectsWith(setEventStatus(db, orgNoStripe, id, "published"), OWN)
+
+    const after = await statusOf(db, id)
+    expect(after.status).toBe("draft")
+    expect(after.updatedAt).toEqual(before.updatedAt)
+  })
+
+  it("publishes once the owner can charge (AC5)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    await db.update(users).set({ stripeAccountId: "acct_x", stripeChargesEnabled: true }).where(eq(users.id, orgNoStripe.id))
+    await setEventStatus(db, orgNoStripe, id, "published")
+    expect((await statusOf(db, id)).status).toBe("published")
+  })
+
+  it("blocks admin reactivation for a not-ready owner and allows it for a ready one (AC6)", async () => {
+    const { db, orgNoStripe, orgA, admin, form } = await setup()
+    const ready = (await createEvent(db, orgA, form())).id
+    await setEventStatus(db, orgA, ready, "published")
+    await setEventStatus(db, admin, ready, "suspended")
+    await setEventStatus(db, admin, ready, "published")
+
+    const { id } = await createEvent(db, orgNoStripe, form())
+    await db.update(events).set({ status: "suspended" }).where(eq(events.id, id))
+    await rejectsWith(setEventStatus(db, admin, id, "published"), OWNER)
+    expect((await statusOf(db, id)).status).toBe("suspended")
+  })
+
+  it("validates the owner, not the actor (AC7)", async () => {
+    const { db, orgNoStripe, root, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    // Only suspended -> published is open to admins, so suspend the event first.
+    await db.update(events).set({ status: "suspended" }).where(eq(events.id, id))
+    await rejectsWith(setEventStatus(db, root, id, "published"), OWNER)
+    expect((await statusOf(db, id)).status).toBe("suspended")
+  })
+
+  it("reports permission before Stripe (AC8)", async () => {
+    const { db, orgNoStripe, orgA, customer, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    for (const actor of [orgA, customer, null]) {
+      await rejectsWith(setEventStatus(db, actor, id, "published"), "No puedes modificar este evento")
+    }
+  })
+
+  it("reports Stripe before the future-function rule (AC9)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form({
+      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+    }))
+    await rejectsWith(setEventStatus(db, orgNoStripe, id, "published"), OWN)
+  })
+
+  it("leaves already published events of a not-ready owner editable, cancellable, suspendable (AC10)", async () => {
+    const { db, orgNoStripe, admin, form } = await setup()
+    const ids = []
+    for (let i = 0; i < 2; i++) {
+      const { id } = await createEvent(db, orgNoStripe, form())
+      await db.update(events).set({ status: "published" }).where(eq(events.id, id))
+      ids.push(id)
+    }
+    const [a, b] = ids
+    const venueId = (await statusOf(db, a)).venueId
+    await updateEvent(db, orgNoStripe, a, form({ venue: { mode: "existing", venueId } }))
+    await setEventFeatured(db, admin, a, true)
+    await setEventStatus(db, admin, a, "suspended")
+    await setEventStatus(db, orgNoStripe, b, "cancelled")
+    expect((await statusOf(db, a)).status).toBe("suspended")
+    expect((await statusOf(db, b)).status).toBe("cancelled")
+  })
+
+  it("keeps drafts free: create and update work without Stripe (AC11)", async () => {
+    const { db, orgNoStripe, form } = await setup()
+    const { id } = await createEvent(db, orgNoStripe, form())
+    const venueId = (await statusOf(db, id)).venueId
+    await updateEvent(db, orgNoStripe, id, form({ details: { ...form().details, title: "Otro" }, venue: { mode: "existing", venueId } }))
+    expect((await statusOf(db, id)).title).toBe("Otro")
+  })
+
+  it("fails with the Stripe error, not STALE, when the flag drops between read and UPDATE (AC12)", async () => {
+    const { db, orgA, form } = await setup()
+    const { id } = await createEvent(db, orgA, form())
+    // Run the owner's downgrade right before the events UPDATE hits the database.
+    const racing = new Proxy(db, {
+      get(target, prop, receiver) {
+        if (prop !== "update") return Reflect.get(target, prop, receiver)
+        return (table: unknown) => {
+          const real = target.update(table as typeof events)
+          if (table !== events) return real
+          return {
+            set: (values: never) => ({
+              where: (cond: never) => ({
+                returning: async (fields: never) => {
+                  await target.update(users).set({ stripeChargesEnabled: false }).where(eq(users.id, orgA.id))
+                  return real.set(values).where(cond).returning(fields)
+                },
+              }),
+            }),
+          }
+        }
+      },
+    })
+    await rejectsWith(setEventStatus(racing, orgA, id, "published"), OWN)
+    expect((await statusOf(db, id)).status).toBe("draft")
   })
 })
 
@@ -353,7 +568,7 @@ describe("review findings", () => {
   it("refuses a past date when editing a published event but allows it on a draft", async () => {
     const { db, orgA, form } = await setup()
     const past = form({
-      functionZones: { startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] },
+      functions: [{ startsAt: "2000-01-01T10:00", zones: [{ name: "Gg", capacity: 1, price: 1 }] }],
     })
     const { id } = await createEvent(db, orgA, form())
     const venueId = (await db.select().from(events).where(eq(events.id, id)))[0].venueId

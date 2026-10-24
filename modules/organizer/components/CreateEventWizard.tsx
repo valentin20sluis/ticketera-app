@@ -35,7 +35,7 @@ const ALL_STEPS: CreateEventStep[] = ["details", "venue", "zones"]
 const STEP_LABELS: Record<CreateEventStep, string> = {
   details: "Datos del evento",
   venue: "Venue",
-  zones: "Función y zonas",
+  zones: "Funciones y zonas",
 }
 
 export function CreateEventWizard({ categories, venues, owners, edit }: CreateEventWizardProps) {
@@ -52,6 +52,8 @@ export function CreateEventWizard({ categories, venues, owners, edit }: CreateEv
     setVenueMode,
     setExistingVenueId,
     updateNewVenueField,
+    addFunction,
+    removeFunction,
     updateFunctionStartsAt,
     addZoneRow,
     removeZoneRow,
@@ -119,8 +121,8 @@ export function CreateEventWizard({ categories, venues, owners, edit }: CreateEv
 
       {edit?.structureLocked && (
         <div role="status" className="rounded-lg border bg-muted px-4 py-3 text-sm text-muted-foreground">
-          Este evento ya tiene pedidos (o varias funciones): solo puedes editar sus datos. El venue,
-          la fecha, las zonas y los precios están bloqueados.
+          Este evento ya tiene pedidos: solo puedes editar sus datos. El venue, las funciones,
+          las zonas y los precios están bloqueados.
         </div>
       )}
 
@@ -171,8 +173,10 @@ export function CreateEventWizard({ categories, venues, owners, edit }: CreateEv
 
       {step === "zones" && (
         <FunctionZonesStep
-          values={values.functionZones}
+          functions={values.functions}
           errors={errors}
+          onAddFunction={addFunction}
+          onRemoveFunction={removeFunction}
           onStartsAtChange={updateFunctionStartsAt}
           onAddZone={addZoneRow}
           onRemoveZone={removeZoneRow}

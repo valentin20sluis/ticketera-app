@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useActionState } from "react"
 import { CheckCircle2Icon, MailIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -12,24 +12,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-
-type SubscriptionStatus = "idle" | "success" | "error"
+import {
+  subscribeAction,
+  type NewsletterState,
+} from "@/modules/newsletter/actions/newsletter.actions"
 
 export function NewsletterCard() {
-  const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<SubscriptionStatus>("idle")
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!email.trim()) {
-      setStatus("error")
-      return
-    }
-
-    setStatus("success")
-    setEmail("")
-  }
+  const [state, formAction, isPending] = useActionState<
+    NewsletterState,
+    FormData
+  >(subscribeAction, {})
 
   return (
     <Card className="mx-auto max-w-2xl bg-brand text-brand-foreground">
@@ -43,37 +35,43 @@ export function NewsletterCard() {
       </CardHeader>
       <CardContent>
         <form
-          onSubmit={handleSubmit}
+          action={formAction}
           className="flex flex-col gap-3 sm:flex-row"
           noValidate
         >
           <div className="relative flex-1">
             <MailIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              // key resets the uncontrolled input after a successful subscription
+              key={state.success ? "done" : "form"}
               type="email"
+              name="email"
               placeholder="tu@email.com"
               aria-label="Correo electrónico"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              aria-invalid={state.error ? true : undefined}
               className="bg-background pl-8 text-foreground"
             />
           </div>
           <Button
             type="submit"
+            disabled={isPending}
             className="bg-cta text-cta-foreground hover:bg-cta/90"
           >
-            Suscribirme
+            {isPending ? "Enviando..." : "Suscribirme"}
           </Button>
         </form>
-        {status === "success" && (
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-sm font-medium">
+        {state.success && (
+          <p
+            role="status"
+            className="mt-3 flex items-center justify-center gap-1.5 text-sm font-medium"
+          >
             <CheckCircle2Icon className="size-4" />
-            ¡Listo! Revisa tu correo para confirmar la suscripción.
+            ¡Gracias! Te avisaremos de las novedades y preventas.
           </p>
         )}
-        {status === "error" && (
-          <p className="mt-3 text-center text-sm font-medium">
-            Ingresa un correo válido.
+        {state.error && (
+          <p role="alert" className="mt-3 text-center text-sm font-medium">
+            {state.error}
           </p>
         )}
       </CardContent>

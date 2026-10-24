@@ -43,6 +43,13 @@
       "when": 1791738652590,
       "tag": "0005_swift_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792773154931,
+      "tag": "0006_newsletter_subscribers",
+      "breakpoints": true
     }
   ]
 }

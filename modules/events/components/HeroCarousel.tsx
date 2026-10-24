@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -55,7 +56,12 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
           <span className="text-lg font-semibold">
             Desde {formatPrice(activeEvent.priceFrom)}
           </span>
-          <Button size="lg" className="bg-cta text-cta-foreground hover:bg-cta/90">
+          <Button
+            size="lg"
+            className="bg-cta text-cta-foreground hover:bg-cta/90"
+            nativeButton={false}
+            render={<Link href={`/eventos/${activeEvent.slug}`} />}
+          >
             Ver detalles
           </Button>
         </div>
@@ -104,6 +110,24 @@ export function HeroCarousel({ events }: HeroCarouselProps) {
               )}
             >
               <Image src={event.imageUrl} alt="" fill unoptimized className="object-cover" />
+              {events.length > 1 && (
+                // Fills over AUTOPLAY_INTERVAL_MS while this item is on screen. Inactive items
+                // sit at scale-x-0 with no transition, so the bar restarts on every change.
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-white",
+                    thumbnailIndex === index &&
+                      !isPaused &&
+                      "scale-x-100 transition-transform ease-linear"
+                  )}
+                  style={
+                    thumbnailIndex === index && !isPaused
+                      ? { transitionDuration: `${AUTOPLAY_INTERVAL_MS}ms` }
+                      : undefined
+                  }
+                />
+              )}
             </div>
           ))}
         </div>
