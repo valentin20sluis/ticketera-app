@@ -4,7 +4,7 @@ import { HeroCarousel } from "@/modules/events/components/HeroCarousel"
 import { HowItWorksSection } from "@/modules/events/components/HowItWorksSection"
 import { UpcomingEventsSection } from "@/modules/events/components/UpcomingEventsSection"
 import { getDb } from "@/lib/db/client"
-import { MOCK_CATEGORIES } from "@/modules/events/data/events.mock"
+import { listPublicCategories } from "@/modules/events/services/list-public-categories.service"
 import {
   listPublicEvents,
   pickHeroEvents,
@@ -13,19 +13,20 @@ import { connection } from "next/server"
 
 export default async function Home() {
   await connection()
-  const events = await listPublicEvents(await getDb())
+  const db = await getDb()
+  const [events, categories] = await Promise.all([
+    listPublicEvents(db),
+    listPublicCategories(db),
+  ])
 
   return (
     <>
       <HeroCarousel events={pickHeroEvents(events)} />
       <div id="categorias">
-        <CategoryChips categories={MOCK_CATEGORIES} />
+        <CategoryChips categories={categories} />
       </div>
       <div id="eventos">
-        <UpcomingEventsSection
-          events={events}
-          categories={MOCK_CATEGORIES.map(({ id, name }) => ({ id, name }))}
-        />
+        <UpcomingEventsSection events={events} categories={categories} />
       </div>
       <div id="como-funciona">
         <HowItWorksSection />

@@ -38,7 +38,8 @@ export async function listPublicEvents(db: Db, now: Date = new Date()): Promise<
       venueAddress: venues.address,
       venueLat: venues.lat,
       venueLng: venues.lng,
-      categoryId: eventCategories.iconKey,
+      categoryId: eventCategories.id,
+      categoryName: eventCategories.name,
     })
     .from(events)
     .innerJoin(venues, eq(venues.id, events.venueId))
