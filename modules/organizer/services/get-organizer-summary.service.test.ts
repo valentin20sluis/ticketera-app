@@ -259,6 +259,12 @@ describe("getOrganizerSummary", () => {
     })
   })
 
+  it("exposes organizerId on every event", async () => {
+    const { db, organizer } = await setup()
+    const { events: list } = await getOrganizerSummary(db, organizer)
+    expect(list.every((e) => e.organizerId === organizer.id)).toBe(true)
+  })
+
   describe("scope", () => {
     const EMPTY = { totalTicketsSold: 0, totalRevenue: 0, publishedEventsCount: 0, publishedEvents: [], events: [] }
 

@@ -46,6 +46,7 @@ export const users = pgTable("users", {
   stripeAccountId: varchar("stripe_account_id", { length: 255 }),
   stripeChargesEnabled: boolean("stripe_charges_enabled").notNull().default(false),
   stripePayoutsEnabled: boolean("stripe_payouts_enabled").notNull().default(false),
+  ruc: varchar("ruc", { length: 11 }),
   isSuspended: boolean("is_suspended").notNull().default(false),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
