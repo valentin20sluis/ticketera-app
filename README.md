@@ -9,10 +9,11 @@ Es un proyecto demo, desarrollado con un flujo asistido por agentes de Claude Co
 | Área | Qué hay |
 |---|---|
 | Público | Landing con hero, catálogo con filtros por categoría, detalle del evento con mapa y "Cómo llegar", newsletter |
-| Compra | Elección de zona y cantidad, checkout con Stripe (Checkout Sessions + destination charges con comisión de plataforma), entradas con QR y PDF |
+| Compra | Elección de zona y cantidad, o de **asientos numerados** (cuadrícula 10×10 por zona, estilo cine), checkout con Stripe (Checkout Sessions + destination charges con comisión de plataforma), entradas con QR y PDF |
 | Cliente | `/mis-entradas` con el estado real de cada entrada; botón "Quiero vender entradas" para pasar a organizador |
-| Organizador | Panel con resumen, asistente de eventos (varias funciones por evento), onboarding de Stripe Connect y check-in con cámara |
-| Administración | Gestión de usuarios y organizadores, con suspensión de cuentas |
+| Organizador | Panel con resumen y dashboard, asistente de eventos (varias funciones por evento), configuración (RUC), página de pagos, onboarding de Stripe Connect y check-in con cámara |
+| Administración | Gestión de usuarios y organizadores, con suspensión de cuentas, y moderación de eventos |
+| Tareas programadas | `GET /api/cron/reconcile-orders` reconcilia las órdenes pendientes con Stripe; se protege con `Authorization: Bearer $CRON_SECRET` y debe invocarse cada 5 minutos (hoy lo hace `vercel.json`; en otro hosting, un programador externo) |
 
 ## Stack
 
@@ -49,7 +50,7 @@ Para recibir los webhooks de Stripe en local, deja corriendo `npm run stripe:lis
 
 ### Variables de entorno
 
-Están descritas en `.env.example`: base de datos (`DATABASE_*`), Clerk (`*_CLERK_*`), Stripe (`STRIPE_*`, incluido `STRIPE_CONNECT_ACCOUNT_COUNTRY`), y la comisión de plataforma (`PLATFORM_FEE_PERCENT`).
+Están descritas en `.env.example`: base de datos (`DATABASE_*`), Clerk (`*_CLERK_*`), Stripe (`STRIPE_*`, incluido `STRIPE_CONNECT_ACCOUNT_COUNTRY`), la comisión de plataforma (`PLATFORM_FEE_PERCENT`) y el secreto del cron (`CRON_SECRET`).
 
 ## Scripts
 
